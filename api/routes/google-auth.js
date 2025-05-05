@@ -1,13 +1,10 @@
 const express = require('express');
 const router = express.Router();
-const { getAuthUrl } = require("../handlers/google-auth");
+const { getAuthUrl, exchangeCodeForIdToken } = require("../handlers/google-auth");
 
-router.get('/signin-google', (req, res, next) => {
-  const googleResponseDetails = {
-    sessionId: req.query["state"],
-    authCode: req.query["code"],
-  }
-  res.send(googleResponseDetails);
+router.get('/signin-google', async (req, res, next) => {
+  const tokenResponse = await exchangeCodeForIdToken(req.query["code"], req.query["state"]);
+  res.send(tokenResponse);
 });
 
 router.get('/login', (req, res, next) => {

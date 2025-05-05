@@ -12,7 +12,41 @@ const getAuthUrl = () => {
     return authUrl;
 };
 
+const exchangeCodeForIdToken = async (code, state) => {
+    try {
+        const tokenUrl = process.env.TOKEN_ENDPOINT;
+        const requestBody = {
+            code: code,
+            client_id: process.env.CLIENT_ID ?? "",
+            client_secret: process.env.CLIENT_SECRET ?? "",
+            redirect_uri: process.env.REDIRECT_URI ?? "",
+            grant_type: "authorization_code",
+        }
+        const response = await fetch(tokenUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(requestBody)
+        });
+    
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+    
+        const responseData = await response.json();
+        return {
+            response: responseData,
+            sessionId: state
+        };
+      } catch (error) {
+        console.error("There was an error during the POST request:", error);
+        throw error;
+      }
+}
+
 
 module.exports = {
     getAuthUrl,
+    exchangeCodeForIdToken
 }
