@@ -7,7 +7,6 @@ CREATE TABLE Users (
 
 CREATE TABLE Teams (
     id INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
-    name VARCHAR(40) NOT NULL UNIQUE,
     captain_id INT NOT NULL,
     is_open BIT NOT NULL DEFAULT 1,
     CONSTRAINT FK_Teams_Captain FOREIGN KEY (captain_id) REFERENCES Users(id)
@@ -40,6 +39,7 @@ CREATE TABLE Matches (
     team_a_id INT NOT NULL,
     team_b_id INT NOT NULL,
     status_id INT NOT NULL,
+    max_participants INT NOT NULL,
     started_datetime DATETIME DEFAULT GETDATE(),
     completed_datetime DATETIME NULL,
     CONSTRAINT FK_Matches_Creator FOREIGN KEY (match_creator_id) REFERENCES Users(id),
@@ -69,9 +69,9 @@ CREATE TABLE GameRounds (
     team_id INT NOT NULL,
     guessing_item_id INT NOT NULL,
     hint_count INT NOT NULL DEFAULT 1,
+    hint_vote_count INT NOT NULL DEFAULT 0,
     points_awarded INT NOT NULL DEFAULT 0,
-    final_answer VARCHAR(100) NOT NULL,
-    time_in_ms INT NOT NULL DEFAULT 30000,
+    time_in_ms INT NOT NULL DEFAULT 0,
     CONSTRAINT FK_GameRounds_Match FOREIGN KEY (match_id) REFERENCES Matches(id),
     CONSTRAINT FK_GameRounds_Team FOREIGN KEY (team_id) REFERENCES Teams(id),
     CONSTRAINT FK_GameRounds_GuessingItem FOREIGN KEY (guessing_item_id) REFERENCES GuessingItems(id)
