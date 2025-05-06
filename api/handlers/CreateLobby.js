@@ -1,17 +1,14 @@
-const sql = require('mssql');
-const dbConfig = require('../db/connection');
+const { executeQuery } = require('../db/query');
 
 async function getAllCategories(req, res) {
     try {
-        const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT * FROM Categories');
-        res.json(result.recordset);
+        const result = await executeQuery('SELECT * FROM Categories');
+        res.json(result);
     } catch (err) {
         console.error('Error fetching categories:', err);
         res.status(500).send('Failed to get categories');
     }
 }
-
 
 module.exports = {
     getAllCategories,

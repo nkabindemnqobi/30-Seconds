@@ -5,6 +5,7 @@ const logger = require('morgan');
 const indexRouter = require('./routes/index');
 const usersRouter = require('./routes/users');
 const createLobby = require('./routes/categories');
+const home = require('./routes/home');
 
 const app = express();
 
@@ -15,6 +16,7 @@ app.use(express.urlencoded({ extended: false }));
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
 app.use('/create-lobby', createLobby);
+app.use('/home', home)
 
 app.use((req, res, next) => {
   next(createError(404));
