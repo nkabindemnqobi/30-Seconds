@@ -1,6 +1,6 @@
 const crypto = require("crypto");
 
-function generateSessionId() {
+const generateSessionId = () => {
     const bytes = new Uint8Array(32);
     crypto.getRandomValues(bytes);
 
