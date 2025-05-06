@@ -1,6 +1,7 @@
 const { executeQuery } = require('../db/query');
+const formatErrorResponse = require('../utils/formatErrorResponse');
 
-async function getAllPublicLobbies(req, res) {
+const getAllPublicLobbies = async (req, res) => {
     const sqlQuery = `
         SELECT 
             m.id AS matchId,
@@ -26,9 +27,12 @@ async function getAllPublicLobbies(req, res) {
         WHERE m.is_public = 1;
     `;
 
-
     try {
         const result = await executeQuery(sqlQuery);
+
+        if (!result || result.length === 0) {
+            return res.status(404).json({ message: 'No public lobbies found' });
+        }
 
         const lobbiesMap = new Map();
 
@@ -63,12 +67,12 @@ async function getAllPublicLobbies(req, res) {
             }
         }
 
-        res.json(Array.from(lobbiesMap.values()));
+        res.status(200).json(Array.from(lobbiesMap.values()));
     } catch (err) {
-        console.error('Error fetching lobbies:', err);
-        res.status(500).send('Failed to fetch public lobbies');
+        const { status, error, reason } = formatErrorResponse(err, 'Public Lobbies');
+        res.status(status).json({ error, reason });
     }
-}
+};
 
 module.exports = {
     getAllPublicLobbies,
