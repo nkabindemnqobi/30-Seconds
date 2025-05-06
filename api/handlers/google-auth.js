@@ -44,9 +44,10 @@ const exchangeCodeForIdToken = async (code, state) => {
         throw error;
       }
 }
-
+const tokenCache = {};
 
 module.exports = {
     getAuthUrl,
-    exchangeCodeForIdToken
+    exchangeCodeForIdToken,
+    tokenCache,
 }
