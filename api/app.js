@@ -2,7 +2,7 @@ const createError = require('http-errors');
 const express = require('express');
 const logger = require('morgan');
 
-const indexRouter = require('./routes/index');
+const authRouter = require('./routes/google-auth');
 const usersRouter = require('./routes/users');
 const createLobby = require('./routes/categories');
 const home = require('./routes/home');
@@ -13,7 +13,8 @@ app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use('/', indexRouter);
+app.use('/auth', authRouter);
+app.use('/', authRouter);
 app.use('/users', usersRouter);
 app.use('/create-lobby', createLobby);
 app.use('/home', home)
