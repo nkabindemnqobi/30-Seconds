@@ -8,7 +8,6 @@ router.get('/signin-google', async (req, res, next) => {
   if (sessionId && token) {
     tokenCache[sessionId] = token;
   }
-  console.log(tokenCache);
   res.send(tokenResponse);
   next();
 });
@@ -24,7 +23,7 @@ app.get('/get-token/:sessionId', (req, res) => {
   const token = tokenCache[sessionId];
 
   if (token) {
-    res.send(`Token for session ${sessionId}: ${token}`);
+    res.send(token);
   } else {
     res.status(404).send('Token not found');
   }
