@@ -24,7 +24,7 @@ const getAllPublicLobbies = async (req, res) => {
         JOIN Users u ON u.id = m.match_creator_id
         LEFT JOIN MatchParticipants bmp ON bmp.team_id IN (m.team_a_id, m.team_b_id) AND bmp.is_barred = 1
         LEFT JOIN Users bu ON bu.id = bmp.user_id
-        WHERE m.is_public = 1;
+        WHERE m.is_public = 1 AND m.status_id = 1;
     `;
 
     try {
