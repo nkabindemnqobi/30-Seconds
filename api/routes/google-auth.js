@@ -5,11 +5,10 @@ const { getAuthUrl, exchangeCodeForIdToken, tokenCache } = require("../handlers/
 router.get('/signin-google', async (req, res, next) => {
   const sessionId = req.query["state"];
   const tokenResponse = await exchangeCodeForIdToken(req.query["code"], sessionId);
-  if (sessionId && token) {
-    tokenCache[sessionId] = token;
+  if (sessionId && tokenResponse) {
+    tokenCache[sessionId] = tokenResponse;
   }
   res.send(tokenResponse);
-  next();
 });
 
 router.get('/login', (req, res, next) => {
@@ -18,7 +17,7 @@ router.get('/login', (req, res, next) => {
   next();
 })
 
-app.get('/get-token/:sessionId', (req, res) => {
+router.get('/get-token/:sessionId', (req, res) => {
   const sessionId = req.params.sessionId;
   const token = tokenCache[sessionId];
 

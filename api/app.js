@@ -3,8 +3,6 @@ const express = require('express');
 const logger = require('morgan');
 
 const authRouter = require('./routes/google-auth');
-const logger = require('morgan');
-
 const usersRouter = require('./routes/users');
 const createLobby = require('./routes/categories');
 
