@@ -5,24 +5,21 @@ on:
   push:
     branches:
       - main
-    paths:
-      - 'db/migrations/**'
 
 jobs:
-  FlywayMigration:
-    name: Run Flyway Migration
-    runs-on: ubuntu-latest
+    FlywayMigration:
+        name: Run Flyway Migration
+        runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Repository
-        uses: actions/checkout@v4
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
 
-      - name: Flyway Migrate
-        uses: redgate/flyway@v1
-        with:
-          flywayVersion: '11.8.0'
-          url: ${{ secrets.DB_URL }}
-          user: ${{ secrets.DB_USERNAME }}
-          password: ${{ secrets.DB_PASSWORD }}
-          locations: 'filesystem:./db/migrations'
-          command: 'migrate'
+            - name: Continuous Integration Flyway Migration
+              run: >-
+                  docker run --rm
+                  --volume ${{ github.workspace }}/db/migrations:/flyway/sql:ro
+                  redgate/flyway
+                  -url="${{ secrets.DB_URL }}"
+                  -user="${{ secrets.DB_USERNAME }}"
+                  -password="${{ secrets.DB_PASSWORD }}" migrate
