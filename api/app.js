@@ -5,6 +5,7 @@ const logger = require('morgan');
 const authRouter = require('./routes/google-auth');
 const usersRouter = require('./routes/users');
 const createLobby = require('./routes/categories');
+const homeRouter = require('./routes/home');
 
 const app = express();
 
@@ -16,6 +17,7 @@ app.use('/auth', authRouter);
 app.use('/', authRouter);
 app.use('/users', usersRouter);
 app.use('/create-lobby', createLobby);
+app.use('/home', homeRouter)
 
 app.use((req, res, next) => {
   next(createError(404));
