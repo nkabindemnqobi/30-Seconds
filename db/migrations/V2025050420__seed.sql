@@ -1,3 +1,5 @@
+INSERT INTO Status (status) VALUES ('Lobby'), ('Ongoing'), ('Completed');
+
 INSERT INTO Categories (name) VALUES 
 ('General Knowledge'),
 ('Celebrities'),
@@ -87,7 +89,6 @@ INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Wimbledon', 5),
 ('NBA', 5),
 ('Springboks', 5),
-('Serena Williams', 5),
 ('Golf club', 5),
 ('LeBron James', 5);
 
@@ -98,7 +99,6 @@ INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Michael Jackson', 6),
 ('Adele', 6),
 ('Spotify', 6),
-('Beyoncé', 6),
 ('Justin Bieber', 6),
 ('Lady Gaga', 6),
 ('Drake', 6),
