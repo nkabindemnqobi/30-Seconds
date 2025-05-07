@@ -1,12 +1,19 @@
-INSERT INTO Status (status) VALUES ('Lobby'), ('Ongoing'), ('Completed');
+SET IDENTITY_INSERT Status ON;
+INSERT INTO Status (id, status) VALUES 
+(1, 'Lobby'),
+(2, 'Ongoing'),
+(3, 'Completed');
+SET IDENTITY_INSERT Status OFF;
 
-INSERT INTO Categories (name) VALUES 
-('General Knowledge'),
-('Celebrities'),
-('Geography'),
-('Movies & TV'),
-('Sports'),
-('Music');
+SET IDENTITY_INSERT Categories ON;
+INSERT INTO Categories (id, name) VALUES 
+(1, 'General Knowledge'),
+(2, 'Celebrities'),
+(3, 'Geography'),
+(4, 'Movies & TV'),
+(5, 'Sports'),
+(6, 'Music');
+SET IDENTITY_INSERT Categories OFF;
 
 INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Toothbrush', 1),
