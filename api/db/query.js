@@ -10,11 +10,18 @@ const getPool = async () => {
     return poolPromise;
 };
 
-const executeQuery = async (sqlQuery) => {
+const executeQuery = async (sqlQuery,params) => {
     try {
-        const pool = await getPool();
-        const result = await pool.request().query(sqlQuery);
-        return result.recordset;
+      const pool = await getPool();
+      const request = pool.request();
+  
+      if (params && Object.keys(params).length > 0) {
+        for (const [paramName, paramValue] of Object.entries(params)) {
+          request.input(paramName, paramValue);
+        }
+      }
+      const response = await request.query(sqlQuery);
+      return response.recordset;
     } catch (err) {
         err.isConnectionError =
             err.code === 'ECONNREFUSED' ||
@@ -32,5 +39,5 @@ const executeQuery = async (sqlQuery) => {
 };
 
 module.exports = {
-    executeQuery,
+  executeQuery,
 };
