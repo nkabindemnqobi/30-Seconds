@@ -23,10 +23,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsOIDCRole
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Copy environment config
-        run: aws s3 cp s3://${{ secrets.AWS_S3_BUCKET }}/.env ./api/.env
-
+          
       - name: Create zip file
         run: |
           cd api
