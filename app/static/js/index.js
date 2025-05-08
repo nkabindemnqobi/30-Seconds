@@ -1,6 +1,9 @@
 import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
+import Login from "./views/Login.js";
+import { getApplicationConfiguration } from "../../handlers/google-auth.js";
+import { applicationConfiguration } from "../../models/app-config.js";
 
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
@@ -21,9 +24,10 @@ const navigateTo = url => {
 
 const router = async () => {
     const routes = [
-        { path: "/", view: Dashboard },
+        { path: "/lobby", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
-        { path: "/error", view: NotFound }
+        { path: "/error", view: NotFound },
+        { path: "/", view: Login }
     ];
 
     const potentialMatches = routes.map(route => {
@@ -91,10 +95,17 @@ const attachEventListeners = () => {
             button.classList.toggle("selected");
         });
     });
+
+    const loginButton = document.getElementById("login-button");
+    loginButton.addEventListener("click", (e) => {
+        e.preventDefault();
+        window.location.href = applicationConfiguration.redirectUrl;
+    })
 };
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
+    getApplicationConfiguration(applicationConfiguration);
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
@@ -104,5 +115,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     router();
 });
+
+
 
 window.addEventListener("popstate", router);

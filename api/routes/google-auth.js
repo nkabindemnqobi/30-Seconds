@@ -13,8 +13,7 @@ router.get('/signin-google', async (req, res, next) => {
 
 router.get('/login', (req, res, next) => {
   const authUrl = getAuthUrl();
-  res.send(authUrl);
-  next();
+  res.send({authUrl: authUrl});
 })
 
 router.get('/get-token/:sessionId', (req, res) => {
