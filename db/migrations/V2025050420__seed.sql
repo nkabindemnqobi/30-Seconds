@@ -1,10 +1,19 @@
-INSERT INTO Categories (name) VALUES 
-('General Knowledge'),
-('Celebrities'),
-('Geography'),
-('Movies & TV'),
-('Sports'),
-('Music');
+SET IDENTITY_INSERT Status ON;
+INSERT INTO Status (id, status) VALUES 
+(1, 'Lobby'),
+(2, 'Ongoing'),
+(3, 'Completed');
+SET IDENTITY_INSERT Status OFF;
+
+SET IDENTITY_INSERT Categories ON;
+INSERT INTO Categories (id, name) VALUES 
+(1, 'General Knowledge'),
+(2, 'Celebrities'),
+(3, 'Geography'),
+(4, 'Movies & TV'),
+(5, 'Sports'),
+(6, 'Music');
+SET IDENTITY_INSERT Categories OFF;
 
 INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Toothbrush', 1),
@@ -87,7 +96,6 @@ INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Wimbledon', 5),
 ('NBA', 5),
 ('Springboks', 5),
-('Serena Williams', 5),
 ('Golf club', 5),
 ('LeBron James', 5);
 
@@ -98,7 +106,6 @@ INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Michael Jackson', 6),
 ('Adele', 6),
 ('Spotify', 6),
-('Beyoncé', 6),
 ('Justin Bieber', 6),
 ('Lady Gaga', 6),
 ('Drake', 6),
