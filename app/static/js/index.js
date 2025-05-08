@@ -1,8 +1,26 @@
 import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
-
-
+import  "../components/LobbyForm.js";
+import BaseService from "../../services/shared.service.js";
+async function post(url, requestBody) {
+  console.log("hey");
+    try {
+      url = url.includes("#") ? url.replace(/#/g, encodeURIComponent("#")) : url;
+      let body = JSON.stringify(requestBody);
+  
+      return await fetch(url, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",  
+          },
+        body,
+      });
+    } catch (error) {
+      throw error;
+    }
+  }
+  
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 
 const getParams = match => {
@@ -45,9 +63,21 @@ const router = async () => {
     const view = new match.route.view(getParams(match));
     
     document.querySelector("#app").innerHTML = await view.getHtml();
-
     attachEventListeners();
+
+    // view.mount();
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.addEventListener("click", e => {
+        if (e.target.matches("[data-link]")) {
+            e.preventDefault();
+            navigateTo(e.target.href);
+        }
+    });
+
+    router();
+});
 
 const attachEventListeners = () => {
     const lobbyForm = document.getElementById("lobbyForm");
@@ -92,17 +122,5 @@ const attachEventListeners = () => {
         });
     });
 };
-
-// Add event listeners for navigation
-document.addEventListener("DOMContentLoaded", () => {
-    document.body.addEventListener("click", e => {
-        if (e.target.matches("[data-link]")) {
-            e.preventDefault();
-            navigateTo(e.target.href);
-        }
-    });
-
-    router();
-});
 
 window.addEventListener("popstate", router);
