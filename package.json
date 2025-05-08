@@ -10,7 +10,11 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "all": "^0.0.0",
     "express": "^5.1.0",
+    "http-errors": "^2.0.0",
+    "morgan": "^1.10.0",
+    "mssql": "^11.0.1",
     "path": "^0.12.7"
   }
 }
