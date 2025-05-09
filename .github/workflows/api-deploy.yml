@@ -3,7 +3,11 @@ name: deploy-to-eb
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+      - develop
+    paths:
+      - "api/**"
 
 permissions:
   contents: read
@@ -23,7 +27,7 @@ jobs:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsOIDCRole
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ secrets.AWS_REGION }}
-          
+
       - name: Create zip file
         run: |
           cd api
