@@ -1,15 +1,15 @@
 import AbstractView from "./AbstractView.js";
 
-export default class Login extends AbstractView {
+export default class Authenticated extends AbstractView {
     constructor(params) {
         super(params);
-        this.setTitle("Login");
+        this.setTitle("Authentication Response");
     }
     
     async getHtml() {
         return `
             <section class="card">
-                <button id="login-button" class="create"> Sign in with Google </button>
+                <h1>Successfully Authenticated</h1>
             </section>
         `;
     }

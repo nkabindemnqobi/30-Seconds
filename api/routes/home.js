@@ -4,5 +4,4 @@ const { getAllPublicLobbies } = require('../handlers/Home');
 
 router.get('/public-lobbies', getAllPublicLobbies);
 
-
 module.exports = router;
