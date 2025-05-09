@@ -10,18 +10,18 @@ const getPool = async () => {
   return poolPromise;
 };
 
-const executeQuery = async (sqlQuery, params = []) => {
+const executeQuery = async (sqlQuery, params) => {
   try {
     const pool = await getPool();
     const request = pool.request();
 
-    // This is to handle queries with parameters
-    for (const param of params) {
-      request.input(param.name, param.type, param.value);
+    if (params && Object.keys(params).length > 0) {
+      for (const [paramName, paramValue] of Object.entries(params)) {
+        request.input(paramName, paramValue);
+      }
     }
-
-    const result = await request.query(sqlQuery);
-    return result.recordset;
+    const response = await request.query(sqlQuery);
+    return response.recordset;
   } catch (err) {
     err.isConnectionError =
       err.code === "ECONNREFUSED" ||
