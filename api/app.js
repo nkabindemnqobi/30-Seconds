@@ -21,7 +21,7 @@ app.use("/users", usersRouter);
 app.use("/create-lobby", createLobby);
 app.use("/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
-app.use("/lobbies", lobbiesRouter);
+app.use("/lobbies", lobbiesRouter); // TEBOGO
 
 app.use((req, res, next) => {
   next(createError(404));
