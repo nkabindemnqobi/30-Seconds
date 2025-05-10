@@ -1,11 +1,11 @@
 module.exports = {
-  user: "greg123",
-  password: "1q2w3e4r5t6y7u8i9o0p!!",
-  server: "localhost",
-  port: 1433,
-  database: "30_Seconds_DB",
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  server: process.env.DB_SERVER,
+  port: parseInt(process.env.DB_PORT),
+  database: process.env.DB_NAME,
   options: {
-    encrypt: false,
-    trustServerCertificate: true,
+    encrypt: true,
+    trustServerCertificate: false,
   },
 };
