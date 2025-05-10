@@ -30,7 +30,7 @@ jobs:
 
       - name: Upload static site to S3
         run: |
-          aws s3 sync . s3://my-30-seconds \
+          aws s3 sync ./app/ s3://my-30-seconds \
             --exclude ".git/*" \
             --exclude "node_modules/*" \
             --exclude "package*.json" \
