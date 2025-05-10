@@ -31,21 +31,21 @@ const exchangeCodeForIdToken = async (req, res) => {
           },
           body: JSON.stringify(requestBody)
         });
-    
+        
         if(response.ok) {
           const responseData = await response.json();
           const tokenInfo = responseData.id_token ? await verifyIdToken(responseData.id_token) : null
-          res.status(200).send({
+          res.status(200).json({
             idToken: responseData.id_token,
             googleId: tokenInfo.sub,
             userName: tokenInfo.name,
             email: tokenInfo.email
           });
         } else {
-          res.status(response.status).send(response);
+          res.status(response.status).json({ error: response, reason: "Authentication" });
         }
       } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, 'Authentication');
+        const { status, error, reason } = formatErrorResponse(err, "Authentication");
         res.status(status).json({ error, reason });
       }
 }
