@@ -19,6 +19,7 @@ CREATE TABLE MatchParticipantsStatus (
 CREATE TABLE Matches (
     id INT PRIMARY KEY IDENTITY(1,1),
     join_code VARCHAR(10) NOT NULL UNIQUE,
+    lobby_name VARCHAR(100) NOT NULL,
     is_public BIT NOT NULL DEFAULT 1,
     max_participants INT NOT NULL,
     started_datetime DATETIME DEFAULT GETDATE(),
