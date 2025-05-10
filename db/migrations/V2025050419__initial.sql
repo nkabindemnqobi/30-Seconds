@@ -40,22 +40,22 @@ CREATE TABLE Categories (
 );
 
 CREATE TABLE CategoriesMatches (
-  id INT PRIMARY KEY IDENTITY(1,1),
-  match_id INT NOT NULL REFERENCES Matches(id),
-  category_id INT NOT NULL REFERENCES Categories(id)
+    id INT PRIMARY KEY IDENTITY(1,1),
+    match_id INT NOT NULL REFERENCES Matches(id),
+    category_id INT NOT NULL REFERENCES Categories(id)
 );
 
 CREATE TABLE GuessingItems (
-  id INT PRIMARY KEY IDENTITY(1,1),
-  item_name VARCHAR(100) NOT NULL UNIQUE,
-  category_id INT NOT NULL REFERENCES Categories(id)
+    id INT PRIMARY KEY IDENTITY(1,1),
+    item_name VARCHAR(100) NOT NULL UNIQUE,
+    category_id INT NOT NULL REFERENCES Categories(id)
 );
 
 CREATE TABLE GameRounds (
     id INT PRIMARY KEY IDENTITY(1,1),
     match_id INT NOT NULL REFERENCES Matches(id),
     guessing_item_id INT NOT NULL REFERENCES GuessingItems(id),
-    guessing_user_id INT NOT NULL REFERENCES Users(id)
+    guessing_user_id INT NOT NULL REFERENCES Users(id),
     hint_count INT NOT NULL DEFAULT 1,
     points_awarded INT NOT NULL DEFAULT 0,
     time_in_ms INT NOT NULL DEFAULT 0,
