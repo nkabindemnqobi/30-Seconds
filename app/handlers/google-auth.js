@@ -1,4 +1,4 @@
-import { Token } from "../models/token.js";
+import { User } from "../models/user.js";
 
 export const getApplicationConfiguration = async (applicationConfiguration) => {
     try {
@@ -15,7 +15,7 @@ export const exchangeCodeForToken = async (applicationConfiguration, code) => {
     try {
         const tokenResponse = await fetch(`${applicationConfiguration.apiBaseUrl}/auth/get-token?code=${code}`);
         const token = await tokenResponse.json();
-        if(token.id_token) Token.setUserToken(token.id_token); 
+        if(token.idToken && token.googleId) User.setUser(token); 
         return token;
     } catch(error) {
         return error;

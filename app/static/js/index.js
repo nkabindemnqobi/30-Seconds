@@ -5,8 +5,8 @@ import Login from "./views/Login.js";
 import { getApplicationConfiguration } from "../../handlers/google-auth.js";
 import { applicationConfiguration } from "../../models/app-config.js";
 import { exchangeCodeForToken } from "../../handlers/google-auth.js";
-import { Token } from "../../models/token.js";
 import Authenticated from "./views/Authenticated.js";
+import { User } from "../../models/user.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 
@@ -56,8 +56,8 @@ const router = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code");
     if(accessCode) {
-        const token = await exchangeCodeForToken(applicationConfiguration, accessCode);
-        if(token.id_token) {
+        const user = await exchangeCodeForToken(applicationConfiguration, accessCode);
+        if(user.idToken && user.googleId) {
             history.pushState({}, "", "/lobby");
             router();
         } else {

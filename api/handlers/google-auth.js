@@ -1,4 +1,5 @@
-const { generateSessionId } = require("../shared/functions/google-auth-helpers.function")
+const { generateSessionId } = require("../shared/functions/google-auth-helpers.function");
+const formatErrorResponse  = require("../utils/formatErrorResponse");
 const dotenv = require('dotenv');
 dotenv.config();
 
@@ -12,8 +13,9 @@ const getAuthUrl = () => {
     return authUrl;
 };
 
-const exchangeCodeForIdToken = async (code) => {
+const exchangeCodeForIdToken = async (req, res) => {
     try {
+        const code = req.query["code"];
         const tokenUrl = process.env.TOKEN_ENDPOINT;
         const requestBody = {
             code: code,
@@ -30,19 +32,44 @@ const exchangeCodeForIdToken = async (code) => {
           body: JSON.stringify(requestBody)
         });
     
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
+        if(response.ok) {
+          const responseData = await response.json();
+          const tokenInfo = responseData.id_token ? await verifyIdToken(responseData.id_token) : null
+          res.status(200).send({
+            idToken: responseData.id_token,
+            googleId: tokenInfo.sub,
+            userName: tokenInfo.name,
+            email: tokenInfo.email
+          });
+        } else {
+          res.status(response.status).send(response);
         }
-    
-        const responseData = await response.json();
-        return responseData;
-      } catch (error) {
-        console.error("There was an error during the POST request:", error);
-        throw error;
+      } catch (err) {
+        const { status, error, reason } = formatErrorResponse(err, 'Authentication');
+        res.status(status).json({ error, reason });
       }
+}
+
+const verifyIdToken = async (idToken) => {
+  try {
+      const tokenInfoUrl = process.env.TOKEN_INFO;
+      
+      const response = await fetch(`${tokenInfoUrl}?id_token=${idToken}`);
+  
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+  
+      const responseData = await response.json();
+      return responseData;
+    } catch (error) {
+      console.error("There was an error during the POST request:", error);
+      throw error;
+    }
 }
 
 module.exports = {
     getAuthUrl,
     exchangeCodeForIdToken,
+    verifyIdToken
 }
