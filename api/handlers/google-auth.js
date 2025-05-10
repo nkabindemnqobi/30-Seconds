@@ -12,7 +12,7 @@ const getAuthUrl = () => {
     return authUrl;
 };
 
-const exchangeCodeForIdToken = async (code, state) => {
+const exchangeCodeForIdToken = async (code) => {
     try {
         const tokenUrl = process.env.TOKEN_ENDPOINT;
         const requestBody = {
@@ -35,19 +35,14 @@ const exchangeCodeForIdToken = async (code, state) => {
         }
     
         const responseData = await response.json();
-        return {
-            response: responseData,
-            sessionId: state
-        };
+        return responseData;
       } catch (error) {
         console.error("There was an error during the POST request:", error);
         throw error;
       }
 }
-const tokenCache = {};
 
 module.exports = {
     getAuthUrl,
     exchangeCodeForIdToken,
-    tokenCache,
 }
