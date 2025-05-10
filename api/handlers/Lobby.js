@@ -35,13 +35,6 @@ const postLobbyJoinTeam = async (req, res) => {
     const matchId = matchIdResult[0].id;
     console.log(matchId);
 
-    // const checkQueryResult = await checkIfUserInLobby(userJoiningId, teamId);
-
-    // if (checkQueryResult.length > 0) {
-    //   console.log(`User ${userJoiningId} already in match ${matchId}`);
-    //   return res.status(409).json({ message: "User already in this lobby." });
-    // }
-
     const addUserToLobbyResult = addUserToLobby(
       userJoiningId,
       matchId,
@@ -72,36 +65,6 @@ const postLobbyJoinTeam = async (req, res) => {
     } else {
       res.status(500).json({ message: `User failed to join a team.` });
     }
-
-    // const matchQuery = `
-    //     SELECT
-    //         m.id AS match_id,
-    //         m.join_code,
-    //         m.is_public,
-    //         m.match_creator_id,
-    //         m.status_id,
-    //         s.status AS match_status,
-    //         m.max_participants,
-    //         m.started_datetime,
-    //         m.completed_datetime
-    //     FROM matches m
-    //     JOIN status s ON m.status_id = s.id
-    //     WHERE m.id = @matchId;
-    //   `;
-    // const matchInfoResult = await executeQuery(matchQuery, [
-    //   { name: "matchId", type: sql.Int, value: matchId },
-    // ]);
-    // const matchInfo = matchInfoResult.length > 0 ? matchInfoResult[0] : null; // Should not be null if we got matchId
-    // // Fetch list of participants
-    // const participantsQuery = `
-    //     SELECT mp.user_id, u.alias
-    //     FROM match_participants mp
-    //     JOIN users u ON mp.user_id = u.id
-    //     WHERE mp.team_id = @teamId;
-    // `;
-    // const participants = await executeQuery(participantsQuery, [
-    //   { name: "teamId", type: sql.Int, value: teamId },
-    // ]);
   } catch (err) {
     const { status, error, reason } = formatErrorResponse(err, "Join Lobby");
     console.error(
@@ -126,9 +89,8 @@ const postLobbyJoin = async (req, res) => {
 
     const matchId = matchIdResult[0].id;
     console.log(matchId);
+    addUserToMatch(joinCode, userJoiningId);
 
-    // Insert the user into the DB. If it is successful, send out a broadcast. If not, return a simple response indicating the error to
-    // the calling client.
     const resultRows = await getLobbyInformation(matchId);
     const formattedData = formatMatchWithParticipants(resultRows);
 
