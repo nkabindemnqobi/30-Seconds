@@ -1,7 +1,12 @@
 import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
-
+import Login from "./views/Login.js";
+import { getApplicationConfiguration } from "../../handlers/google-auth.js";
+import { applicationConfiguration } from "../../models/app-config.js";
+import { exchangeCodeForToken } from "../../handlers/google-auth.js";
+import { Token } from "../../models/token.js";
+import Authenticated from "./views/Authenticated.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 
@@ -21,9 +26,11 @@ const navigateTo = url => {
 
 const router = async () => {
     const routes = [
-        { path: "/", view: Dashboard },
+        { path: "/lobby", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
-        { path: "/error", view: NotFound }
+        { path: "/error", view: NotFound },
+        { path: "/", view: Login },
+        { path: "/signin-google", view: Authenticated }
     ];
 
     const potentialMatches = routes.map(route => {
@@ -46,6 +53,18 @@ const router = async () => {
     
     document.querySelector("#app").innerHTML = await view.getHtml();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessCode = urlParams.get("code");
+    if(accessCode) {
+        const token = await exchangeCodeForToken(applicationConfiguration, accessCode);
+        if(token.id_token) {
+            history.pushState({}, "", "/lobby");
+            router();
+        } else {
+            history.pushState({}, "", "/error");
+            router();
+        }
+    }
     attachEventListeners();
 };
 
@@ -91,17 +110,25 @@ const attachEventListeners = () => {
             button.classList.toggle("selected");
         });
     });
+
+    const loginButton = document.getElementById("login-button");
+    if(loginButton) {
+        loginButton.addEventListener("click", (clickEvent) => {
+            clickEvent.preventDefault();
+            window.location.href = applicationConfiguration.redirectUrl;
+        })
+    }
 };
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
+    getApplicationConfiguration(applicationConfiguration);
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
             navigateTo(e.target.href);
         }
     });
-
     router();
 });
 
