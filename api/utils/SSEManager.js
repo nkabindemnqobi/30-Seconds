@@ -138,5 +138,5 @@ module.exports = {
   sendToUser,
   addUserToMatch,
   removeUserFromMatch,
-  matchMemberships, // Should we centralise this elsewhere?
+  matchMemberships, // Should we centralize this elsewhere?
 };
