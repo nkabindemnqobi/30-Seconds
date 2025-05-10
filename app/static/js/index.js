@@ -1,7 +1,12 @@
 import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
-
+import Login from "./views/Login.js";
+import { getApplicationConfiguration } from "../../handlers/google-auth.js";
+import { applicationConfiguration } from "../../models/app-config.js";
+import { exchangeCodeForToken } from "../../handlers/google-auth.js";
+import { Token } from "../../models/token.js";
+import Authenticated from "./views/Authenticated.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 
@@ -21,9 +26,11 @@ const navigateTo = url => {
 
 const router = async () => {
     const routes = [
-        { path: "/", view: Dashboard },
+        { path: "/lobby", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
-        { path: "/error", view: NotFound }
+        { path: "/error", view: NotFound },
+        { path: "/", view: Login },
+        { path: "/signin-google", view: Authenticated }
     ];
 
     const potentialMatches = routes.map(route => {
@@ -46,6 +53,18 @@ const router = async () => {
     
     document.querySelector("#app").innerHTML = await view.getHtml();
 
+    const urlParams = new URLSearchParams(window.location.search);
+    const accessCode = urlParams.get("code");
+    if(accessCode) {
+        const token = await exchangeCodeForToken(applicationConfiguration, accessCode);
+        if(token.id_token) {
+            history.pushState({}, "", "/lobby");
+            router();
+        } else {
+            history.pushState({}, "", "/error");
+            router();
+        }
+    }
     attachEventListeners();
 };
 
@@ -58,50 +77,26 @@ const attachEventListeners = () => {
         });
     }
 
-    // Handle team slider
-    const teamSlider = document.getElementById("teamSlider");
-    const teamCount = document.getElementById("teamCount");
-    if (teamSlider && teamCount) {
-        teamSlider.addEventListener("input", () => {
-            teamCount.textContent = teamSlider.value;
-        });
-    }
+   
 
-    // Handle toggle switch
-    const toggle = document.getElementById("toggle");
-    if (toggle) {
-        toggle.addEventListener("click", () => {
-            const isChecked = toggle.getAttribute("aria-checked") === "true";
-            toggle.setAttribute("aria-checked", !isChecked);
-        });
-        
-        toggle.addEventListener("keydown", (e) => {
-            if (e.key === " " || e.key === "Enter") {
-                e.preventDefault();
-                const isChecked = toggle.getAttribute("aria-checked") === "true";
-                toggle.setAttribute("aria-checked", !isChecked);
-            }
-        });
+    const loginButton = document.getElementById("login-button");
+    if(loginButton) {
+        loginButton.addEventListener("click", (clickEvent) => {
+            clickEvent.preventDefault();
+            window.location.href = applicationConfiguration.redirectUrl;
+        })
     }
-
-    // Category selection
-    const categoryButtons = document.querySelectorAll(".categories button");
-    categoryButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            button.classList.toggle("selected");
-        });
-    });
 };
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
+    getApplicationConfiguration(applicationConfiguration);
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
             navigateTo(e.target.href);
         }
     });
-
     router();
 });
 

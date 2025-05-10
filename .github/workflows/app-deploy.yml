@@ -1,0 +1,40 @@
+name: Deploy Frontend Application
+on:
+  workflow_dispatch:  
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "app/**"
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Assume AWS role
+        uses: aws-actions/configure-aws-credentials@v4.0.1
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsOIDCRole
+          role-session-name: GitHub_to_AWS_via_FederatedOIDC
+          aws-region: ${{ secrets.AWS_REGION }}
+
+
+      - name: Upload static site to S3
+        run: |
+          aws s3 sync . s3://my-30-seconds \
+            --exclude ".git/*" \
+            --exclude "node_modules/*" \
+            --exclude "package*.json" \
+            --exclude "server.js" \
+            --delete
+
+  
