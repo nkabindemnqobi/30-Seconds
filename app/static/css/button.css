@@ -1,0 +1,19 @@
+button {
+  cursor: pointer;
+  padding: 10px 20px;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+/* add more styles for different kinds of buttons here, can add diff sizes also */
+button.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+button.secondary {
+  background-color: var(--secondary-color);
+  color: white;
+}
