@@ -29,6 +29,7 @@ app.use("/users", usersRouter);
 app.use("/create-lobby", createLobby);
 app.use("/home", homeRouter);
 app.use("/lobbies", lobbiesRouter);
+app.use("/api/lobby", lobbyRoutes);
 
 app.use((req, res, next) => {
   next(createError(404));

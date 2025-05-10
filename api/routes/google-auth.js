@@ -17,4 +17,9 @@ router.get("/login", (req, res, next) => {
   res.send({ authUrl: authUrl });
 });
 
+router.get("/sse/connect/:userId", (req, res) => {
+  const userId = req.params.userId; // get from middleware?
+  handleSSEConnection(req, res, userId);
+});
+
 module.exports = router;
