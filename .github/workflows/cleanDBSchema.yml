@@ -1,0 +1,37 @@
+name: Clean and Reset Flyway Schema
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - cleanFlywayMigrationsExecution
+    paths:
+      - "db/migrations/**"
+
+jobs:
+  FlywayReset:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Clean Flyway-managed schema
+        run: >-
+          docker run --rm
+          -v ${{ github.workspace }}/db/migrations:/flyway/sql:ro
+          redgate/flyway
+          -url="${{ secrets.DB_URL }}"
+          -user="${{ secrets.DB_USERNAME }}"
+          -password="${{ secrets.DB_PASSWORD }}"
+          clean
+
+      - name: Re-run all Flyway migrations
+        run: >-
+          docker run --rm
+          -v ${{ github.workspace }}/db/migrations:/flyway/sql:ro
+          redgate/flyway
+          -url="${{ secrets.DB_URL }}"
+          -user="${{ secrets.DB_USERNAME }}"
+          -password="${{ secrets.DB_PASSWORD }}"
+          migrate
