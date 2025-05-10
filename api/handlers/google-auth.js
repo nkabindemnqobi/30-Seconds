@@ -63,13 +63,11 @@ const verifyIdToken = async (idToken) => {
       const responseData = await response.json();
       return responseData;
     } catch (error) {
-      console.error("There was an error during the POST request:", error);
-      throw error;
+      return error;
     }
 }
 
 module.exports = {
     getAuthUrl,
-    exchangeCodeForIdToken,
-    verifyIdToken
+    exchangeCodeForIdToken
 }
