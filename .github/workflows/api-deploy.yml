@@ -1,5 +1,4 @@
 name: deploy-to-eb
-
 on:
   workflow_dispatch:
   push:
@@ -8,44 +7,42 @@ on:
       - develop
     paths:
       - "api/**"
-
 permissions:
   contents: read
   id-token: write
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Assume the deploy pipeline user role
         uses: aws-actions/configure-aws-credentials@v4.0.1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHubActionsOIDCRole
           role-session-name: GitHub_to_AWS_via_FederatedOIDC
           aws-region: ${{ secrets.AWS_REGION }}
-
+      
+      - name: Create timestamp
+        id: timestamp
+        run: echo "time=$(date +%s)" >> $GITHUB_OUTPUT
+          
       - name: Create zip file
         run: |
           cd api
           zip -r ../node-api.zip .
-
+          
       - name: Upload to S3
         run: |
-          aws s3 cp node-api.zip s3://${{ secrets.AWS_S3_BUCKET }}/node-api-${{ github.sha }}.zip
-
+          aws s3 cp node-api.zip s3://${{ secrets.AWS_S3_BUCKET }}/30-seconds-api/node-api-${{ github.sha }}.zip
       - name: Create Elastic Beanstalk application version
         run: |
           aws elasticbeanstalk create-application-version \
             --application-name ${{ secrets.AWS_EB_APPLICATION_NAME }} \
-            --version-label "v-${{ github.sha }}" \
-            --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET }}",S3Key="node-api-${{ github.sha }}.zip"
-
+            --version-label "v-${{ github.sha }}-${{ steps.timestamp.outputs.time }}" \
+            --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET }}",S3Key="30-seconds-api/node-api-${{ github.sha }}.zip"
       - name: Deploy to Elastic Beanstalk
         run: |
           aws elasticbeanstalk update-environment \
             --environment-name ${{ secrets.AWS_EB_ENVIRONMENT_NAME }} \
-            --version-label "v-${{ github.sha }}"
+            --version-label "v-${{ github.sha }}-${{ steps.timestamp.outputs.time }}"
