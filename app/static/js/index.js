@@ -56,8 +56,8 @@ const router = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code");
     if(accessCode) {
-        const user = await exchangeCodeForToken(applicationConfiguration, accessCode);
-        if(user.idToken && user.googleId) {
+        const token = await exchangeCodeForToken(applicationConfiguration, accessCode);
+        if(token.idToken && token.googleId) {
             history.pushState({}, "", "/lobby");
             router();
         } else {
