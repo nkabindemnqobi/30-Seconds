@@ -2,13 +2,12 @@ import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
 import Login from "./views/Login.js";
-import { getApplicationConfiguration } from "../../handlers/google-auth.js";
 import { applicationConfiguration } from "../../models/app-config.js";
-import { exchangeCodeForToken } from "../../handlers/google-auth.js";
+import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
-import { User } from "../../models/user.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
+const googleAuth = new GoogleAuth();
 
 const getParams = match => {
     const values = match.result.slice(1);
@@ -56,7 +55,7 @@ const router = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code");
     if(accessCode) {
-        const token = await exchangeCodeForToken(applicationConfiguration, accessCode);
+        const token = await googleAuth.exchangeCodeForToken(applicationConfiguration, accessCode);
         if(token.idToken && token.googleId) {
             history.pushState({}, "", "/lobby");
             router();
@@ -90,7 +89,7 @@ const attachEventListeners = () => {
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
-    getApplicationConfiguration(applicationConfiguration);
+    googleAuth.getApplicationConfiguration(applicationConfiguration);
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
