@@ -2,11 +2,6 @@ name: Clean and Reset Flyway Schema
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - cleanFlywayMigrationsExecution
-    paths:
-      - "db/migrations/**"
 
 jobs:
   FlywayReset:
