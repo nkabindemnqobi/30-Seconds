@@ -19,6 +19,7 @@ jobs:
           -url="${{ secrets.DB_URL }}"
           -user="${{ secrets.DB_USERNAME }}"
           -password="${{ secrets.DB_PASSWORD }}"
+          -cleanDisabled=false
           clean
 
       - name: Re-run all Flyway migrations
