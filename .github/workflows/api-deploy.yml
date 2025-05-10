@@ -33,7 +33,7 @@ jobs:
         run: |
           aws elasticbeanstalk create-application-version \
             --application-name ${{ secrets.AWS_EB_APPLICATION_NAME }} \
-            --version-label "v-${{ github.sha }}" \
+            --version-label "v-${{ github.sha }}-${{ env.CURRENT_TIME }}" \
             --source-bundle S3Bucket="${{ secrets.AWS_S3_BUCKET }}",S3Key="30-seconds-api/node-api-${{ github.sha }}.zip"
       - name: Deploy to Elastic Beanstalk
         run: |
