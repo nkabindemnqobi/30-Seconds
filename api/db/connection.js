@@ -5,7 +5,7 @@ module.exports = {
     port: parseInt(process.env.DB_PORT),
     database: process.env.DB_NAME,
     options: {
-        encrypt: true,
-        trustServerCertificate: false
+        encrypt: false,
+        trustServerCertificate: true
     }
 };
