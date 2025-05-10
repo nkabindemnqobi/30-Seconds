@@ -77,39 +77,7 @@ const attachEventListeners = () => {
         });
     }
 
-    // Handle team slider
-    const teamSlider = document.getElementById("teamSlider");
-    const teamCount = document.getElementById("teamCount");
-    if (teamSlider && teamCount) {
-        teamSlider.addEventListener("input", () => {
-            teamCount.textContent = teamSlider.value;
-        });
-    }
-
-    // Handle toggle switch
-    const toggle = document.getElementById("toggle");
-    if (toggle) {
-        toggle.addEventListener("click", () => {
-            const isChecked = toggle.getAttribute("aria-checked") === "true";
-            toggle.setAttribute("aria-checked", !isChecked);
-        });
-        
-        toggle.addEventListener("keydown", (e) => {
-            if (e.key === " " || e.key === "Enter") {
-                e.preventDefault();
-                const isChecked = toggle.getAttribute("aria-checked") === "true";
-                toggle.setAttribute("aria-checked", !isChecked);
-            }
-        });
-    }
-
-    // Category selection
-    const categoryButtons = document.querySelectorAll(".categories button");
-    categoryButtons.forEach(button => {
-        button.addEventListener("click", () => {
-            button.classList.toggle("selected");
-        });
-    });
+   
 
     const loginButton = document.getElementById("login-button");
     if(loginButton) {
