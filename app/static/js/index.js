@@ -6,7 +6,6 @@ import { getApplicationConfiguration } from "../../handlers/google-auth.js";
 import { applicationConfiguration } from "../../models/app-config.js";
 import { exchangeCodeForToken } from "../../handlers/google-auth.js";
 import Authenticated from "./views/Authenticated.js";
-import { User } from "../../models/user.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 

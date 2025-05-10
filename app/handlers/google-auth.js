@@ -1,9 +1,11 @@
 import { User } from "../models/user.js";
+import BaseService from "../services/shared.service.js";
+
+const baseService = new BaseService();
 
 export const getApplicationConfiguration = async (applicationConfiguration) => {
     try {
-        const redirectUrlResponse = await fetch(`${applicationConfiguration.apiBaseUrl}/auth/login`);
-        const redirectUrl = await redirectUrlResponse.json();
+        const redirectUrl = await baseService.get(`${applicationConfiguration.apiBaseUrl}/auth/login`);
         applicationConfiguration["redirectUrl"] = redirectUrl.authUrl ? redirectUrl.authUrl : "";
         return applicationConfiguration;
     } catch(error) {
@@ -13,8 +15,7 @@ export const getApplicationConfiguration = async (applicationConfiguration) => {
 
 export const exchangeCodeForToken = async (applicationConfiguration, code) => {
     try {
-        const tokenResponse = await fetch(`${applicationConfiguration.apiBaseUrl}/auth/get-token?code=${code}`);
-        const token = await tokenResponse.json();
+        const token = await baseService.get(`${applicationConfiguration.apiBaseUrl}/auth/get-token?code=${code}`);
         if(token.idToken && token.googleId) User.setUser(token); 
         return token;
     } catch(error) {
