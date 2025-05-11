@@ -1,13 +1,18 @@
 button {
   cursor: pointer;
-  padding: 10px 20px;
+  border-radius: 0.25rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  padding: 0.75rem 1rem;
+  font-size: 0.875rem;
   border: none;
-  border-radius: var(--border-radius);
-  font-size: 16px;
-  display: inline-flex;
+  width: 100%;
+  display: flex;
   align-items: center;
-  gap: 2px;
+  justify-content: center;
+  margin-bottom: 1.5rem;
 }
+
 /* add more styles for different kinds of buttons here, can add diff sizes also */
 button.primary {
   background-color: var(--primary-color);
@@ -16,4 +21,13 @@ button.primary {
 button.secondary {
   background-color: var(--secondary-color);
   color: white;
+}
+
+button.gradient {
+  background: linear-gradient(to right, #9333ea, #db2777);
+  color: white;
+}
+
+button.gradient:hover {
+  background: linear-gradient(to right, #7e22ce, #be185d);
 }
