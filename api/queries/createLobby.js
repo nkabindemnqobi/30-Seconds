@@ -48,8 +48,8 @@ async function createLobby({ userId, categoryIds, isPublic, maxParticipants, lob
 
     matchId = matchInsertResult.recordset[0].id;
 
-    const bullInsertCategoriesRequest = new sql.Request(transaction.connection);
-    await bullInsertCategoriesRequest
+    const bulkInsertCategoriesRequest = new sql.Request(transaction.connection);
+    await bulkInsertCategoriesRequest
       .input("MatchId", matchId)
       .input("CategoriesJson", JSON.stringify(categoryIds))
       .query(`
