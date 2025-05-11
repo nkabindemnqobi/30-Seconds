@@ -111,18 +111,17 @@ export default class SelectCategories extends HTMLElement {
 
     if (
       selectedCategory &&
-      this.selectedCategories.some(
-        (category) => category.name === selectedCategory.name
-      )
+      this.selectedCategories.includes(selectedCategory.id)
     ) {
       this.selectedCategories = this.selectedCategories.filter(
-        (category) => category.name !== selectedCategory.name
+        (categoryId) => categoryId !== selectedCategory.id
       );
     } else {
-      this.selectedCategories.push(selectedCategory);
+      this.selectedCategories.push(selectedCategory.id);
     }
+
     this.dispatchEvent(
-      new CustomEvent("change", {
+      new CustomEvent("updated", {
         detail: this.selectedCategories,
         bubbles: true,
         composed: true,

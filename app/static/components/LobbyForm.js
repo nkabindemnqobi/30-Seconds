@@ -2,6 +2,7 @@ import LobbyService from "../../services/lobbies.service.js";
 import "./SelectCategories.component.js";
 import "./Switch.component.js";
 import "./Button.js";
+import "./TextInput.component.js";
 
 export default class LobbyForm extends HTMLElement {
   constructor() {
@@ -10,92 +11,92 @@ export default class LobbyForm extends HTMLElement {
     this.title = "Create a Lobby";
     this.lobbyService = new LobbyService();
     this.formData = {
+      userId: 1, //needs to be removed
+      categoryIds: [],
       isPublic: false,
-      matchCreatorId: undefined,
-      statusId: undefined,
-      maxParticipants: undefined,
-      teams: [
-        { teamName: undefined, captainId: undefined },
-        { teamName: undefined, captainId: undefined },
-      ],
+      maxParticipants: 1,
+      lobbyName: undefined,
     };
   }
 
   connectedCallback() {
     this.render();
-    this.createLobby();
     this.shadowRoot.addEventListener(
-      "change",
+      "updated",
       this.onFormValueChange.bind(this)
     );
+    this.shadowRoot
+      .querySelector("#createLobby")
+      ?.addEventListener("click", this.createLobby.bind(this));
+
+    const teamSlider = this.shadowRoot.querySelector("#maxParticipants");
+    const teamLabel = this.shadowRoot.querySelector(
+      'label[for="maxParticipants"]'
+    );
+
+    if (teamSlider && teamLabel) {
+      teamLabel.textContent = `Max participants allowed: ${teamSlider.value}`;
+
+      teamSlider.addEventListener("input", (event) => {
+        const value = parseInt(event.target.value, 10);
+        teamLabel.textContent = `Max participants allowed: ${value}`;
+
+        teamSlider.dispatchEvent(
+          new CustomEvent("updated", {
+            detail: value,
+            bubbles: true,
+            composed: true,
+          })
+        );
+      });
+    }
   }
 
   async createLobby() {
-    const button = this.shadowRoot.getElementById("createLobby");
-    if (button) {
-      console.log(button);
-      button.addEventListener("click", async () => {
-        console.log("Calling createLobby...");
-        try {
-          const response = await this.lobbyService.createLobby();
-          console.log("Lobby created:", response);
-        } catch (error) {
-          console.error("Failed to create lobby:", error);
-        }
-      });
-    } else {
-      console.warn("Create button not found");
-    }
+    return await this.lobbyService.createLobby(this.formData);
   }
 
   onFormValueChange(event) {
     const field = event.target.dataset.field;
     const value = event.detail;
     this.formData[field] = value;
-    console.log(this.formData);
   }
 
   render() {
     this.shadowRoot.innerHTML = `
-    <style>
-        @import url('/static/css/index.css');
-      </style>
-            <section class="card" aria-labelledby="create-lobby-heading">
-                <header>
-                    <h1 id="create-lobby-heading">Create a Lobby</h1>
-                    <p class="subtext">Set up a lobby for teams to join and play trivia</p>
-                </header>
+                    <style>
+                    @import url("/static/css/index.css");
+                    </style>
+                    <section class="card" aria-labelledby="create-lobby-heading">
+                    <header>
+                        <h1 id="create-lobby-heading">Create a Lobby</h1>
+                        <p class="subtext">Set up a lobby for teams to join and play trivia</p>
+                    </header>
+
+                    <text-input
+                        label="Lobby name"
+                        data-field="lobbyName"
+                        placeholder="Enter a name for your lobby"
+                    ></text-input>
 
                     <div class="input-group">
-                        <label for="lobbyName">Lobby Name</label>
-                        <input type="text" id="lobbyName" name="lobbyName" placeholder="Enter a name for your lobby"  />
-                    </div>
-                    <div class="input-group">
-                        <label for="lobbyName">First Team Name</label>
-                        <input type="text" id="lobbyName" name="lobbyName" placeholder="Enter a name for your lobby"  />
-                    </div>
-                    <div class="input-group">
-                        <label for="lobbyName">Second Team Name</label>
-                        <input type="text" id="lobbyName" name="lobbyName" placeholder="Enter a name for your lobby"  />
-                    </div>
-                    <div class="input-group">
-                        <label for="teamSelect">Your Team</label>
-                        <select id="teamSelect" name="teamSelect" >
-                            <option value="" disabled selected>Select your team</option>
-                            <option value="Team A">First Team</option>
-                            <option value="Team B">Second Team</option>
-                        </select>
-                    </div>
-
-                    <div class="input-group">
-                        <label for="teamSlider">Max Teams: <span id="teamCount">4</span></label>
-                        <input type="range" min="2" max="10" value="4" id="teamSlider" name="maxTeams" />
+                        <label for="maxParticipants"></label>
+                        <input
+                        type="range"
+                        min="1"
+                        max="5"
+                        value="1"
+                        id="maxParticipants"
+                        name="maxTeams"
+                        data-field="maxParticipants"
+                        />
                     </div>
                     <app-switch data-field="isPublic"></app-switch>
-                            <select-categories></select-categories>
-                    <app-button id="createLobby" class="primary" >Create lobby</app-button>
-            </section>
-        `;
+                    <select-categories data-field="categoryIds"></select-categories>
+                    <app-button id="createLobby" class="primary">Create lobby</app-button>
+                    </section>
+
+`;
   }
 }
 
