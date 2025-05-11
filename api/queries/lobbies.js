@@ -91,6 +91,7 @@ async function getMatchLobbyInformation(matchId) {
   }
 }
 
+
 async function getMatchIdByJoinCode(joinCode) {
   const matchIdQuery = `
     SELECT id FROM matches

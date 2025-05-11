@@ -1,4 +1,5 @@
 const { getPool, sql } = require("../db/pool");
+const { executeQuery } = require('../db/query');
 const { withTransaction } = require("../db/transaction");
 const { v4: uuidv4 } = require("uuid");
 
@@ -47,16 +48,16 @@ async function createLobby({ userId, categoryIds, isPublic, maxParticipants, lob
 
     matchId = matchInsertResult.recordset[0].id;
 
-    for (const categoryId of categoryIds) {
-      const catRequest = new sql.Request(transaction.connection);
-      await catRequest
-        .input("MatchId", matchId)
-        .input("CategoryId", categoryId)
-        .query(`
-          INSERT INTO CategoriesMatches (match_id, category_id)
-          VALUES (@MatchId, @CategoryId);
-        `);
-    }
+    const bulkInsertCategoriesRequest = new sql.Request(transaction.connection);
+    await bulkInsertCategoriesRequest
+      .input("MatchId", matchId)
+      .input("CategoriesJson", JSON.stringify(categoryIds))
+      .query(`
+        INSERT INTO CategoriesMatches (match_id, category_id)
+        SELECT @MatchId, value
+        FROM OPENJSON(@CategoriesJson)
+      `);
+
 
     const creatorRequest = new sql.Request(transaction.connection);
     await creatorRequest
