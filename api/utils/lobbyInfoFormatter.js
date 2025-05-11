@@ -1,79 +1,45 @@
 function formatMatchWithParticipants(sqlQueryResult) {
-  if (!sqlQueryResult || sqlQueryResult.length === 0) {
-    return null; // Match not found or no data
+
+  if (!Array.isArray(sqlQueryResult) || sqlQueryResult.length === 0 || !sqlQueryResult[0]) {
+    console.log(Array.isArray(sqlQueryResult), sqlQueryResult.length, !sqlQueryResult[0]);
+      console.log("Formatter returning null due to invalid input or no data.");
+      return null;
   }
 
-  // All rows share the same core match and team details.
-  // We extract these from the first row.
   const firstRow = sqlQueryResult[0];
 
   const formattedMatch = {
-    match_id: firstRow.match_id,
-    join_code: firstRow.join_code,
-    is_public: firstRow.is_public,
-    match_creator: {
-      id: firstRow.match_creator_id,
-      alias: firstRow.match_creator_alias,
-      email: firstRow.match_creator_email,
-    },
-    status_id: firstRow.status_id,
-    match_status: firstRow.match_status,
-    max_participants: firstRow.max_participants,
-    started_datetime: firstRow.started_datetime,
-    completed_datetime: firstRow.completed_datetime,
-    team_a: {
-      id: firstRow.team_a_id,
-      is_open: firstRow.team_a_is_open,
-      captain: {
-        id: firstRow.team_a_captain_id,
-        alias: firstRow.team_a_captain_alias,
-        email: firstRow.team_a_captain_email,
-      },
-      participants: [],
-    },
-    team_b: {
-      id: firstRow.team_b_id,
-      is_open: firstRow.team_b_is_open,
-      captain: {
-        id: firstRow.team_b_captain_id,
-        alias: firstRow.team_b_captain_alias,
-        email: firstRow.team_b_captain_email,
-      },
-      participants: [],
-    },
+      match_id: firstRow.match_id,
+      join_code: firstRow.join_code,
+      lobby_name: firstRow.lobby_name,
+      is_public: firstRow.is_public,
+      max_participants: firstRow.max_participants,
+      started_datetime: firstRow.started_datetime,
+      completed_datetime: firstRow.completed_datetime,
+      status_id: firstRow.status_id, 
+      match_status: firstRow.match_status, 
+      participants: []
   };
 
-  const processedParticipants = new Set(); // Helps avoid adding duplicate participant entries
-
   sqlQueryResult.forEach((row) => {
-    // Check if the current row contains participant information
-    // (it might not if a team has no participants, due to LEFT JOIN)
-    if (row.participant_user_id !== null) {
-      const participant = {
-        user_id: row.participant_user_id,
-        alias: row.participant_alias,
-        email: row.participant_email,
-        is_barred: row.participant_is_barred, // Barred status from their team membership
-      };
-
-      // Create a unique key for this participant in this team to prevent duplicates
-      // if the SQL somehow returned the same participant multiple times for the same team.
-      const participantKey = `${participant.user_id}_${row.participant_team_id}`;
-
-      if (!processedParticipants.has(participantKey)) {
-        if (row.participant_team_id === formattedMatch.team_a.id) {
-          formattedMatch.team_a.participants.push(participant);
-        } else if (row.participant_team_id === formattedMatch.team_b.id) {
-          formattedMatch.team_b.participants.push(participant);
-        }
-        processedParticipants.add(participantKey);
+      if (row.match_participant_id !== null && row.participant_user_id !== null) {
+          const participant = {
+              match_participant_id: row.match_participant_id,
+              user_id: row.participant_user_id,
+              alias: row.participant_alias,
+              email: row.participant_email,
+              match_participants_status_id: row.match_participants_status_id, // Keeping the ID
+              participant_status: row.participant_status // String status
+          };
+          if (!formattedMatch.participants.find(p => p.match_participant_id === participant.match_participant_id)) {
+               formattedMatch.participants.push(participant);
+          }
       }
-    }
   });
 
   return formattedMatch;
 }
 
 module.exports = {
-  formatMatchWithParticipants,
+  formatMatchWithParticipants
 };

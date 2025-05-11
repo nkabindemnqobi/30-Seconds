@@ -1,8 +1,8 @@
 const express = require("express");
 const router = express.Router();
-const { postLobbyJoinTeam, postLobbyJoin } = require("../handlers/Lobby");
+const { postLobbyJoin , handleStartGame} = require("../handlers/Lobby");
 
-router.post("/:joinCode/join-team", postLobbyJoinTeam);
-router.post("/:joinCode", postLobbyJoin); //TODO: Change to a GET.
+router.post("/:joinCode", postLobbyJoin);
+router.post("/:joinCode/start", handleStartGame);
 
 module.exports = router;

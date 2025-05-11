@@ -1,44 +1,17 @@
 const { executeQuery } = require('../db/query');
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
+const { fetchLobbiesQuery } = require('../queries/home');
 
-const getAllPublicLobbies = async (req, res, next) => {
-    const sqlQuery = `
-        SELECT 
-            m.id AS matchId,
-            m.join_code AS joinCode,
-            m.started_datetime AS startedDatetime,
-            c.id AS categoryId,
-            c.name AS categoryName,
-            u.alias AS creatorAlias,
-            m.max_participants AS maxParticipants,
-            (
-                SELECT COUNT(*) 
-                FROM MatchParticipants mp 
-                WHERE mp.user_id IS NOT NULL AND mp.team_id IN (m.team_a_id, m.team_b_id)
-            ) AS participantCount,
-            bu.id AS bannedUserId,
-            bu.alias AS bannedUserAlias
-        FROM Matches m
-        JOIN CategoriesMatches cm ON m.id = cm.match_id
-        JOIN Categories c ON cm.category_id = c.id
-        JOIN Users u ON u.id = m.match_creator_id
-        LEFT JOIN MatchParticipants bmp ON bmp.team_id IN (m.team_a_id, m.team_b_id) AND bmp.is_barred = 1
-        LEFT JOIN Users bu ON bu.id = bmp.user_id
-        WHERE m.is_public = 1 AND m.status_id = 1;
-    `;
-
+const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
     try {
-        const result = await executeQuery(sqlQuery);
-
-        if (!result || result.length === 0) {
-            return next(formatErrorResponse(404, 'No public lobbies found'));
-        }
+        const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
+        if (!result || result.length === 0) return [];
 
         const lobbiesMap = new Map();
 
         for (const row of result) {
             const {
-                matchId, joinCode, startedDatetime, categoryId,
+                matchId, joinCode, lobbyName, startedDatetime, categoryId,
                 categoryName, creatorAlias, maxParticipants,
                 participantCount, bannedUserId, bannedUserAlias,
             } = row;
@@ -46,6 +19,7 @@ const getAllPublicLobbies = async (req, res, next) => {
             if (!lobbiesMap.has(matchId)) {
                 lobbiesMap.set(matchId, {
                     matchId,
+                    lobbyName,
                     joinCode,
                     startedDatetime,
                     creatorAlias,
@@ -66,7 +40,6 @@ const getAllPublicLobbies = async (req, res, next) => {
                 lobby.bannedUsers.push({ id: bannedUserId, alias: bannedUserAlias });
             }
         }
-
         res.status(200).json(Array.from(lobbiesMap.values()));
     } catch (error) {
         return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
@@ -74,5 +47,5 @@ const getAllPublicLobbies = async (req, res, next) => {
 };
 
 module.exports = {
-    getAllPublicLobbies,
+    fetchLobbies,
 };

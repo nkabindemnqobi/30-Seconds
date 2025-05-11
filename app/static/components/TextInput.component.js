@@ -16,13 +16,13 @@ export default class TextInput extends HTMLElement {
   }
 
   render() {
-    importStylesheet(this.shadowRoot, "/static/css/text-input.css");
+    importStylesheet(this.shadowRoot, "/static/css/index.css");
 
     const labelEl = document.createElement("label");
 
     if (this.label) {
-      const span = document.createElement("span");
-      span.textContent = this.label;
+      const span = document.createElement("span"); //remove
+      labelEl.textContent = this.label;
       labelEl.appendChild(span);
     }
 
@@ -38,11 +38,11 @@ export default class TextInput extends HTMLElement {
   setupListeners() {
     const input = this.shadowRoot.querySelector("input");
 
-    input.addEventListener("input", () => {
+    input.addEventListener("change", () => {
       this.value = input.value;
 
       this.dispatchEvent(
-        new CustomEvent("change", {
+        new CustomEvent("updated", {
           bubbles: true,
           composed: true,
           detail: this.value,

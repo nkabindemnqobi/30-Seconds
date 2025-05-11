@@ -1,74 +1,15 @@
-const { executeQuery } = require("../db/query");
-const sql = require("mssql");
 const { formatErrorResponse, getUnexpectedErrorStatus } = require("../utils/formatErrorResponse");
 const { formatMatchWithParticipants } = require("../utils/lobbyInfoFormatter");
 const {
   broadcastToMatch,
-  matchMemberships,
   addUserToMatch,
-  removeUserFromMatch,
 } = require("../utils/SSEManager");
 const {
-  createLobby,
-  getLobbyInformation,
+  getMatchLobbyInformation,
   getMatchIdByJoinCode,
   addUserToLobby,
-} = require("../queries/lobbies");
-
-//Assume player is in limbo. We use a different EP for joining team.
-const postLobbyJoinTeam = async (req, res, next) => {
-  const joinCode = req.params.joinCode;
-  const { userJoiningId, teamPreferenceChar } = req.body;
-
-  if (!joinCode || !userJoiningId || !teamPreferenceChar) {
-    console.log(joinCode, userJoiningId, teamPreferenceChar);
-    return next(formatErrorResponse(400, "Missing required parameters."));
-  }
-
-  try {
-    const matchIdResult = await getMatchIdByJoinCode(joinCode);
-
-    if (matchIdResult.length === 0) {
-      return next(formatErrorResponse(404, "Lobby not found."));
-    }
-
-    const matchId = matchIdResult[0].id;
-    console.log(matchId);
-
-    const addUserToLobbyResult = addUserToLobby(
-      userJoiningId,
-      matchId,
-      teamPreferenceChar
-    );
-
-    if (addUserToLobbyResult.success === true) {
-      addUserToMatch(joinCode, userJoiningId);
-
-      const resultRows = await getLobbyInformation(matchId);
-      const formattedData = formatMatchWithParticipants(resultRows);
-
-      if (formattedData) {
-        res.json(formattedData);
-      } else {
-        return next(formatErrorResponse(404, "Match not found."));
-      }
-
-      broadcastToMatch(
-        joinCode,
-        {
-          message: `A user has a team!`,
-          lobbyData: { ...formattedData, joiningUserId: userJoiningId },
-        },
-        "player_join_team"
-      );
-      res.status(200).json({ message: `User successfully joined a team.` });
-    } else {
-      return formatErrorResponse(500, `User failed to join a team.`);
-    }
-  } catch (error) {
-    return next(formatErrorResponse(getUnexpectedErrorStatus(error), `Error in postLobbyJoin for user ${userJoiningId} joining ${joinCode} with team_id ${teamId}:`));
-  }
-};
+  startGame
+} = require("../queries/lobby");
 
 const postLobbyJoin = async (req, res, next) => {
   const joinCode = req.params.joinCode;
@@ -76,18 +17,19 @@ const postLobbyJoin = async (req, res, next) => {
 
   try {
     const matchIdResult = await getMatchIdByJoinCode(joinCode);
-    console.log(matchIdResult);
+    console.log("matchId Result", matchIdResult);
 
     if (matchIdResult.length === 0) {
       return next(formatErrorResponse(404, "Lobby not found"));
     }
 
     const matchId = matchIdResult[0].id;
-    console.log(matchId);
+    const addUserToLobbyResult = await addUserToLobby(userJoiningId, matchId);
     addUserToMatch(joinCode, userJoiningId);
 
     const resultRows = await getLobbyInformation(matchId);
     const formattedData = formatMatchWithParticipants(resultRows);
+    console.log("RESULT ROWS", resultRows)
 
     if (formattedData) {
       res.json(formattedData);
@@ -99,16 +41,39 @@ const postLobbyJoin = async (req, res, next) => {
       joinCode,
       {
         message: `A user has joined the lobby!`,
-        lobbyData: { ...formattedData, joiningUserId: userJoiningId },
+        lobbyData: { ...resultRows, joiningUserId: userJoiningId },
       },
       "player_join"
     );
+    res.status(200).json( { ...resultRows, joiningUserId: userJoiningId });
   } catch (error) {
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
 
+const handleStartGame = async (req, res) => {
+  try {
+    const { joinCode } = req.params;
+    const { userId } = req.body;
+
+    if (!joinCode || !userId) {
+      return res.status(400).json({ message: "Missing joinCode or userId" });
+    }
+
+    const result = await startGame({ joinCode, userId });
+
+    broadcastToMatch(joinCode, {
+      data: { message: "Game started!", matchId: result.matchId },
+    }, "game_started");
+
+    return res.status(200).json({ message: "Game started successfully." });
+  } catch (err) {
+    const { status, error, reason } = formatErrorResponse(err, "start-game");
+    return res.status(status).json({ error, reason });
+  }
+};
+
 module.exports = {
-  postLobbyJoinTeam,
   postLobbyJoin,
+  handleStartGame,
 };
