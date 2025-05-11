@@ -6,6 +6,6 @@ export default class CategoriesService{
   }
 
  async retrieveCategories(){
-    return await this.baseService.get("http://localhost:3002/create-lobby/categories")
+    return await this.baseService.get("create-lobby/categories")
  }
 }

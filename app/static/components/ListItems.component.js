@@ -35,7 +35,7 @@ export default class Chip extends HTMLElement {
       const selected = li.classList.toggle("selected");
       li.setAttribute("aria-checked", selected.toString());
 
-      const event = new CustomEvent("change", {
+      const event = new CustomEvent("selected", {
         bubbles: true,
         composed: true,
         detail: {

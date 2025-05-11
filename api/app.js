@@ -20,10 +20,18 @@ app.use(
 );
 
 app.use(logger("dev"));
+app.use(
+  cors({
+    origin: process.env.ORIGIN,
+    credentials: true,
+  })
+);
+
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-app.use("/auth", authRouter);
+app.use("/api/auth", authRouter);
 app.use("/", authRouter);
 app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);

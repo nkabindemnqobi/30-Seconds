@@ -6,7 +6,7 @@ export class GoogleAuth {
 
     async getApplicationConfiguration (applicationConfiguration) {
         try {
-            const redirectUrl = await this.baseService.get(`${applicationConfiguration.apiBaseUrl}/auth/login`);
+            const redirectUrl = await this.baseService.get(`auth/login`);
             applicationConfiguration["redirectUrl"] = redirectUrl.authUrl ? redirectUrl.authUrl : "";
             return applicationConfiguration;
         } catch(error) {
@@ -16,7 +16,7 @@ export class GoogleAuth {
 
     async exchangeCodeForToken (applicationConfiguration, code) {
         try {
-            const token = await this.baseService.get(`${applicationConfiguration.apiBaseUrl}/auth/get-token?code=${code}`);
+            const token = await this.baseService.get(`auth/get-token?code=${code}`);
             if(token.idToken && token.googleId) User.setUser(token); 
             return token;
         } catch(error) {
