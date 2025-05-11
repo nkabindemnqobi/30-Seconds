@@ -19,7 +19,7 @@
                 return res.status(404).json({ message: 'No lobbies found' });
             }
 
-            res.json(lobbies);
+            res.status(200).json(lobbies);
         } catch (err) {
             const { status, error, reason } = formatErrorResponse(err, 'Public Lobbies');
             res.status(status).json({ error, reason });

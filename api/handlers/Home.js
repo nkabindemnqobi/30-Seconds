@@ -1,5 +1,4 @@
 const { fetchLobbiesQuery } = require('../queries/home');
-const formatErrorResponse = require('../utils/formatErrorResponse');
 
 const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
     try {
