@@ -16,7 +16,7 @@ const getAllCategories = async (req, res, next) => {
     }
 };
 
-const handleCreateLobby = async (req, res) => {
+const handleCreateLobby = async (req, res, next) => {
     try {
         const { userId, categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
 
@@ -29,7 +29,7 @@ const handleCreateLobby = async (req, res) => {
             maxParticipants < 1 ||
             !lobbyName
         ) {
-            return res.status(400).json({ message: "Invalid input" });
+            return next(formatErrorResponse(400, "Invalid input"));
         }
 
         const joinCode = await createLobby({
@@ -49,10 +49,9 @@ const handleCreateLobby = async (req, res) => {
             }
         }
         sendToUser(userId, result, "match_created");
-        return res.status(201).json({ data: { joinCode: joinCode } });
-    } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, "create-lobby");
-        return res.status(status).json({ error, reason });
+        res.status(201).json({ data: { joinCode: joinCode } });
+    } catch (error) {
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 
