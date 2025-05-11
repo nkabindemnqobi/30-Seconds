@@ -12,17 +12,24 @@ const lobbyRoutes = require("./routes/lobby");
 
 const app = express();
 
-app.use(logger('dev'));
+app.use(
+  cors({
+    origin: process.env.ORIGIN,
+    credentials: true,
+  })
+);
+
+app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-//app.use("/auth", authRouter);
+app.use("/auth", authRouter);
 app.use("/", authRouter);
 app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);
 app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
-app.use("/lobbies", lobbiesRouter); // TEBOGO
+app.use("/lobbies", lobbiesRouter);
 
 app.use((req, res, next) => {
   next(createError(404));
