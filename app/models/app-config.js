@@ -1,5 +1,5 @@
 /*
-    Change @apiBaseUrl and @home to local instances when in development
+    Change @apiBaseUrl to local instances when in development
 */
 export const applicationConfiguration = {
     redirectUrl: "",
