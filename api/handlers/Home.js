@@ -1,19 +1,17 @@
-const { fetchAllPublicLobbies } = require('../queries/home');
+const { fetchLobbiesQuery } = require('../queries/home');
 const formatErrorResponse = require('../utils/formatErrorResponse');
 
-const getAllPublicLobbies = async (req, res) => {
+const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
     try {
-        const result = await fetchAllPublicLobbies();
+        const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
 
-        if (!result || result.length === 0) {
-            return res.status(404).json({ message: 'No public lobbies found' });
-        }
+        if (!result || result.length === 0) return [];
 
         const lobbiesMap = new Map();
 
         for (const row of result) {
             const {
-                matchId, joinCode, startedDatetime, categoryId,
+                matchId, joinCode, lobbyName, startedDatetime, categoryId,
                 categoryName, creatorAlias, maxParticipants,
                 participantCount, bannedUserId, bannedUserAlias,
             } = row;
@@ -21,6 +19,7 @@ const getAllPublicLobbies = async (req, res) => {
             if (!lobbiesMap.has(matchId)) {
                 lobbiesMap.set(matchId, {
                     matchId,
+                    lobbyName,
                     joinCode,
                     startedDatetime,
                     creatorAlias,
@@ -42,13 +41,12 @@ const getAllPublicLobbies = async (req, res) => {
             }
         }
 
-        res.status(200).json(Array.from(lobbiesMap.values()));
+        return Array.from(lobbiesMap.values());
     } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, 'Public Lobbies');
-        res.status(status).json({ error, reason });
+        throw err;
     }
 };
 
 module.exports = {
-    getAllPublicLobbies,
+    fetchLobbies,
 };

@@ -30,29 +30,43 @@ async function createLobby(
 }
 
 async function getLobbyInformation(matchId) {
-  const getLobbyInformationQuery = `
-        SELECT
-            m.id AS match_id, m.join_code, m.is_public, m.match_creator_id, creator.alias AS match_creator_alias, creator.email AS match_creator_email,
-            m.status_id, s.status AS match_status, m.max_participants, m.started_datetime, m.completed_datetime,
-            tA.id AS team_a_id, tA.captain_id AS team_a_captain_id, uA_cap.alias AS team_a_captain_alias, uA_cap.email AS team_a_captain_email, tA.is_open AS team_a_is_open,
-            tB.id AS team_b_id, tB.captain_id AS team_b_captain_id, uB_cap.alias AS team_b_captain_alias, uB_cap.email AS team_b_captain_email, tB.is_open AS team_b_is_open,
-            p_user.id AS participant_user_id, p_user.alias AS participant_alias, p_user.email AS participant_email,
-            mp.team_id AS participant_team_id, mp.is_barred AS participant_is_barred
-        FROM matches m
-        JOIN status s ON m.status_id = s.id
-        JOIN users creator ON m.match_creator_id = creator.id
-        JOIN teams tA ON m.team_a_id = tA.id
-        JOIN users uA_cap ON tA.captain_id = uA_cap.id
-        JOIN teams tB ON m.team_b_id = tB.id
-        JOIN users uB_cap ON tB.captain_id = uB_cap.id
-        LEFT JOIN match_participants mp ON (mp.team_id = tA.id OR mp.team_id = tB.id)
-        LEFT JOIN users p_user ON mp.user_id = p_user.id
-        WHERE m.id = @matchId
-        ORDER BY m.id, mp.team_id, p_user.id;
-    `;
+  const query = `
+    SELECT
+      m.id AS match_id,
+      m.join_code,
+      m.is_public,
+      m.lobby_name,
+      m.match_creator_id,
+      creator.alias AS match_creator_alias,
+      creator.email AS match_creator_email,
+      m.status_id,
+      ms.status AS match_status,
+      m.max_participants,
+      m.started_datetime,
+      m.completed_datetime,
+      p.id AS participant_user_id,
+      p.alias AS participant_alias,
+      p.email AS participant_email,
+      mps.status AS participant_status
+    FROM Matches m
+    JOIN MatchStatus ms ON ms.id = m.status_id
+    JOIN MatchParticipants mp ON mp.match_id = m.id
+    JOIN Users p ON p.id = mp.user_id
+    JOIN MatchParticipantsStatus mps ON mps.id = mp.match_participants_status_id
+    JOIN Users creator ON creator.id = (
+      SELECT user_id
+      FROM MatchParticipants
+      WHERE match_id = m.id AND match_participants_status_id = (
+        SELECT id FROM MatchParticipantsStatus WHERE status = 'Creator'
+      )
+    )
+    WHERE m.id = @MatchId
+    ORDER BY p.id;
+  `;
 
-  return await executeQuery(getLobbyInformationQuery, { MatchId: matchId });
+  return await executeQuery(query, { MatchId: matchId });
 }
+
 
 async function getMatchIdByJoinCode(joinCode) {
   const matchIdQuery = `
