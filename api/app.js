@@ -8,6 +8,7 @@ const usersRouter = require("./routes/users");
 const createLobby = require("./routes/createLobby");
 const homeRouter = require("./routes/home");
 const lobbyRoutes = require("./routes/lobby");
+const roundRoutes = require("./routes/round");
 
 const app = express();
 
@@ -36,6 +37,7 @@ app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);
 app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
+app.use("/api/round", roundRoutes);
 
 app.use((req, res, next) => {
   next(createError(404));
