@@ -1,4 +1,5 @@
 const { executeQuery } = require("../db/query");
+const {formatMatchWithParticipants} = require("../utils/lobbyInfoFormatter");
 
 async function createLobby(
   isPublic,
@@ -29,29 +30,65 @@ async function createLobby(
   await executeQuery(query, params);
 }
 
-async function getLobbyInformation(matchId) {
-  const getLobbyInformationQuery = `
-        SELECT
-            m.id AS match_id, m.join_code, m.is_public, m.match_creator_id, creator.alias AS match_creator_alias, creator.email AS match_creator_email,
-            m.status_id, s.status AS match_status, m.max_participants, m.started_datetime, m.completed_datetime,
-            tA.id AS team_a_id, tA.captain_id AS team_a_captain_id, uA_cap.alias AS team_a_captain_alias, uA_cap.email AS team_a_captain_email, tA.is_open AS team_a_is_open,
-            tB.id AS team_b_id, tB.captain_id AS team_b_captain_id, uB_cap.alias AS team_b_captain_alias, uB_cap.email AS team_b_captain_email, tB.is_open AS team_b_is_open,
-            p_user.id AS participant_user_id, p_user.alias AS participant_alias, p_user.email AS participant_email,
-            mp.team_id AS participant_team_id, mp.is_barred AS participant_is_barred
-        FROM matches m
-        JOIN status s ON m.status_id = s.id
-        JOIN users creator ON m.match_creator_id = creator.id
-        JOIN teams tA ON m.team_a_id = tA.id
-        JOIN users uA_cap ON tA.captain_id = uA_cap.id
-        JOIN teams tB ON m.team_b_id = tB.id
-        JOIN users uB_cap ON tB.captain_id = uB_cap.id
-        LEFT JOIN match_participants mp ON (mp.team_id = tA.id OR mp.team_id = tB.id)
-        LEFT JOIN users p_user ON mp.user_id = p_user.id
-        WHERE m.id = @matchId
-        ORDER BY m.id, mp.team_id, p_user.id;
-    `;
+async function getMatchLobbyInformation(matchId) {
+  if (typeof matchId !== "number") {
+      console.error("Invalid matchId provided to getMatchLobbyInfo.");
+      return {
+          success: false,
+          message: "Invalid input: Match ID must be a number.",
+          data: null
+      };
+  }
+  const getMatchLobbyInfoQuery = `
+      SELECT
+          -- Match Details
+          m.id AS match_id,
+          m.join_code,
+          m.lobby_name,
+          m.is_public,
+          m.max_participants,
+          m.started_datetime,
+          m.completed_datetime,
+          m.status_id,          -- Match Status ID
+          ms.status AS match_status, -- Match Status string
 
-  return await executeQuery(getLobbyInformationQuery, { MatchId: matchId });
+          -- Participant Details (LEFT JOIN to include the match even if no participants yet)
+          mp.id AS match_participant_id,      -- ID from MatchParticipants table
+          mp.user_id AS participant_user_id,
+          pu.alias AS participant_alias,
+          pu.email AS participant_email,
+          mp.match_participants_status_id, -- Participant Status ID
+          mps.status AS participant_status   -- Participant Status string
+
+      FROM dbo.Matches m
+      INNER JOIN dbo.MatchStatus ms ON m.status_id = ms.id
+
+      LEFT JOIN dbo.MatchParticipants mp ON m.id = mp.match_id
+      LEFT JOIN dbo.Users pu ON mp.user_id = pu.id
+      LEFT JOIN dbo.MatchParticipantsStatus mps ON mp.match_participants_status_id = mps.id
+
+      WHERE m.id = @matchId  -- Parameter for the specific match ID
+      ORDER BY m.id, pu.id;  -- Consistent ordering
+  `;
+
+  try {
+      const resultRows = await executeQuery(getMatchLobbyInfoQuery, { matchId: matchId });
+      console.log(resultRows);
+
+      if (resultRows && resultRows.length > 0) {
+          const formattedData = formatMatchWithParticipants(resultRows);
+          if (formattedData) {
+              return { success: true, message: "Lobby information fetched successfully.", data: formattedData };
+          } else {
+               return { success: false, message: "Failed to format lobby data.", data: null };
+          }
+      } else {
+          return { success: false, message: "Match not found or no data returned.", data: null };
+      }
+  } catch (err) {
+      console.error("Error in getMatchLobbyInformation for matchId " + matchId + ":", err);
+      return { success: false, message: err.message || "An error occurred while fetching lobby information.", data: null, error: err };
+  }
 }
 
 async function getMatchIdByJoinCode(joinCode) {
@@ -62,12 +99,7 @@ async function getMatchIdByJoinCode(joinCode) {
   return await executeQuery(matchIdQuery, { JoinCode: joinCode });
 }
 
-async function addUserToLobby(
-  userId,
-  matchId,
-  teamPreferenceChar,
-  isBarred = false
-) {
+async function addUserToLobby(userId, matchId) {
   if (typeof userId !== "number" || typeof matchId !== "number") {
     console.error("Invalid userId or matchId provided to addUserToLobby.");
     return {
@@ -75,50 +107,27 @@ async function addUserToLobby(
       message: "Invalid input: User ID and Match ID must be numbers.",
     };
   }
-  if (teamPreferenceChar !== "A" && teamPreferenceChar !== "B") {
-    console.error("Invalid teamPreferenceChar provided to addUserToLobby.");
-    return {
-      success: false,
-      message: 'Invalid input: Team preference must be "A" or "B".',
-    };
-  }
 
   const directQuery = `
-      EXEC dbo.AddUserToMatchTeam
+      EXEC dbo.AddUserToMatch
           @UserID = @UserID,
-          @MatchID = @MatchID,
-          @TeamPreference = @TeamPreference,
-          @IsBarred = @IsBarred;
+          @MatchID = @MatchID
   `;
 
   const directParams = {
     UserID: userId,
-    MatchID: matchId,
-    TeamPreference: teamPreferenceChar,
-    IsBarred: isBarred,
+    MatchID: matchId
   };
   await executeQuery(directQuery, directParams);
   console.log(
-    `Attempt to add user ${userId} to match ${matchId}, team ${teamPreferenceChar} successful (or user was already in team).`
+    `Attempt to add user ${userId} to match ${matchId} successful (or user was already in team).`
   );
   return { success: true, message: "User processed for match team." };
 }
 
-// NOT USED... YET
-async function checkIfUserInLobby(userId, teamId) {
-  const checkQuery = `
-        SELECT id FROM match_participants
-        WHERE user_id = @userId AND team_id = @teamId;
-      `;
-  const params = { UserId: userId, TeamId: teamId };
-
-  await executeQuery(checkQuery, params);
-}
-
 module.exports = {
   createLobby,
-  getLobbyInformation,
+  getMatchLobbyInformation,
   getMatchIdByJoinCode,
   addUserToLobby,
-  checkIfUserInLobby,
 };
