@@ -1,34 +1,7 @@
 const { executeQuery } = require("../db/query");
+const { withTransaction } = require("../db/transaction");
+const { sql } = require("../db/pool");
 const {formatMatchWithParticipants} = require("../utils/lobbyInfoFormatter");
-
-async function createLobby(
-  isPublic,
-  matchCreatorId,
-  statusId,
-  maxParticipants,
-  teams
-) {
-  const isPublicValue = isPublic === 1 || isPublic === true ? 1 : 0;
-  const teamsJson = JSON.stringify(teams);
-  const query = `
-      EXEC AddMatchWithTeams
-          @IsPublic = @IsPublic,
-          @MatchCreatorId = @MatchCreatorId,
-          @StatusId = @StatusId,
-          @MaxParticipants = @MaxParticipants,
-          @Teams = @TeamList;
-    `;
-
-  const params = {
-    IsPublic: isPublicValue,
-    MatchCreatorId: matchCreatorId,
-    StatusId: statusId,
-    MaxParticipants: maxParticipants,
-    TeamList: teamsJson,
-  };
-
-  await executeQuery(query, params);
-}
 
 async function getMatchLobbyInformation(matchId) {
   if (typeof matchId !== "number") {
@@ -126,9 +99,66 @@ async function addUserToLobby(userId, matchId) {
   return { success: true, message: "User processed for match team." };
 }
 
+async function startGame({ joinCode, userId }) {
+  return await withTransaction(async ({ transaction }) => {
+    const matchInfoResult = await new sql.Request(transaction)
+      .input("JoinCode", joinCode)
+      .query(`
+        SELECT 
+          m.id AS matchId,
+          m.status_id AS matchStatusId,
+          ms.status AS matchStatus,
+          mp.user_id AS creatorId
+        FROM Matches m
+        JOIN MatchStatus ms ON ms.id = m.status_id
+        JOIN MatchParticipants mp ON mp.match_id = m.id
+        JOIN MatchParticipantsStatus s ON s.id = mp.match_participants_status_id
+        WHERE m.join_code = @JoinCode AND s.status = 'Creator'
+      `);
+
+    if (matchInfoResult.recordset.length === 0) {
+      throw new Error("Match not found or no creator exists");
+    }
+
+    const match = matchInfoResult.recordset[0];
+
+    if (match.creatorId !== userId) {
+      throw new Error("Only the creator can start the match");
+    }
+
+    if (match.matchStatus !== 'Lobby') {
+      throw new Error("Match is not in the Lobby stage and cannot be started");
+    }
+
+    await new sql.Request(transaction)
+      .input("MatchId", match.matchId)
+      .query(`
+        UPDATE MatchParticipants
+        SET match_participants_status_id = (
+          SELECT id FROM MatchParticipantsStatus WHERE status = 'Playing'
+        )
+        WHERE match_id = @MatchId AND match_participants_status_id = (
+          SELECT id FROM MatchParticipantsStatus WHERE status = 'WaitingStart'
+        )
+      `);
+
+    await new sql.Request(transaction)
+      .input("MatchId", match.matchId)
+      .query(`
+        UPDATE Matches
+        SET status_id = (SELECT id FROM MatchStatus WHERE status = 'Ongoing'),
+            started_datetime = GETDATE()
+        WHERE id = @MatchId
+      `);
+
+    return { matchId: match.matchId };
+  });
+}
+
+
 module.exports = {
-  createLobby,
   getMatchLobbyInformation,
   getMatchIdByJoinCode,
   addUserToLobby,
+  startGame,
 };

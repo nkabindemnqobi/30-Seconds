@@ -6,8 +6,12 @@ const withTransaction = async (callback) => {
 
   try {
     await transaction.begin();
-    const request = new sql.Request(transaction);
-    const result = await callback(request);
+
+    const result = await callback({
+      transaction,
+      request: (new sql.Request(transaction))
+    });
+
     await transaction.commit();
     return result;
   } catch (error) {
@@ -17,3 +21,4 @@ const withTransaction = async (callback) => {
 };
 
 module.exports = { withTransaction };
+

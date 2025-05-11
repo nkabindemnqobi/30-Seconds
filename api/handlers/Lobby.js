@@ -1,19 +1,14 @@
-const { executeQuery } = require("../db/query");
-const sql = require("mssql");
 const formatErrorResponse = require("../utils/formatErrorResponse");
-const { formatMatchWithParticipants } = require("../utils/lobbyInfoFormatter");
 const {
   broadcastToMatch,
-  matchMemberships,
   addUserToMatch,
-  removeUserFromMatch,
 } = require("../utils/SSEManager");
 const {
-  createLobby,
   getMatchLobbyInformation,
   getMatchIdByJoinCode,
   addUserToLobby,
-} = require("../queries/lobbies");
+  startGame
+} = require("../queries/lobby");
 
 const postLobbyJoin = async (req, res) => {
   const joinCode = req.params.joinCode;
@@ -44,12 +39,35 @@ const postLobbyJoin = async (req, res) => {
     );
 
     res.status(200).json( { ...resultRows, joiningUserId: userJoiningId });
-  } catch (error) {
-    console.error("Error fetching match data:", error);
-    res.status(500).json({ error: "Internal server error" });
+  } catch (err) {
+    const { status, error, reason } = formatErrorResponse(err, "join-lobby");
+    return res.status(status).json({ error, reason });
+  }
+};
+
+const handleStartGame = async (req, res) => {
+  try {
+    const { joinCode } = req.params;
+    const { userId } = req.body;
+
+    if (!joinCode || !userId) {
+      return res.status(400).json({ message: "Missing joinCode or userId" });
+    }
+
+    const result = await startGame({ joinCode, userId });
+
+    broadcastToMatch(joinCode, {
+      data: { message: "Game started!", matchId: result.matchId },
+    }, "game_started");
+
+    return res.status(200).json({ message: "Game started successfully." });
+  } catch (err) {
+    const { status, error, reason } = formatErrorResponse(err, "start-game");
+    return res.status(status).json({ error, reason });
   }
 };
 
 module.exports = {
   postLobbyJoin,
+  handleStartGame,
 };

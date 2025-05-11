@@ -4,7 +4,6 @@ const logger = require("morgan");
 const cors = require("cors");
 
 const authRouter = require("./routes/google-auth");
-const lobbiesRouter = require("./routes/lobbies");
 const usersRouter = require("./routes/users");
 const createLobby = require("./routes/createLobby");
 const homeRouter = require("./routes/home");
@@ -37,7 +36,6 @@ app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);
 app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
-app.use("/lobbies", lobbiesRouter);
 
 app.use((req, res, next) => {
   next(createError(404));
