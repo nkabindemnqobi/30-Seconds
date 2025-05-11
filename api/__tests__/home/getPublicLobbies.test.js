@@ -1,6 +1,6 @@
 const { getAllPublicLobbies } = require('../../handlers/Home');
-const db = require('../../db/query');
-jest.mock('../../db/query');
+const { fetchAllPublicLobbies } = require('../../queries/home');
+jest.mock('../../queries/home');
 
 describe('getAllPublicLobbies', () => {
     let req, res;
@@ -12,7 +12,7 @@ describe('getAllPublicLobbies', () => {
             status: jest.fn().mockReturnThis(),
             send: jest.fn(),
         };
-        jest.spyOn(console, 'error').mockImplementation(() => {});
+        jest.spyOn(console, 'error').mockImplementation(() => { });
     });
 
     afterEach(() => {
@@ -20,7 +20,7 @@ describe('getAllPublicLobbies', () => {
     });
 
     it('should return grouped public lobbies with categories and banned users formatted', async () => {
-        db.executeQuery.mockResolvedValue([
+        fetchAllPublicLobbies.mockResolvedValue([
             {
                 matchId: 1,
                 joinCode: 'JOIN123',
@@ -75,18 +75,17 @@ describe('getAllPublicLobbies', () => {
         const send = jest.fn();
 
         res = { json, status, send };
-        db.executeQuery.mockResolvedValue([]);
+        fetchAllPublicLobbies.mockResolvedValue([]);
 
         await getAllPublicLobbies(req, res);
 
-        expect(db.executeQuery).toHaveBeenCalled();
+        expect(fetchAllPublicLobbies).toHaveBeenCalled();
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith({ message: 'No public lobbies found' });
     });
-    
 
     it('should deduplicate categories for the same match', async () => {
-        db.executeQuery.mockResolvedValue([
+        fetchAllPublicLobbies.mockResolvedValue([
             {
                 matchId: 2,
                 joinCode: 'JOIN456',
@@ -112,9 +111,9 @@ describe('getAllPublicLobbies', () => {
                 bannedUserAlias: null,
             }
         ]);
-    
+
         await getAllPublicLobbies(req, res);
-    
+
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith([
             {
@@ -133,7 +132,7 @@ describe('getAllPublicLobbies', () => {
     });
 
     it('should handle banned users with null alias gracefully', async () => {
-        db.executeQuery.mockResolvedValue([
+        fetchAllPublicLobbies.mockResolvedValue([
             {
                 matchId: 3,
                 joinCode: 'JOIN333',
@@ -147,9 +146,9 @@ describe('getAllPublicLobbies', () => {
                 bannedUserAlias: null,
             }
         ]);
-    
+
         await getAllPublicLobbies(req, res);
-    
+
         expect(res.json).toHaveBeenCalledWith([
             {
                 matchId: 3,
@@ -163,11 +162,9 @@ describe('getAllPublicLobbies', () => {
             }
         ]);
     });
-    
-    
 
     it('should deduplicate banned users across multiple rows', async () => {
-        db.executeQuery.mockResolvedValue([
+        fetchAllPublicLobbies.mockResolvedValue([
             {
                 matchId: 1,
                 joinCode: 'JOIN123',
@@ -190,12 +187,12 @@ describe('getAllPublicLobbies', () => {
                 maxParticipants: 10,
                 participantCount: 4,
                 bannedUserId: 6,
-                bannedUserAlias: 'User6', 
+                bannedUserAlias: 'User6',
             }
         ]);
-    
+
         await getAllPublicLobbies(req, res);
-    
+
         expect(res.status).toHaveBeenCalledWith(200);
         expect(res.json).toHaveBeenCalledWith([
             {
@@ -217,7 +214,7 @@ describe('getAllPublicLobbies', () => {
     });
 
     it('should return 404 if no public lobbies are found', async () => {
-        db.executeQuery.mockResolvedValue([]);
+        fetchAllPublicLobbies.mockResolvedValue([]);
         await getAllPublicLobbies(req, res);
         expect(res.status).toHaveBeenCalledWith(404);
         expect(res.json).toHaveBeenCalledWith({ message: 'No public lobbies found' });
@@ -227,7 +224,7 @@ describe('getAllPublicLobbies', () => {
         const error = new Error('Connection refused');
         error.code = 'ECONNREFUSED';
         error.isConnectionError = true;
-        db.executeQuery.mockRejectedValue(error);
+        fetchAllPublicLobbies.mockRejectedValue(error);
 
         await getAllPublicLobbies(req, res);
 
@@ -240,7 +237,7 @@ describe('getAllPublicLobbies', () => {
 
     it('should return 500 for unexpected errors', async () => {
         const error = new Error('Unexpected DB failure');
-        db.executeQuery.mockRejectedValue(error);
+        fetchAllPublicLobbies.mockRejectedValue(error);
 
         await getAllPublicLobbies(req, res);
 
@@ -257,7 +254,7 @@ describe('getAllPublicLobbies', () => {
 
         try {
             const error = new Error('Sensitive failure info');
-            db.executeQuery.mockRejectedValue(error);
+            fetchAllPublicLobbies.mockRejectedValue(error);
 
             await getAllPublicLobbies(req, res);
 
