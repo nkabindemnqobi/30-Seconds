@@ -16,6 +16,8 @@ const getAuthUrl = () => {
 const exchangeCodeForIdToken = async (req, res) => {
     try {
         const code = req.query["code"];
+        if(!code) return res.status(400).json({ error: "Code missing in request", reason: "Authentication" });
+
         const tokenUrl = process.env.TOKEN_ENDPOINT;
         const requestBody = {
             code: code,
@@ -24,6 +26,7 @@ const exchangeCodeForIdToken = async (req, res) => {
             redirect_uri: process.env.REDIRECT_URI ?? "",
             grant_type: "authorization_code",
         }
+        
         const response = await fetch(tokenUrl, {
           method: 'POST',
           headers: {
