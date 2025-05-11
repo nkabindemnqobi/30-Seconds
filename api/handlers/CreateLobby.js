@@ -1,18 +1,17 @@
 const { executeQuery } = require('../db/query');
-const formatErrorResponse = require('../utils/formatErrorResponse');
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
-const getAllCategories = async (req, res) => {
+const getAllCategories = async (req, res, next) => {
     try {
         const result = await executeQuery('SELECT * FROM Categories');
 
         if (!result || result.length === 0) {
-            return res.status(404).json({ message: 'No categories found' });
+            return next(formatErrorResponse(404, 'No categories found'));
         }
 
         res.status(200).json(result);
-    } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, 'categories');
-        res.status(status).json({ error, reason });
+    } catch (error) {
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 

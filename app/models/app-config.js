@@ -1,7 +1,12 @@
 /*
     Change @apiBaseUrl to local instances when in development
 */
-export const applicationConfiguration = {
-    redirectUrl: "",
-    apiBaseUrl: "http://30-seconds.af-south-1.elasticbeanstalk.com",
+export class ApplicationConfiguration {
+    static redirectUrl;
+    static apiBaseUrl = "http://localhost:8000";
+    static loginUrl = "http://localhost:3000";
+
+    static setRedirectUrl(redirectUri) {
+        ApplicationConfiguration.redirectUrl = redirectUri;
+    }
 }

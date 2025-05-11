@@ -1,7 +1,7 @@
 const { executeQuery } = require('../db/query');
-const formatErrorResponse = require('../utils/formatErrorResponse');
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
-const getAllPublicLobbies = async (req, res) => {
+const getAllPublicLobbies = async (req, res, next) => {
     const sqlQuery = `
         SELECT 
             m.id AS matchId,
@@ -31,7 +31,7 @@ const getAllPublicLobbies = async (req, res) => {
         const result = await executeQuery(sqlQuery);
 
         if (!result || result.length === 0) {
-            return res.status(404).json({ message: 'No public lobbies found' });
+            return next(formatErrorResponse(404, 'No public lobbies found'));
         }
 
         const lobbiesMap = new Map();
@@ -68,9 +68,8 @@ const getAllPublicLobbies = async (req, res) => {
         }
 
         res.status(200).json(Array.from(lobbiesMap.values()));
-    } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, 'Public Lobbies');
-        res.status(status).json({ error, reason });
+    } catch (error) {
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 

@@ -9,6 +9,7 @@ const usersRouter = require("./routes/users");
 const createLobby = require("./routes/categories");
 const homeRouter = require("./routes/home");
 const lobbyRoutes = require("./routes/lobby");
+const { errorHandler } = require("./middleware/error");
 
 const app = express();
 
@@ -22,6 +23,10 @@ app.use(
 app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  allowedHeaders: "*",
+  origin: process.env.ENV.toLowerCase() !== "production" ? process.env.ORIGIN_DEV : process.env.ORIGIN_PROD
+}))
 
 app.use("/auth", authRouter);
 app.use("/", authRouter);
@@ -35,13 +40,7 @@ app.use((req, res, next) => {
   next(createError(404));
 });
 
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message,
-      status: err.status || 500,
-    },
-  });
-});
+// Error handling middleware
+app.use(errorHandler);
 
 module.exports = app;

@@ -1,6 +1,6 @@
 const { executeQuery } = require("../db/query");
 const sql = require("mssql");
-const formatErrorResponse = require("../utils/formatErrorResponse");
+const { formatErrorResponse, getUnexpectedErrorStatus } = require("../utils/formatErrorResponse");
 const { formatMatchWithParticipants } = require("../utils/lobbyInfoFormatter");
 const {
   broadcastToMatch,
@@ -16,20 +16,20 @@ const {
 } = require("../queries/lobbies");
 
 //Assume player is in limbo. We use a different EP for joining team.
-const postLobbyJoinTeam = async (req, res) => {
+const postLobbyJoinTeam = async (req, res, next) => {
   const joinCode = req.params.joinCode;
   const { userJoiningId, teamPreferenceChar } = req.body;
 
   if (!joinCode || !userJoiningId || !teamPreferenceChar) {
     console.log(joinCode, userJoiningId, teamPreferenceChar);
-    return res.status(400).json({ error: "Missing required parameters." });
+    return next(formatErrorResponse(400, "Missing required parameters."));
   }
 
   try {
     const matchIdResult = await getMatchIdByJoinCode(joinCode);
 
     if (matchIdResult.length === 0) {
-      return res.status(404).json({ message: "Lobby not found." });
+      return next(formatErrorResponse(404, "Lobby not found."));
     }
 
     const matchId = matchIdResult[0].id;
@@ -50,7 +50,7 @@ const postLobbyJoinTeam = async (req, res) => {
       if (formattedData) {
         res.json(formattedData);
       } else {
-        res.status(404).json({ error: "Match not found" });
+        return next(formatErrorResponse(404, "Match not found."));
       }
 
       broadcastToMatch(
@@ -63,19 +63,14 @@ const postLobbyJoinTeam = async (req, res) => {
       );
       res.status(200).json({ message: `User successfully joined a team.` });
     } else {
-      res.status(500).json({ message: `User failed to join a team.` });
+      return formatErrorResponse(500, `User failed to join a team.`);
     }
-  } catch (err) {
-    const { status, error, reason } = formatErrorResponse(err, "Join Lobby");
-    console.error(
-      `Error in postLobbyJoin for user ${userJoiningId} joining ${joinCode} with team_id ${teamId}:`,
-      err
-    );
-    res.status(status).json({ error, reason });
+  } catch (error) {
+    return next(formatErrorResponse(getUnexpectedErrorStatus(error), `Error in postLobbyJoin for user ${userJoiningId} joining ${joinCode} with team_id ${teamId}:`));
   }
 };
 
-const postLobbyJoin = async (req, res) => {
+const postLobbyJoin = async (req, res, next) => {
   const joinCode = req.params.joinCode;
   const { userJoiningId } = req.body;
 
@@ -84,7 +79,7 @@ const postLobbyJoin = async (req, res) => {
     console.log(matchIdResult);
 
     if (matchIdResult.length === 0) {
-      return res.status(404).json({ message: "Lobby not found." });
+      return next(formatErrorResponse(404, "Lobby not found"));
     }
 
     const matchId = matchIdResult[0].id;
@@ -97,7 +92,7 @@ const postLobbyJoin = async (req, res) => {
     if (formattedData) {
       res.json(formattedData);
     } else {
-      res.status(404).json({ error: "Match not found" });
+      return next(formatErrorResponse(404, "Match not found"));
     }
 
     broadcastToMatch(
@@ -109,8 +104,7 @@ const postLobbyJoin = async (req, res) => {
       "player_join"
     );
   } catch (error) {
-    console.error("Error fetching match data:", error);
-    res.status(500).json({ error: "Internal server error" });
+    return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
 
