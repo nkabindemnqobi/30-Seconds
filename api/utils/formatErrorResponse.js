@@ -1,9 +1,11 @@
 const formatErrorResponse = (err, requestType) => {
-    console.error(`Error occurred on ${requestType ?? 'request'}:`, {
-        message: err.message,
-        code: err.code,
-        name: err.name,
-    });
+    if (process.env.NODE_ENV !== 'test') {
+        console.error(`Error occurred on ${requestType ?? 'request'}:`, {
+            message: err.message,
+            code: err.code,
+            name: err.name,
+        });
+    }
 
     const status = err.isConnectionError ? 503 : 500;
     const reason =
