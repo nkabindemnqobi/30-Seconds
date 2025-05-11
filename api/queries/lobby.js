@@ -101,24 +101,33 @@ async function addUserToLobby(userId, matchId) {
 
 async function startGame({ joinCode, userId }) {
   return await withTransaction(async ({ transaction }) => {
-    const matchInfo = await new sql.Request(transaction)
+    const matchInfoResult = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
       .query(`
-        SELECT m.id AS matchId, m.status_id AS matchStatusId, mp.user_id AS creatorId
+        SELECT 
+          m.id AS matchId,
+          m.status_id AS matchStatusId,
+          ms.status AS matchStatus,
+          mp.user_id AS creatorId
         FROM Matches m
+        JOIN MatchStatus ms ON ms.id = m.status_id
         JOIN MatchParticipants mp ON mp.match_id = m.id
         JOIN MatchParticipantsStatus s ON s.id = mp.match_participants_status_id
         WHERE m.join_code = @JoinCode AND s.status = 'Creator'
       `);
 
-    if (matchInfo.recordset.length === 0) {
+    if (matchInfoResult.recordset.length === 0) {
       throw new Error("Match not found or no creator exists");
     }
 
-    const match = matchInfo.recordset[0];
+    const match = matchInfoResult.recordset[0];
 
     if (match.creatorId !== userId) {
       throw new Error("Only the creator can start the match");
+    }
+
+    if (match.matchStatus !== 'Lobby') {
+      throw new Error("Match is not in the Lobby stage and cannot be started");
     }
 
     await new sql.Request(transaction)
