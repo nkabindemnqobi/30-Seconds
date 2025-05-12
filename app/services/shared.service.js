@@ -1,4 +1,5 @@
 import { ApplicationConfiguration } from "../models/app-config.js";
+import { User } from "../models/user.js";
 export default class BaseService {
   async get(url) {
     const response = await fetch(
@@ -7,6 +8,7 @@ export default class BaseService {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${ User.user.idToken }`
         },
       }
     );
@@ -21,7 +23,7 @@ export default class BaseService {
         body,
         headers: {
           "Content-Type": "application/json",
-          Authorization: ``,
+          "Authorization": `Bearer ${ User.user.idToken }`,
         },
       });
     } catch (error) {

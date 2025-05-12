@@ -87,5 +87,6 @@ const verifyIdToken = async (idToken) => {
 
 module.exports = {
     getAuthUrl,
-    exchangeCodeForIdToken
+    exchangeCodeForIdToken,
+    verifyIdToken
 }

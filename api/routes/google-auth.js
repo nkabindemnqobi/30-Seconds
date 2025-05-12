@@ -5,6 +5,7 @@ const {
   exchangeCodeForIdToken,
 } = require("../handlers/google-auth");
 const { handleSSEConnection } = require("../utils/SSEManager");
+const { authMiddleware } = require("../middleware/authorization");
 
 router.get('/get-token', exchangeCodeForIdToken);
 
@@ -13,8 +14,11 @@ router.get("/login", (req, res, next) => {
   res.send({ authUrl: authUrl });
 });
 
-router.get("/sse/connect/:userId", (req, res) => {
-  const userId = req.params.userId; // get from middleware?
+router.get("/sse/connect/:userId", authMiddleware, (req, res) => {
+  /*
+   req.user = { email: <email>, sub: <googleId>, name: <name> }
+  */
+  const userId = req.user.sub;
   handleSSEConnection(req, res, userId);
 });
 
