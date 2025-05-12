@@ -1,5 +1,6 @@
 import CategoriesService from "../../services/categories.service.js";
 import "./Error.component.js"; 
+import "./ListItems.component.js"
 
 export default class SelectCategories extends HTMLElement {
   constructor() {
@@ -12,17 +13,18 @@ export default class SelectCategories extends HTMLElement {
 
   async connectedCallback() {
     try {
-      this.categories = await this.categoryService.retrieveCategories();
+    this.categories = await this.categoryService.retrieveCategories();
+      if (this.categories.length === 0) {
+        this.renderError("No categories available. Please try again.");
+        return;
+      }
+      console.log(this.categories)
       this.render();
     } catch (error) {
       this.renderError("Failed to load categories. Please try again.");
     }
-  }
-
-  render() {
-    if (this.categories.length === 0) {
-      return; 
     }
+    render() {
 
     const fieldset = document.createElement("fieldset");
     const legend = document.createElement("legend");
@@ -51,10 +53,8 @@ export default class SelectCategories extends HTMLElement {
     const style = document.createElement("style");
     style.textContent = `
       .categories {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 0.5rem;
-        margin: 10px 0;
+         display: grid;
+         grid-template-columns: repeat(2, 1fr); 
       }
 
       fieldset {
