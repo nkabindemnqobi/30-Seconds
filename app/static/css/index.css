@@ -212,3 +212,29 @@ small {
   margin-top: 5px;
   color: #666;
 }
+
+.how-to {
+  background-color: #f0f4ff; 
+  border-radius: 0.5rem;
+  padding: 1.5rem;
+  margin: 2rem auto;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  color: #1e3a8a; 
+}
+
+.how-to h2 {
+  color: #1e3a8a; 
+  margin-bottom: 1rem;
+  font-size: 1.25rem;
+}
+
+.how-to ul {
+  padding-left: 1.2rem;
+}
+
+.how-to li {
+  margin-bottom: 0.5rem;
+  list-style-type: disc;
+  color: #1d4ed8;
+  font-size: 0.875rem;
+}

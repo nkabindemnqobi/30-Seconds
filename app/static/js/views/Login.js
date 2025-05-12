@@ -24,14 +24,17 @@ export default class Login extends AbstractView {
                 </section>
                 <app-button leftIcon="login" id="login-button" class="gradient"> Sign in with Google</app-button>
                 
-                <ul>
-                    <li>Sign in and create or join a team</li>
-                    <li>Join an existing lobby or create your own</li>
-                    <li>Wait for other teams to join</li>
-                    <li>Start the match when everyone is ready</li>
-                    <li>Answer trivia questions to earn points</li>
-                    <li>The team with the most points wins!</li>
-                </ul>
+                <article class="how-to">
+                    <h2>How to Join</h2>
+                    <ul>
+                        <li>Sign in and create or join a team</li>
+                        <li>Join an existing lobby or create your own</li>
+                        <li>Wait for other teams to join</li>
+                        <li>Start the match when everyone is ready</li>
+                        <li>Answer trivia questions to earn points</li>
+                        <li>The team with the most points wins!</li>
+                    </ul>
+                    </article>
             </main>
         </section>
         `;
