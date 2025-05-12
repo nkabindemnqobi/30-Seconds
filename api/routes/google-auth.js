@@ -14,8 +14,9 @@ router.get("/login", (req, res, next) => {
   res.send({ authUrl: authUrl });
 });
 
-router.get("/sse/connect/:userId", authMiddleware, (req, res) => {
-// router.get("/sse/connect/:userId", (req, res) => { USE THIS FOR NO AUTH.
+// router.get("/sse/connect/:userId", authMiddleware, (req, res) => {
+  // USE THIS FOR NO AUTH
+router.get("/sse/connect/:userId", (req, res) => { 
   /*
    req.user = { email: <email>, sub: <googleId>, name: <name> }
   */
