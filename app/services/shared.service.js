@@ -1,12 +1,14 @@
-import { applicationConfiguration } from "../models/app-config.js";
+import { ApplicationConfiguration } from "../models/app-config.js";
+import { User } from "../models/user.js";
 export default class BaseService {
   async get(url) {
     const response = await fetch(
-      `${applicationConfiguration.apiBaseUrl}/api/${url}`,
+      `${ApplicationConfiguration.apiBaseUrl}/api/${url}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
+          "Authorization": `Bearer ${ User.user.idToken }`
         },
       }
     );
@@ -16,12 +18,12 @@ export default class BaseService {
   async post(url, requestBody) {
     try {
       const body = JSON.stringify(requestBody);
-      await fetch(`${applicationConfiguration.apiBaseUrl}/api/${url}`, {
+      await fetch(`${ApplicationConfiguration.apiBaseUrl}/api/${url}`, {
         method: "POST",
         body,
         headers: {
           "Content-Type": "application/json",
-          Authorization: ``,
+          "Authorization": `Bearer ${ User.user.idToken }`,
         },
       });
     } catch (error) {

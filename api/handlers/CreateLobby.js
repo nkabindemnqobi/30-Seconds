@@ -1,23 +1,22 @@
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 const { getAllCategoriesFromDb, createLobby } = require("../queries/createLobby");
-const formatErrorResponse = require('../utils/formatErrorResponse');
 const { addUserToMatch, sendToUser } = require("../utils/SSEManager");
 
-const getAllCategories = async (req, res) => {
+const getAllCategories = async (req, res, next) => {
     try {
         const result = await getAllCategoriesFromDb();
 
         if (!result || result.length === 0) {
-            return res.status(404).json({ message: 'No categories found' });
+            return next(formatErrorResponse(404, 'No categories found'));
         }
 
         res.status(200).json(result);
-    } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, 'categories');
-        res.status(status).json({ error, reason });
+    } catch (error) {
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 
-const handleCreateLobby = async (req, res) => {
+const handleCreateLobby = async (req, res, next) => {
     try {
         const { userId, categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
 
@@ -30,7 +29,7 @@ const handleCreateLobby = async (req, res) => {
             maxParticipants < 1 ||
             !lobbyName
         ) {
-            return res.status(400).json({ message: "Invalid input" });
+            return next(formatErrorResponse(400, "Invalid input"));
         }
 
         const joinCode = await createLobby({
@@ -50,10 +49,9 @@ const handleCreateLobby = async (req, res) => {
             }
         }
         sendToUser(userId, result, "match_created");
-        return res.status(201).json({ data: { joinCode: joinCode } });
-    } catch (err) {
-        const { status, error, reason } = formatErrorResponse(err, "create-lobby");
-        return res.status(status).json({ error, reason });
+        res.status(201).json({ data: { joinCode: joinCode } });
+    } catch (error) {
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 

@@ -1,9 +1,10 @@
+const { executeQuery } = require('../db/query');
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 const { fetchLobbiesQuery } = require('../queries/home');
 
 const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
     try {
         const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
-
         if (!result || result.length === 0) return [];
 
         const lobbiesMap = new Map();
@@ -39,10 +40,9 @@ const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
                 lobby.bannedUsers.push({ id: bannedUserId, alias: bannedUserAlias });
             }
         }
-
-        return Array.from(lobbiesMap.values());
-    } catch (err) {
-        throw err;
+        res.status(200).json(Array.from(lobbiesMap.values()));
+    } catch (error) {
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 

@@ -2,7 +2,7 @@ import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
 import Login from "./views/Login.js";
-import { applicationConfiguration } from "../../models/app-config.js";
+import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
 
@@ -55,7 +55,7 @@ const router = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code");
     if(accessCode) {
-        const token = await googleAuth.exchangeCodeForToken(applicationConfiguration, accessCode);
+        const token = await googleAuth.exchangeCodeForToken(accessCode);
         if(token.idToken && token.googleId) {
             history.pushState({}, "", "/lobby");
             router();
@@ -82,14 +82,14 @@ const attachEventListeners = () => {
     if(loginButton) {
         loginButton.addEventListener("click", (clickEvent) => {
             clickEvent.preventDefault();
-            window.location.href = applicationConfiguration.redirectUrl;
+            window.location.href = ApplicationConfiguration.redirectUrl;
         })
     }
 };
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
-    googleAuth.getApplicationConfiguration(applicationConfiguration);
+    if(!ApplicationConfiguration.redirectUrl) googleAuth.getApplicationConfiguration();
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();

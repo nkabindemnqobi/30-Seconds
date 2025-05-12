@@ -1,4 +1,3 @@
-const createError = require("http-errors");
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
@@ -9,27 +8,19 @@ const createLobby = require("./routes/createLobby");
 const homeRouter = require("./routes/home");
 const lobbyRoutes = require("./routes/lobby");
 const roundRoutes = require("./routes/round");
+const { errorHandler, notFound } = require("./middleware/error");
 
 const app = express();
+const notProduction = process.env.NODE_ENV.toLowerCase() !== "production";
 
-app.use(
-  cors({
-    origin: process.env.ORIGIN,
-    credentials: true,
-  })
-);
-
-app.use(logger("dev"));
-app.use(
-  cors({
-    origin: process.env.ORIGIN,
-    credentials: true,
-  })
-);
-
-app.use(logger("dev"));
+if(notProduction) app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  allowedHeaders: "*",
+  origin:  notProduction ? process.env.ORIGIN_DEV : process.env.ORIGIN_PROD,
+  credentials: true,
+}))
 
 app.use("/api/auth", authRouter);
 app.use("/", authRouter);
@@ -39,17 +30,8 @@ app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
 app.use("/api/round", roundRoutes);
 
-app.use((req, res, next) => {
-  next(createError(404));
-});
-
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message,
-      status: err.status || 500,
-    },
-  });
-});
+// Error handling middleware
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;
