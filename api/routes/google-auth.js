@@ -15,10 +15,11 @@ router.get("/login", (req, res, next) => {
 });
 
 router.get("/sse/connect/:userId", authMiddleware, (req, res) => {
+// router.get("/sse/connect/:userId", (req, res) => { USE THIS FOR NO AUTH.
   /*
    req.user = { email: <email>, sub: <googleId>, name: <name> }
   */
-  const userId = req.user.sub;
+  const userId = req.params.userId;
   handleSSEConnection(req, res, userId);
 });
 

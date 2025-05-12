@@ -1,15 +1,17 @@
 const { formatErrorResponse, getUnexpectedErrorStatus } = require("../utils/formatErrorResponse");
-const { formatMatchWithParticipants } = require("../utils/lobbyInfoFormatter");
 const {
   broadcastToMatch,
   addUserToMatch,
+  sendToUser,
+  removeUserFromMatch
 } = require("../utils/SSEManager");
 const {
   getMatchLobbyInformation,
   getMatchIdByJoinCode,
   addUserToLobby,
-  startGame
+  startGame,
 } = require("../queries/lobby");
+const {kickPlayer} = require("../queries/inGame");
 
 const postLobbyJoin = async (req, res, next) => {
   const joinCode = req.params.joinCode;
@@ -27,15 +29,7 @@ const postLobbyJoin = async (req, res, next) => {
     const addUserToLobbyResult = await addUserToLobby(userJoiningId, matchId);
     addUserToMatch(joinCode, userJoiningId);
 
-    const resultRows = await getLobbyInformation(matchId);
-    const formattedData = formatMatchWithParticipants(resultRows);
-    console.log("RESULT ROWS", resultRows)
-
-    if (formattedData) {
-      res.json(formattedData);
-    } else {
-      return next(formatErrorResponse(404, "Match not found"));
-    }
+    const resultRows = await getMatchLobbyInformation(matchId);
 
     broadcastToMatch(
       joinCode,
@@ -50,6 +44,50 @@ const postLobbyJoin = async (req, res, next) => {
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
+
+const handleKickPlayer = async (req,res,next) => {
+  // const callingUserId = req.user.id; TODO: Get from user Object
+  const callingUserId = req.body.sourceUserId;
+  const kickedUserId = req.body.targetUserId;
+  const joinCode = req.params.joinCode;
+
+  if (!callingUserId || !kickedUserId || !joinCode){
+    return next(formatErrorResponse(400, "Missing creator userId or target user ID"));
+  }
+
+  try {
+    const matchIdResult = await getMatchIdByJoinCode(joinCode);
+
+    if (matchIdResult.length === 0) {
+      return next(formatErrorResponse(404, "Lobby not found"));
+    }
+    const matchId= matchIdResult[0].id;
+    const kickResult = await kickPlayer({sourceUserId: callingUserId, targetUserId: kickedUserId, matchId: matchId});
+    
+    if (!kickResult.success){
+      return next(formatErrorResponse(400, kickResult.message))
+    }
+    sendToUser(kickedUserId, {message: `You have been kicked from the match with join code ${joinCode} and cannot join back.`}, eventType = "message")
+    removeUserFromMatch(joinCode, kickedUserId);
+    const resultRows = await getMatchLobbyInformation(matchId);
+
+    broadcastToMatch(
+      joinCode,
+      {
+        message: `A user has been kicked from the lobby!`,
+        lobbyData: { kickSuccess: true, kickMessage: `User with ID ${kickedUserId} has been kicked from the lobby!`, ...resultRows },
+      },
+      "player_kick"
+    );
+
+    res.status(200).json( { kickSuccess: true, kickMessage: ``, ...resultRows });
+    
+  } catch (error) {
+    console.log(error)
+    return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
+  }
+
+}
 
 const handleStartGame = async (req, res, next) => {
   try {
@@ -73,4 +111,5 @@ const handleStartGame = async (req, res, next) => {
 module.exports = {
   postLobbyJoin,
   handleStartGame,
+  handleKickPlayer
 };
