@@ -1,5 +1,5 @@
-import "./ListItems.component.js";
 import CategoriesService from "../../services/categories.service.js";
+import "./Error.component.js"; 
 
 export default class SelectCategories extends HTMLElement {
   constructor() {
@@ -11,11 +11,19 @@ export default class SelectCategories extends HTMLElement {
   }
 
   async connectedCallback() {
-    this.categories = await this.categoryService.retrieveCategories();
-    this.render();
+    try {
+      this.categories = await this.categoryService.retrieveCategories();
+      this.render();
+    } catch (error) {
+      this.renderError("Failed to load categories. Please try again.");
+    }
   }
 
   render() {
+    if (this.categories.length === 0) {
+      return; 
+    }
+
     const fieldset = document.createElement("fieldset");
     const legend = document.createElement("legend");
     legend.textContent = "Categories";
@@ -66,40 +74,24 @@ export default class SelectCategories extends HTMLElement {
         margin-top: 10px;
         color: #666;
       }
-      .category-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-        padding: 0;
-        list-style: none;
-        max-width: 400px;
-        margin: 2rem auto;
-      }
-
-      .category-list li {
-        padding: 0.75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.375rem;
-        background-color: #fff;
-        color: #374151;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-
-      .category-list li:hover {
-        background-color: #f5f3ff;
-      }
-
-      .category-list li.selected {
-        background-color: #f3e8ff;
-        border-color: #d8b4fe;
-        color: #6b21a8;
-      }
+       
+      
     `;
 
     this.shadowRoot.innerHTML = "";
     this.shadowRoot.appendChild(style);
     this.shadowRoot.appendChild(fieldset);
+  }
+
+  renderError(message) {
+    const errorMessage = document.createElement("error-message");
+    errorMessage.setAttribute("message", message);
+    errorMessage.setAttribute("retry", "");
+    
+    errorMessage.addEventListener("retry", () => this.connectedCallback());
+    
+    this.shadowRoot.innerHTML = ""; // Clear existing content
+    this.shadowRoot.appendChild(errorMessage); // Append error message component
   }
 
   onCategorySelected(event) {

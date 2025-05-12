@@ -22,7 +22,7 @@ export default class Login extends AbstractView {
                     <h3>Welcome to 30-Second Trivia!</h3>
                     <p>Sign in to join lobbies and start playing!</p>
                 </section>
-                <app-button leftIcon="login" id="login-button" class="gradient full-width"> Sign in with Google</app-button>
+                <app-button leftIcon="login" id="login-button" class="gradient"> Sign in with Google</app-button>
                 
                 <ul>
                     <li>Sign in and create or join a team</li>
