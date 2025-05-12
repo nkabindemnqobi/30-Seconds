@@ -68,18 +68,18 @@ export default class LobbyForm extends HTMLElement {
                     @import url("/static/css/index.css");
                     </style>
                     <section class="card" aria-labelledby="create-lobby-heading">
-                    <header>
-                        <h1 id="create-lobby-heading">Create a Lobby</h1>
-                        <p class="subtext">Set up a lobby for teams to join and play trivia</p>
+                    <header class="card-header">
+                        <h1 class="card-title" id="create-lobby-heading">Create a Lobby</h1>
+                        <p class="card-description">Set up a lobby for teams to join and play trivia</p>
                     </header>
-
+                    <main class="card-content" id="appContent">
                     <text-input
                         label="Lobby name"
                         data-field="lobbyName"
                         placeholder="Enter a name for your lobby"
                     ></text-input>
 
-                    <div class="input-group">
+                    <section class="input-group">
                         <label for="maxParticipants"></label>
                         <input
                         type="range"
@@ -90,10 +90,11 @@ export default class LobbyForm extends HTMLElement {
                         name="maxTeams"
                         data-field="maxParticipants"
                         />
-                    </div>
-                    <app-switch data-field="isPublic"></app-switch>
+                    </section>
+                    <app-switch data-field="isPublic" label="Public Lobby" description="Visible to everyone in the lobby list"></app-switch>
                     <select-categories data-field="categoryIds"></select-categories>
-                    <app-button id="createLobby" class="primary">Create lobby</app-button>
+                    <app-button id="createLobby" class="submit-button">Create lobby</app-button>
+                    </main>
                     </section>
 
 `;
