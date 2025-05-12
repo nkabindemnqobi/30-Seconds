@@ -10,7 +10,7 @@ const lobbyRoutes = require("./routes/lobby");
 const { errorHandler, notFound } = require("./middleware/error");
 
 const app = express();
-const notProduction = process.env.ENV.toLowerCase() !== "production";
+const notProduction = process.env.NODE_ENV.toLowerCase() !== "production";
 
 if(notProduction) app.use(logger("dev"));
 app.use(express.json());
