@@ -2,8 +2,9 @@
     const router = express.Router();
     const { fetchLobbies } = require('../handlers/Home');
     const formatErrorResponse = require('../utils/formatErrorResponse');
+    const { authMiddleware } = require("../middleware/authorization");
 
-    router.get('/lobbies', async (req, res) => {
+    router.get('/lobbies', authMiddleware, async (req, res) => {
         try {
             const { status, public: isPublic, creatorAlias } = req.query;
 
