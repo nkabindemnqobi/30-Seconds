@@ -1,16 +1,12 @@
 const homeRouter = require('../../routes/home');
 const { fetchLobbiesQuery } = require('../../queries/home');
+const { fetchLobbies } = require('../../handlers/Home');
 jest.mock('../../queries/home', () => ({
   fetchLobbiesQuery: jest.fn(),
 }));
 
 describe('GET /lobbies handler', () => {
-  let req, res;
-
-  const getHandler = () => {
-    const route = homeRouter.stack.find(r => r.route?.path === '/lobbies');
-    return route.route.stack[0].handle;
-  };
+  let req, res, next;
 
   beforeEach(() => {
     req = { query: {} };
@@ -18,7 +14,8 @@ describe('GET /lobbies handler', () => {
       json: jest.fn(),
       status: jest.fn().mockReturnThis(),
     };
-    jest.spyOn(console, 'error').mockImplementation(() => {});
+    jest.spyOn(console, 'error').mockImplementation(() => { });
+    next = jest.fn();
   });
 
   afterEach(() => {
@@ -55,8 +52,7 @@ describe('GET /lobbies handler', () => {
       }
     ]);
 
-    const handler = getHandler();
-    await handler(req, res);
+    await fetchLobbies(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith([
@@ -82,11 +78,11 @@ describe('GET /lobbies handler', () => {
   it('should return 404 if no lobbies found', async () => {
     fetchLobbiesQuery.mockResolvedValue([]);
 
-    const handler = getHandler();
-    await handler(req, res);
+    await fetchLobbies(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(404);
-    expect(res.json).toHaveBeenCalledWith({ message: 'No lobbies found' });
+    const thrownError = next.mock.calls[0][0];
+    expect(thrownError.message).toBe('No lobbies found');
+    expect(thrownError.status).toBe(404);
   });
 
   it('should return 503 for connection error', async () => {
@@ -96,46 +92,22 @@ describe('GET /lobbies handler', () => {
 
     fetchLobbiesQuery.mockRejectedValue(error);
 
-    const handler = getHandler();
-    await handler(req, res);
+    await fetchLobbies(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(503);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Internal Server Error',
-      reason: 'Connection refused',
-    });
+    const thrownError = next.mock.calls[0][0];
+    expect(thrownError.message).toBe('An unexpected error occurred');
+    expect(thrownError.status).toBe(503);;
   });
 
   it('should return 500 for unknown errors', async () => {
     const error = new Error('Something bad');
     fetchLobbiesQuery.mockRejectedValue(error);
 
-    const handler = getHandler();
-    await handler(req, res);
+    await fetchLobbies(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Internal Server Error',
-      reason: 'Something bad',
-    });
+    const thrownError = next.mock.calls[0][0];
+    expect(thrownError.message).toBe('An unexpected error occurred');
+    expect(thrownError.status).toBe(500);
   });
 
-  it('should return masked error in production', async () => {
-    const originalEnv = process.env.NODE_ENV;
-    process.env.NODE_ENV = 'production';
-
-    const error = new Error('Sensitive info');
-    fetchLobbiesQuery.mockRejectedValue(error);
-
-    const handler = getHandler();
-    await handler(req, res);
-
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Internal Server Error',
-      reason: 'An unexpected error occurred. Please try again later.',
-    });
-
-    process.env.NODE_ENV = originalEnv;
-  });
 });

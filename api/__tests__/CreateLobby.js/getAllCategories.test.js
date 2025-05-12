@@ -6,15 +6,15 @@ jest.mock('../../queries/createLobby', () => ({
 }));
 
 describe('getAllCategories', () => {
-    let req, res;
+    let req, res, next;
 
     beforeEach(() => {
         req = {};
         res = {
             json: jest.fn(),
             status: jest.fn().mockReturnThis(),
-            send: jest.fn(),
         };
+        next = jest.fn();
         jest.spyOn(console, 'error').mockImplementation(() => { });
     });
 
@@ -26,7 +26,7 @@ describe('getAllCategories', () => {
         const mockData = [{ id: 1, name: 'General Knowledge' }];
         queries.getAllCategoriesFromDb.mockResolvedValue(mockData);
 
-        await getAllCategories(req, res);
+        await getAllCategories(req, res, next);
 
         expect(queries.getAllCategoriesFromDb).toHaveBeenCalled();
         expect(res.status).toHaveBeenCalledWith(200);
@@ -36,10 +36,12 @@ describe('getAllCategories', () => {
     it('should return 404 if no categories are found', async () => {
         queries.getAllCategoriesFromDb.mockResolvedValue([]);
 
-        await getAllCategories(req, res);
+        await getAllCategories(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(404);
-        expect(res.json).toHaveBeenCalledWith({ message: 'No categories found' });
+        const thrownError = next.mock.calls[0][0];
+        expect(thrownError).toBeInstanceOf(Error);
+        expect(thrownError.message).toBe('No categories found');
+        expect(thrownError.status).toBe(404);
     });
 
     it('should return 503 for connection errors', async () => {
@@ -49,26 +51,24 @@ describe('getAllCategories', () => {
 
         queries.getAllCategoriesFromDb.mockRejectedValue(error);
 
-        await getAllCategories(req, res);
+        await getAllCategories(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(503);
-        expect(res.json).toHaveBeenCalledWith({
-            error: 'Internal Server Error',
-            reason: 'Connection refused',
-        });
+        const thrownError = next.mock.calls[0][0];
+        expect(thrownError).toBeInstanceOf(Error);
+        expect(thrownError.message).toBe('An unexpected error occurred');
+        expect(thrownError.status).toBe(503);
     });
 
     it('should return 500 for other errors', async () => {
         const error = new Error('Unexpected DB failure');
         queries.getAllCategoriesFromDb.mockRejectedValue(error);
 
-        await getAllCategories(req, res);
+        await getAllCategories(req, res, next);
 
-        expect(res.status).toHaveBeenCalledWith(500);
-        expect(res.json).toHaveBeenCalledWith({
-            error: 'Internal Server Error',
-            reason: 'Unexpected DB failure',
-        });
+        const thrownError = next.mock.calls[0][0];
+        expect(thrownError).toBeInstanceOf(Error);
+        expect(thrownError.message).toBe('An unexpected error occurred');
+        expect(thrownError.status).toBe(500);
     });
 
     it('should return safe error message in production', async () => {
@@ -79,13 +79,12 @@ describe('getAllCategories', () => {
             const error = new Error('Sensitive failure info');
             queries.getAllCategoriesFromDb.mockRejectedValue(error);
 
-            await getAllCategories(req, res);
+            await getAllCategories(req, res, next);
 
-            expect(res.status).toHaveBeenCalledWith(500);
-            expect(res.json).toHaveBeenCalledWith({
-                error: 'Internal Server Error',
-                reason: 'An unexpected error occurred. Please try again later.',
-            });
+            const thrownError = next.mock.calls[0][0];
+            expect(thrownError).toBeInstanceOf(Error);
+            expect(thrownError.message).toBe('An unexpected error occurred');
+            expect(thrownError.status).toBe(500);
         } finally {
             process.env.NODE_ENV = originalEnv;
         }

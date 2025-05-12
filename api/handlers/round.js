@@ -1,8 +1,8 @@
 const { startRound } = require('../queries/round');
 const { broadcastToMatch, sendToUser } = require('../utils/SSEManager');
-const formatErrorResponse = require('../utils/formatErrorResponse');
+const {formatErrorResponse, getUnexpectedErrorStatus} = require('../utils/formatErrorResponse');
 
-const handleStartRound = async (req, res) => {
+const handleStartRound = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
 
@@ -27,9 +27,8 @@ const handleStartRound = async (req, res) => {
     }, 'your_turn');
 
     res.status(200).json({ roundId, guessingAlias, hint });
-  } catch (err) {
-    const { status, error, reason } = formatErrorResponse(err, 'start-round');
-    res.status(status).json({ error, reason });
+  } catch (error) {
+    return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
 

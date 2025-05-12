@@ -6,7 +6,7 @@ jest.mock('../../queries/Lobby');
 jest.mock('../../utils/SSEManager');
 
 describe('handleStartGame', () => {
-  let req, res;
+  let req, res, next;
   let originalConsoleError;
 
   beforeEach(() => {
@@ -20,6 +20,7 @@ describe('handleStartGame', () => {
       status: jest.fn().mockReturnThis()
     };
 
+    next = jest.fn();
     originalConsoleError = console.error;
     console.error = jest.fn();
     jest.clearAllMocks();
@@ -45,22 +46,22 @@ describe('handleStartGame', () => {
   it('should return 400 for missing userId or joinCode', async () => {
     req.body.userId = null;
 
-    await handleStartGame(req, res);
+    await handleStartGame(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(400);
-    expect(res.json).toHaveBeenCalledWith({ message: 'Missing joinCode or userId' });
+    const thrownError = next.mock.calls[0][0];
+
+    expect(thrownError).toBeInstanceOf(Error);
+    expect(thrownError.message).toBe("Missing joinCode or userId");
+    expect(thrownError.status).toBe(400);
   });
 
   it('should return 500 if startGame fails', async () => {
     const error = new Error('Start failed');
     startGame.mockRejectedValue(error);
 
-    await handleStartGame(req, res);
+    await handleStartGame(req, res, next);
 
-    expect(res.status).toHaveBeenCalledWith(500);
-    expect(res.json).toHaveBeenCalledWith({
-      error: 'Internal Server Error',
-      reason: 'Start failed'
-    });
+    const thrownError = next.mock.calls[0][0];
+    expect(thrownError.message).toBe('An unexpected error occurred');
   });
 });

@@ -2,10 +2,14 @@ const { executeQuery } = require('../db/query');
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 const { fetchLobbiesQuery } = require('../queries/home');
 
-const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
+const fetchLobbies = async (req, res, next) => {
+    const { status, isPublic, creatorAlias } = req.query;
+
     try {
         const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
-        if (!result || result.length === 0) return [];
+        if (!result || result.length === 0) {
+            return next(formatErrorResponse(404, 'No lobbies found'));
+        }
 
         const lobbiesMap = new Map();
 
