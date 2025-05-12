@@ -2,12 +2,12 @@ const activeConnections = new Map();
 const matchMemberships = new Map();
 
 const handleSSEConnection = (req, res, userId) => {
-  console.log(`${userId} user has connected to the server.`);
+  console.log(userId, `user has connected to the server.`);
 
-  const userIdString = toString(userId);
+  const userIdString = userId.toString();
 
   if (activeConnections.has(userIdString)) {
-    console.log(`Closing existing SSE connection for user: ${userIdString}`);
+    console.log(`Closing existing SSE connection for user:`, userIdString);
     const oldRes = activeConnections.get(userIdString);
     try {
       oldRes.end(); // kills old client connection
@@ -27,17 +27,17 @@ const handleSSEConnection = (req, res, userId) => {
 
   res.write('event: connected\ndata: {"status": "OK"}\n\n');
 
-  activeConnections.set(userId, res);
-  matchMemberships.set("FAF69FEC95", new Set().add("1"));
-  console.log(`SSE connection established for user: ${userIdString}`);
+  activeConnections.set(userIdString, res);
+  addUserToMatch("PART0730", userIdString);
+  console.log(`SSE connection established for user:`, userIdString);
 
   req.on("close", () => {
     console.log(
-      `SSE connection close event received for user: ${userIdString}`
+      `SSE connection close event received for user:`, userIdString
     );
     if (activeConnections.get(userIdString) === res) {
       activeConnections.delete(userIdString);
-      console.log(`Active connection removed for user: ${userIdString}`);
+      console.log(`Active connection removed for user:`, userIdString);
 
       // Do we kick someone from the match if they disconnect? Maybe we set up a timeout instead somehow?
       matchMemberships.forEach((members, joinCode) => {
