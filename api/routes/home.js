@@ -4,7 +4,10 @@
     const formatErrorResponse = require('../utils/formatErrorResponse');
     const { authMiddleware } = require("../middleware/authorization");
 
-    router.get('/lobbies', authMiddleware, async (req, res) => {
+
+    // router.get('/lobbies', authMiddleware, async (req, res) => {
+    // USE THIS FOR NO AUTH
+    router.get('/lobbies', async (req, res) => {
         try {
             const { status, public: isPublic, creatorAlias } = req.query;
 
