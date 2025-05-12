@@ -7,6 +7,7 @@ const usersRouter = require("./routes/users");
 const createLobby = require("./routes/createLobby");
 const homeRouter = require("./routes/home");
 const lobbyRoutes = require("./routes/lobby");
+const roundRoutes = require("./routes/round");
 const { errorHandler, notFound } = require("./middleware/error");
 
 const app = express();
@@ -27,6 +28,7 @@ app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);
 app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
+app.use("/api/round", roundRoutes);
 
 // Error handling middleware
 app.use(notFound);
