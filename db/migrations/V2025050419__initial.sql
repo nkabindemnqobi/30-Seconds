@@ -60,6 +60,8 @@ CREATE TABLE GameRounds (
     hint_count INT NOT NULL DEFAULT 1,
     points_awarded INT NOT NULL DEFAULT 0,
     time_in_ms INT NOT NULL DEFAULT 0,
+    timer_started DATETIME DEFAULT GETDATE(),
+    ended_datetime DATETIME NULL,
 );
 
 CREATE TABLE Hints (
