@@ -1,69 +1,96 @@
 const { executeQuery } = require("../db/query");
 const { withTransaction } = require("../db/transaction");
 const { sql } = require("../db/pool");
-const {formatMatchWithParticipants} = require("../utils/lobbyInfoFormatter");
+const { formatMatchWithParticipants } = require("../utils/lobbyInfoFormatter");
 
 async function getMatchLobbyInformation(matchId) {
   if (typeof matchId !== "number") {
-      console.error("Invalid matchId provided to getMatchLobbyInfo.");
-      return {
-          success: false,
-          message: "Invalid input: Match ID must be a number.",
-          data: null
-      };
+    console.error("Invalid matchId provided to getMatchLobbyInfo.");
+    return {
+      success: false,
+      message: "Invalid input: Match ID must be a number.",
+      data: null,
+    };
   }
   const getMatchLobbyInfoQuery = `
-      SELECT
-          -- Match Details
-          m.id AS match_id,
-          m.join_code,
-          m.lobby_name,
-          m.is_public,
-          m.max_participants,
-          m.started_datetime,
-          m.completed_datetime,
-          m.status_id,          -- Match Status ID
-          ms.status AS match_status, -- Match Status string
+    DECLARE @BarredStatusID INT;
+    SELECT @BarredStatusID = id FROM dbo.MatchParticipantsStatus WHERE status = 'Barred';
 
-          -- Participant Details (LEFT JOIN to include the match even if no participants yet)
-          mp.id AS match_participant_id,      -- ID from MatchParticipants table
-          mp.user_id AS participant_user_id,
-          pu.alias AS participant_alias,
-          pu.email AS participant_email,
-          mp.match_participants_status_id, -- Participant Status ID
-          mps.status AS participant_status   -- Participant Status string
+    SELECT
+      -- Match Details
+      m.id AS match_id,
+      m.join_code,
+      m.lobby_name,
+      m.is_public,
+      m.max_participants,
+      m.started_datetime,
+      m.completed_datetime,
+      m.status_id,          -- Match Status ID
+      ms.status AS match_status, -- Match Status string
 
-      FROM dbo.Matches m
-      INNER JOIN dbo.MatchStatus ms ON m.status_id = ms.id
+      mp.id AS match_participant_id,      -- ID from MatchParticipants table
+      mp.user_id AS participant_user_id,
+      pu.alias AS participant_alias,
+      pu.email AS participant_email,
+      mp.match_participants_status_id, -- Participant Status ID
+      mps.status AS participant_status   -- Participant Status string
 
-      LEFT JOIN dbo.MatchParticipants mp ON m.id = mp.match_id
-      LEFT JOIN dbo.Users pu ON mp.user_id = pu.id
-      LEFT JOIN dbo.MatchParticipantsStatus mps ON mp.match_participants_status_id = mps.id
+    FROM dbo.Matches m
+    INNER JOIN dbo.MatchStatus ms ON m.status_id = ms.id
 
-      WHERE m.id = @matchId  -- Parameter for the specific match ID
-      ORDER BY m.id, pu.id;  -- Consistent ordering
+    LEFT JOIN dbo.MatchParticipants mp
+      ON m.id = mp.match_id
+      AND mp.match_participants_status_id != ISNULL(@BarredStatusID, -1) -- Exclude if status matches 'Barred' ID (-1 is used if 'Barred' status doesn't exist)
+
+    LEFT JOIN dbo.Users pu ON mp.user_id = pu.id
+    LEFT JOIN dbo.MatchParticipantsStatus mps ON mp.match_participants_status_id = mps.id
+
+    WHERE m.id = @matchId  -- Parameter for the specific match ID
+    ORDER BY m.id, pu.alias; -- Order by match ID, then participant alias for consistent results
   `;
 
   try {
-      const resultRows = await executeQuery(getMatchLobbyInfoQuery, { matchId: matchId });
-      console.log(resultRows);
+    const resultRows = await executeQuery(getMatchLobbyInfoQuery, {
+      matchId: matchId,
+    });
+    console.log(resultRows);
 
-      if (resultRows && resultRows.length > 0) {
-          const formattedData = formatMatchWithParticipants(resultRows);
-          if (formattedData) {
-              return { success: true, message: "Lobby information fetched successfully.", data: formattedData };
-          } else {
-               return { success: false, message: "Failed to format lobby data.", data: null };
-          }
+    if (resultRows && resultRows.length > 0) {
+      const formattedData = formatMatchWithParticipants(resultRows);
+      if (formattedData) {
+        return {
+          success: true,
+          message: "Lobby information fetched successfully.",
+          data: formattedData,
+        };
       } else {
-          return { success: false, message: "Match not found or no data returned.", data: null };
+        return {
+          success: false,
+          message: "Failed to format lobby data.",
+          data: null,
+        };
       }
+    } else {
+      return {
+        success: false,
+        message: "Match not found or no data returned.",
+        data: null,
+      };
+    }
   } catch (err) {
-      console.error("Error in getMatchLobbyInformation for matchId " + matchId + ":", err);
-      return { success: false, message: err.message || "An error occurred while fetching lobby information.", data: null, error: err };
+    console.error(
+      "Error in getMatchLobbyInformation for matchId " + matchId + ":",
+      err
+    );
+    return {
+      success: false,
+      message:
+        err.message || "An error occurred while fetching lobby information.",
+      data: null,
+      error: err,
+    };
   }
 }
-
 
 async function getMatchIdByJoinCode(joinCode) {
   const matchIdQuery = `
@@ -90,7 +117,7 @@ async function addUserToLobby(userId, matchId) {
 
   const directParams = {
     UserID: userId,
-    MatchID: matchId
+    MatchID: matchId,
   };
   await executeQuery(directQuery, directParams);
   console.log(
@@ -101,9 +128,10 @@ async function addUserToLobby(userId, matchId) {
 
 async function startGame({ joinCode, userId }) {
   return await withTransaction(async ({ transaction }) => {
-    const matchInfoResult = await new sql.Request(transaction)
-      .input("JoinCode", joinCode)
-      .query(`
+    const matchInfoResult = await new sql.Request(transaction).input(
+      "JoinCode",
+      joinCode
+    ).query(`
         SELECT 
           m.id AS matchId,
           m.status_id AS matchStatusId,
@@ -126,13 +154,11 @@ async function startGame({ joinCode, userId }) {
       throw new Error("Only the creator can start the match");
     }
 
-    if (match.matchStatus !== 'Lobby') {
+    if (match.matchStatus !== "Lobby") {
       throw new Error("Match is not in the Lobby stage and cannot be started");
     }
 
-    await new sql.Request(transaction)
-      .input("MatchId", match.matchId)
-      .query(`
+    await new sql.Request(transaction).input("MatchId", match.matchId).query(`
         UPDATE MatchParticipants
         SET match_participants_status_id = (
           SELECT id FROM MatchParticipantsStatus WHERE status = 'Playing'
@@ -142,9 +168,7 @@ async function startGame({ joinCode, userId }) {
         )
       `);
 
-    await new sql.Request(transaction)
-      .input("MatchId", match.matchId)
-      .query(`
+    await new sql.Request(transaction).input("MatchId", match.matchId).query(`
         UPDATE Matches
         SET status_id = (SELECT id FROM MatchStatus WHERE status = 'Ongoing'),
             started_datetime = GETDATE()
@@ -154,7 +178,6 @@ async function startGame({ joinCode, userId }) {
     return { matchId: match.matchId };
   });
 }
-
 
 module.exports = {
   getMatchLobbyInformation,
