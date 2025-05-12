@@ -1,6 +1,6 @@
 class User {
-    setUser(authorizedUser) {
-        const { email, sub, name } = authorizedUser;
+    setUser(authenticatedUser) {
+        const { email, sub, name } = authenticatedUser;
         User.user = { email, sub, name };
     }
 
