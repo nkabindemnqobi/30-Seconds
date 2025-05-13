@@ -115,7 +115,15 @@ export default class CountdownTimer extends HTMLElement {
           width: 80%;
           animation: pulse 1.5s infinite;
         }
-  
+        
+        .prompt-text {
+          font-size: 14px;
+          color: rgba(255, 255, 255, 0.8);
+          text-align: center;
+          margin-top: 8px;
+          font-style: italic;
+        }
+
         @keyframes pulse {
           0% { opacity: 0.6; }
           50% { opacity: 0.8; }
@@ -134,9 +142,11 @@ export default class CountdownTimer extends HTMLElement {
           display: flex;
           align-items: center;
           justify-content: center;
+          transition: all 0.2s ease;
         }
         .eye-button:hover {
           background: rgba(255, 255, 255, 0.3);
+          transform: scale(1.05);
         }
         
         .countdown-container {
@@ -237,9 +247,11 @@ export default class CountdownTimer extends HTMLElement {
       if (this.isClueRevealed) {
         questionElement.textContent = this.question;
       } else {
-        const questionPlaceholder = document.createElement("article");
-        questionPlaceholder.classList.add("question-placeholder");
-        questionElement.appendChild(questionPlaceholder);
+        // Add a prompt text below the question placeholder
+        const promptText = document.createElement("div");
+        promptText.classList.add("prompt-text");
+        promptText.textContent = "Press the eye button to reveal question and start timer";
+        questionElement.appendChild(promptText);
       }
   
       const eyeButton = document.createElement("button");
@@ -250,7 +262,7 @@ export default class CountdownTimer extends HTMLElement {
       eyeIcon.textContent = "visibility";
       eyeButton.appendChild(eyeIcon);
       
-      eyeButton.title = "Reveal Clue";
+      eyeButton.title = "Reveal Question & Start Timer";
       eyeButton.disabled = this.isClueRevealed;
       
       if (!this.isClueRevealed) {
