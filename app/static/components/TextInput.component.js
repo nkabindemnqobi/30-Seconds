@@ -12,16 +12,15 @@ export default class TextInput extends HTMLElement {
     this.value = this.getAttribute("value") || "";
     this.required = this.hasAttribute("required");
     this.id = this.getAttribute("id") || "";
+    this.maxlength = this.getAttribute("maxlength") || null;
 
     this.render();
     this.setupListeners();
   }
 
   render() {
-    // Clear existing content
     this.shadowRoot.innerHTML = "";
 
-    // Add styling
     const style = document.createElement("style");
     style.textContent = `
       .wrapper {
@@ -32,14 +31,14 @@ export default class TextInput extends HTMLElement {
       }
 
       label {
-        font-size: 0.875rem; /* roughly Tailwind's text-sm */
+        font-size: 0.875rem;
         font-weight: 500;
-        color: #6B21A8; /* purple-800 */
+        color: #6B21A8;
       }
 
       input {
         padding: 0.5rem 0.75rem;
-        border: 1px solid #D8B4FE; /* purple-300 */
+        border: 1px solid #D8B4FE;
         border-radius: 0.375rem;
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
         outline: none;
@@ -47,7 +46,7 @@ export default class TextInput extends HTMLElement {
       }
 
       input:focus {
-        border-color: #A855F7; /* purple-500 */
+        border-color: #A855F7;
         box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.4);
       }
     `;
@@ -65,6 +64,11 @@ export default class TextInput extends HTMLElement {
     input.placeholder = this.placeholder;
     input.value = this.value;
     input.required = this.required;
+    if (this.maxlength !== null) {
+      input.maxLength = parseInt(this.maxlength, 10);
+    }else{
+      input.maxLength = 20;
+    }
 
     wrapper.appendChild(labelEl);
     wrapper.appendChild(input);
