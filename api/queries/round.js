@@ -1,34 +1,37 @@
-const { sql } = require('../db/pool');
-const { withTransaction } = require('../db/transaction');
-const { generateHint } = require('../services/aiGenerator');
+const { sql } = require("../db/pool");
+const { executeQuery } = require("../db/query");
+const { withTransaction } = require("../db/transaction");
+const { generateHint } = require("../services/aiGenerator");
 
 const startRound = async (joinCode) => {
-    return await withTransaction(async ({ transaction }) => {
-        const matchQuery = await new sql.Request(transaction)
-            .input('JoinCode', joinCode)
-            .query(`SELECT id FROM Matches WHERE join_code = @JoinCode`);
+  return await withTransaction(async ({ transaction }) => {
+    const matchQuery = await new sql.Request(transaction)
+      .input("JoinCode", joinCode)
+      .query(`SELECT id FROM Matches WHERE join_code = @JoinCode`);
 
-        if (matchQuery.recordset.length === 0) {
-            throw new Error('Invalid join code');
-        }
+    if (matchQuery.recordset.length === 0) {
+      throw new Error("Invalid join code");
+    }
 
-        const matchId = matchQuery.recordset[0].id;
+    const matchId = matchQuery.recordset[0].id;
 
-        const activeRoundResult = await new sql.Request(transaction)
-            .input('MatchId', matchId)
-            .query(`
+    const activeRoundResult = await new sql.Request(transaction).input(
+      "MatchId",
+      matchId
+    ).query(`
                 SELECT TOP 1 id
                 FROM GameRounds
                 WHERE match_id = @MatchId AND ended_datetime IS NULL
             `);
 
-        if (activeRoundResult.recordset.length > 0) {
-            throw new Error('A round is already in progress.');
-        }
+    if (activeRoundResult.recordset.length > 0) {
+      throw new Error("A round is already in progress.");
+    }
 
-        const playerResult = await new sql.Request(transaction)
-            .input('MatchId', matchId)
-            .query(`
+    const playerResult = await new sql.Request(transaction).input(
+      "MatchId",
+      matchId
+    ).query(`
                 WITH EligiblePlayers AS (
                 SELECT mp.user_id
                 FROM MatchParticipants mp
@@ -51,11 +54,12 @@ const startRound = async (joinCode) => {
                 SELECT TOP 1 user_id FROM LeastPlayed ORDER BY user_id ASC;
             `);
 
-        const guessingUserId = playerResult.recordset[0].user_id;
+    const guessingUserId = playerResult.recordset[0].user_id;
 
-        const itemQuery = await new sql.Request(transaction)
-            .input('MatchId', matchId)
-            .query(`
+    const itemQuery = await new sql.Request(transaction).input(
+      "MatchId",
+      matchId
+    ).query(`
                 SELECT gi.id, gi.item_name, c.name AS category
                 FROM GuessingItems gi
                 JOIN Categories c ON c.id = gi.category_id
@@ -66,37 +70,68 @@ const startRound = async (joinCode) => {
                 )
             `);
 
-        const items = itemQuery.recordset;
+    const items = itemQuery.recordset;
 
-        if (!items || items.length === 0) {
-            throw new Error('No more unused items left');
-        }
+    if (!items || items.length === 0) {
+      throw new Error("No more unused items left");
+    }
 
-        const item = items[Math.floor(Math.random() * items.length)];
+    const item = items[Math.floor(Math.random() * items.length)];
 
-        const hint = await generateHint(item.item_name, item.category);
+    const hint = await generateHint(item.item_name, item.category);
 
-        const insertResult = await new sql.Request(transaction)
-            .input('MatchId', matchId)
-            .input('UserId', guessingUserId)
-            .input('ItemId', item.id)
-            .query(`
+    const insertResult = await new sql.Request(transaction)
+      .input("MatchId", matchId)
+      .input("UserId", guessingUserId)
+      .input("ItemId", item.id).query(`
                 INSERT INTO GameRounds (match_id, guessing_user_id, guessing_item_id, timer_started)
                 OUTPUT INSERTED.id
                 VALUES (@MatchId, @UserId, @ItemId, GETDATE())
             `);
 
-        const aliasQuery = await new sql.Request(transaction)
-            .input('UserId', guessingUserId)
-            .query(`SELECT alias FROM Users WHERE id = @UserId`);
+    const aliasQuery = await new sql.Request(transaction)
+      .input("UserId", guessingUserId)
+      .query(`SELECT alias FROM Users WHERE id = @UserId`);
 
-        return {
-            roundId: insertResult.recordset[0].id,
-            guessingUserId,
-            guessingAlias: aliasQuery.recordset[0].alias,
-            hint,
-        };
-    });
+    return {
+      roundId: insertResult.recordset[0].id,
+      guessingUserId,
+      guessingAlias: aliasQuery.recordset[0].alias,
+      hint,
+    };
+  });
 };
 
-module.exports = { startRound };
+const isMatchOver = async (joinCode) => {
+  const query = `
+    EXEC dbo.CheckIfMatchIsOver
+          @JoinCode = @JoinCode
+    `;
+  const params = { JoinCode: joinCode };
+
+  const isMatchOverResult = await executeQuery(query, params);
+  if (isMatchOverResult[0]) {
+    return isMatchOverResult[0];
+  }
+  else{
+    throw new Error('Stored procedure did not return a result. Possible invalid join code or logic issue.');
+  }
+};
+
+const calculateScores = async (joinCode) => {
+    const query = `
+      EXEC dbo.CalculateMatchScores
+            @JoinCode = @JoinCode
+      `;
+    const params = { JoinCode: joinCode };
+  
+    const calculateMatchScoresResult = await executeQuery(query, params);
+    if (calculateMatchScoresResult.length !== 0) {
+      return calculateMatchScoresResult; // This should be an arr of objects.
+    }
+    else{
+      throw new Error('Stored procedure did not return a result. Possible invalid join code or logic issue.');
+    }
+  };
+
+module.exports = { startRound, isMatchOver, calculateScores };

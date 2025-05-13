@@ -1,6 +1,6 @@
 const { executeQuery } = require("../db/query");
 const { sql } = require("../db/pool");
-
+// TODO: Move to Lobby.
 async function kickPlayer({sourceUserId, targetUserId, matchId}) {
   if (
     typeof sourceUserId !== "number" ||
