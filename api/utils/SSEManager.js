@@ -28,6 +28,7 @@ const handleSSEConnection = (req, res, userId) => {
   res.write('event: connected\ndata: {"status": "OK"}\n\n');
 
   activeConnections.set(userIdString, res);
+  // THIS IS FOR DEBUGGING PURPOSES. REMOVE AND ONLY ADD USERS TO MATCHES THROUGH CREATION -> JOINING!!!
   addUserToMatch("PART0730", userIdString);
   console.log(`SSE connection established for user:`, userIdString);
 
