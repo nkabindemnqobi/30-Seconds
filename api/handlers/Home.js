@@ -1,14 +1,11 @@
-const { executeQuery } = require('../db/query');
-const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 const { fetchLobbiesQuery } = require('../queries/home');
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
-const fetchLobbies = async (req, res, next) => {
-    const { status, isPublic, creatorAlias } = req.query;
-
+const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
     try {
         const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
         if (!result || result.length === 0) {
-            return next(formatErrorResponse(404, 'No lobbies found'));
+            return result;
         }
 
         const lobbiesMap = new Map();
@@ -44,12 +41,10 @@ const fetchLobbies = async (req, res, next) => {
                 lobby.bannedUsers.push({ id: bannedUserId, alias: bannedUserAlias });
             }
         }
-        res.status(200).json(Array.from(lobbiesMap.values()));
+        return Array.from(lobbiesMap.values());
     } catch (error) {
-        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
+        throw error;
     }
 };
 
-module.exports = {
-    fetchLobbies,
-};
+module.exports = { fetchLobbies };
