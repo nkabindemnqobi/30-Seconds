@@ -33,6 +33,17 @@ button.gradient:hover {
   background: linear-gradient(to right, #7e22ce, #be185d);
 }
 
+.chip {
+  display: inline-flex;
+  align-items: center;
+  background-color: #f3e8ff;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 14px;
+  color: #5f3cba;
+}
+
+
 button.gradient {
   background: linear-gradient(to right, #9333ea, #db2777);
   color: white;
