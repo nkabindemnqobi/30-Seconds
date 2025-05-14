@@ -48,5 +48,14 @@ button.gradient:hover {
 }
 
 .submit-button:hover{
-  background: linear-gradient(to right, #6b46c1, #4c51bf); /* hover:from-purple-600 to-indigo-600 */
+  background: linear-gradient(to right, #6b46c1, #4c51bf); 
+}
+
+.blue-button {
+  background: linear-gradient(to right, #6366F1, #3B82F6);
+  color: white;
+}
+
+.blue-button:hover{
+  background: linear-gradient(to right, #4F46E5, #2563EB);
 }

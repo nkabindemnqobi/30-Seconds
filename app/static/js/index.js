@@ -2,6 +2,8 @@ import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
 import Login from "./views/Login.js";
+import JoinLobby from "./views/JoinLobby.js";
+import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
@@ -29,7 +31,9 @@ const router = async () => {
         { path: "/create-lobby", view: CreateLobby },
         { path: "/error", view: NotFound },
         { path: "/", view: Login },
-        { path: "/signin-google", view: Authenticated }
+        { path: "/signin-google", view: Authenticated },
+        { path: "/join-lobby", view: JoinLobby},
+        { path: "/game-play", view: GamePlay}
     ];
 
     const potentialMatches = routes.map(route => {
