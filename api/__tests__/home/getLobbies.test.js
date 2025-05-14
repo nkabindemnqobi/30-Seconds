@@ -1,12 +1,28 @@
-const homeRouter = require('../../routes/home');
 const { fetchLobbiesQuery } = require('../../queries/home');
 const { fetchLobbies } = require('../../handlers/Home');
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../../utils/formatErrorResponse');
+
 jest.mock('../../queries/home', () => ({
   fetchLobbiesQuery: jest.fn(),
 }));
 
 describe('GET /lobbies handler', () => {
   let req, res, next;
+
+  const handler = async (req, res, next) => {
+    try {
+      const { status, isPublic, creatorAlias } = req.query;
+      const lobbies = await fetchLobbies({ status, isPublic, creatorAlias });
+
+      if (!lobbies || lobbies.length === 0) {
+        return next(formatErrorResponse(404, 'No lobbies found'));
+      }
+
+      res.status(200).json(lobbies);
+    } catch (error) {
+      return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
+    }
+  };
 
   beforeEach(() => {
     req = { query: {} };
@@ -52,7 +68,7 @@ describe('GET /lobbies handler', () => {
       }
     ]);
 
-    await fetchLobbies(req, res, next);
+    await handler(req, res, next);
 
     expect(res.status).toHaveBeenCalledWith(200);
     expect(res.json).toHaveBeenCalledWith([
@@ -77,9 +93,7 @@ describe('GET /lobbies handler', () => {
 
   it('should return 404 if no lobbies found', async () => {
     fetchLobbiesQuery.mockResolvedValue([]);
-
-    await fetchLobbies(req, res, next);
-
+    await handler(req, res, next);
     const thrownError = next.mock.calls[0][0];
     expect(thrownError.message).toBe('No lobbies found');
     expect(thrownError.status).toBe(404);
@@ -92,18 +106,17 @@ describe('GET /lobbies handler', () => {
 
     fetchLobbiesQuery.mockRejectedValue(error);
 
-    await fetchLobbies(req, res, next);
-
+    await handler(req, res, next);
     const thrownError = next.mock.calls[0][0];
     expect(thrownError.message).toBe('An unexpected error occurred');
-    expect(thrownError.status).toBe(503);;
+    expect(thrownError.status).toBe(503);
   });
 
   it('should return 500 for unknown errors', async () => {
     const error = new Error('Something bad');
     fetchLobbiesQuery.mockRejectedValue(error);
 
-    await fetchLobbies(req, res, next);
+    await handler(req, res, next);
 
     const thrownError = next.mock.calls[0][0];
     expect(thrownError.message).toBe('An unexpected error occurred');

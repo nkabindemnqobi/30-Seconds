@@ -1,10 +1,10 @@
     const express = require('express');
     const router = express.Router();
     const { fetchLobbies } = require('../handlers/Home');
-    const formatErrorResponse = require('../utils/formatErrorResponse');
+    const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
     const { authMiddleware } = require("../middleware/authorization");
 
-    router.get('/lobbies', authMiddleware, async (req, res) => {
+    router.get('/lobbies', authMiddleware, async (req, res, next) => {
         try {
             const { status, public: isPublic, creatorAlias } = req.query;
 
@@ -21,9 +21,8 @@
             }
 
             res.status(200).json(lobbies);
-        } catch (err) {
-            const { status, error, reason } = formatErrorResponse(err, 'Public Lobbies');
-            res.status(status).json({ error, reason });
+        } catch (error) {
+            return next(formatErrorResponse(getUnexpectedErrorStatus(error)));        
         }
     });
     ;
