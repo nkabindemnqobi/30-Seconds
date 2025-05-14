@@ -1,24 +1,25 @@
 INSERT INTO MatchStatus (status) VALUES
-('Lobby'),
+('Completed'),
 ('Ongoing'),
-('Completed');
+('Lobby');
 
 INSERT INTO MatchParticipantsStatus (status) VALUES
+('Barred'),
 ('Creator'),
-('WaitingStart'),
-('Playing'),
-('Won'),
-('Lost'),
 ('Left'),
-('Barred');
+('Lost'),
+('Playing'),
+('WaitingStart'),
+('Won');
 
 INSERT INTO Categories (name) VALUES
-('General Knowledge'),
+('Animal'),
 ('Celebrities'),
+('General Knowledge'),
 ('Geography'),
 ('Movies & TV'),
-('Sports'),
-('Music');
+('Music'),
+('Sports');
 
 INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Toothbrush', 1),
