@@ -1,24 +1,29 @@
-CREATE TABLE Users (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    google_id VARCHAR(30) NOT NULL UNIQUE,
-    alias VARCHAR(20),
-    email VARCHAR(255) NOT NULL UNIQUE
-);
-
 CREATE TABLE MatchStatus (
     id INT PRIMARY KEY IDENTITY(1,1),
-    status VARCHAR(50) NOT NULL UNIQUE
+    status VARCHAR(50) NOT NULL
 );
 
 
 CREATE TABLE MatchParticipantsStatus (
     id INT PRIMARY KEY IDENTITY(1,1),
-    status VARCHAR(50) NOT NULL UNIQUE
+    status VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Categories (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Users (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    google_id VARCHAR(30) NOT NULL,
+    alias VARCHAR(20),
+    email VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Matches (
     id INT PRIMARY KEY IDENTITY(1,1),
-    join_code VARCHAR(10) NOT NULL UNIQUE,
+    join_code VARCHAR(10) NOT NULL,
     lobby_name VARCHAR(100) NOT NULL,
     is_public BIT NOT NULL DEFAULT 1,
     max_participants INT NOT NULL,
@@ -31,13 +36,7 @@ CREATE TABLE MatchParticipants (
     id INT PRIMARY KEY IDENTITY(1,1),
     match_id INT NOT NULL REFERENCES Matches(id),
     user_id INT NOT NULL REFERENCES Users(id),
-    match_participants_status_id INT NOT NULL REFERENCES MatchParticipantsStatus(id),
-    CONSTRAINT UQ_Match_User UNIQUE (match_id, user_id)
-);
-
-CREATE TABLE Categories (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    name VARCHAR(100) NOT NULL UNIQUE
+    match_participants_status_id INT NOT NULL REFERENCES MatchParticipantsStatus(id)
 );
 
 CREATE TABLE CategoriesMatches (
@@ -48,7 +47,7 @@ CREATE TABLE CategoriesMatches (
 
 CREATE TABLE GuessingItems (
     id INT PRIMARY KEY IDENTITY(1,1),
-    item_name VARCHAR(100) NOT NULL UNIQUE,
+    item_name VARCHAR(100) NOT NULL,
     category_id INT NOT NULL REFERENCES Categories(id)
 );
 

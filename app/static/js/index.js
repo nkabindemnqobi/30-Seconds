@@ -59,6 +59,7 @@ const router = async () => {
     
     const sanitizeAndRender = async (container, htmlContent) => {
         
+        
         container.textContent = '';
         const temp = document.createElement('div');
         temp.textContent = htmlContent;
@@ -77,7 +78,7 @@ const router = async () => {
     if(accessCode) {
         const token = await googleAuth.retrieveToken(accessCode);
         if(token.idToken && token.googleId) {
-            sanitizeAndRender(appContainer, htmlContent);
+            history.pushState({}, "", "/lobby");
             router();
         } else {
             history.pushState({}, "", "/error");

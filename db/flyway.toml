@@ -1,0 +1,9 @@
+[flyway]
+locations = ["filesystem:migrations"]
+baselineOnMigrate=true
+
+[environments.default]
+locations = ["filesystem:migrations"]
+url = "jdbc:jtds:sqlserver://CliveMm/CLIVEMM\\SQLEXPRESS;databaseName=web_dev_30_seconds_db;encrypted=true;trustedConnection=true;domain=CliveMm"
+user = ""
+password = ""
