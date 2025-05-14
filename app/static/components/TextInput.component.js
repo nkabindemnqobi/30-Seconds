@@ -54,9 +54,12 @@ export default class TextInput extends HTMLElement {
     const wrapper = document.createElement("section");
     wrapper.className = "wrapper";
 
-    const labelEl = document.createElement("label");
-    labelEl.setAttribute("for", this.id);
-    labelEl.textContent = this.label;
+    if (this.label) {
+      const labelEl = document.createElement("label");
+      labelEl.setAttribute("for", this.id);
+      labelEl.textContent = this.label;
+      wrapper.appendChild(labelEl);
+    }
 
     const input = document.createElement("input");
     input.type = "text";
@@ -64,13 +67,8 @@ export default class TextInput extends HTMLElement {
     input.placeholder = this.placeholder;
     input.value = this.value;
     input.required = this.required;
-    if (this.maxlength !== null) {
-      input.maxLength = parseInt(this.maxlength, 10);
-    }else{
-      input.maxLength = 20;
-    }
+    input.maxLength = this.maxlength !== null ? parseInt(this.maxlength, 10) : 100;
 
-    wrapper.appendChild(labelEl);
     wrapper.appendChild(input);
 
     this.shadowRoot.appendChild(style);

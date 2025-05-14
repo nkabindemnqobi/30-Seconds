@@ -25,6 +25,8 @@ const navigateTo = url => {
     router();
 };
 
+let currentView = null;
+
 const router = async () => {
     const routes = [
         { path: "/lobby", view: Dashboard },
@@ -52,9 +54,23 @@ const router = async () => {
         };
     }
 
-    const view = new match.route.view(getParams(match));
+    currentView = new match.route.view(getParams(match));
     
-    document.querySelector("#app").innerHTML = await view.getHtml();
+    const sanitizeAndRender = async (container, htmlContent) => {
+        
+        
+        container.textContent = '';
+        const temp = document.createElement('div');
+        temp.textContent = htmlContent;
+        const template = document.createElement('template');
+        template.innerHTML = temp.textContent;
+        
+        container.appendChild(template.content);
+      };
+
+      const appContainer = document.querySelector("#app");
+      const htmlContent = await currentView.getHtml();
+      sanitizeAndRender(appContainer, htmlContent);
 
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code");
@@ -68,7 +84,16 @@ const router = async () => {
             router();
         }
     }
+    
     attachEventListeners();
+    
+    // Initialize the GameController if on the GamePlay page
+    if (currentView instanceof GamePlay) {
+        // Give the DOM time to fully render custom elements
+        setTimeout(() => {
+            currentView.initGameController();
+        }, 100);
+    }
 };
 
 const attachEventListeners = () => {
@@ -80,14 +105,20 @@ const attachEventListeners = () => {
         });
     }
 
-   
-
+    // We'll modify the login button behavior based on the current page
     const loginButton = document.getElementById("login-button");
     if(loginButton) {
-        loginButton.addEventListener("click", (clickEvent) => {
-            clickEvent.preventDefault();
-            window.location.href = ApplicationConfiguration.redirectUrl;
-        })
+        // Remove any existing event listeners
+        const newLoginButton = loginButton.cloneNode(true);
+        loginButton.parentNode.replaceChild(newLoginButton, loginButton);
+        
+        // If we're on the game-play page, the submit button will be handled by the GameController
+        if (!(currentView instanceof GamePlay)) {
+            newLoginButton.addEventListener("click", (clickEvent) => {
+                clickEvent.preventDefault();
+                window.location.href = ApplicationConfiguration.redirectUrl;
+            });
+        }
     }
 };
 
