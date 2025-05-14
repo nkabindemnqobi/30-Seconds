@@ -1,11 +1,9 @@
 module.exports = {
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  server: process.env.DB_SERVER,
-  port: parseInt(process.env.DB_PORT),
-  database: process.env.DB_NAME,
+  server: "CLIVEMM\\SQLEXPRESS",
+  database: "web_dev_30_seconds_db",
   options: {
-    encrypt: false,
-    trustServerCertificate: true,
+    trustedConnection: true, // Set to true if using Windows Authentication
+    trustServerCertificate: true, // Set to true if using self-signed certificates
   },
+  driver: "msnodesqlv8", // Required if using Windows Authentication
 };

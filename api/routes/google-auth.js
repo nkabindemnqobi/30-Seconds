@@ -9,9 +9,9 @@ const { authMiddleware } = require("../middleware/authorization");
 
 router.get('/get-token', exchangeCodeForIdToken);
 
-router.get("/login", (req, res, next) => {
+router.get("/login", (req, res) => {
   const authUrl = getAuthUrl();
-  res.send({ authUrl: authUrl });
+  res.send(authUrl);
 });
 
 // router.get("/sse/connect/:userId", authMiddleware, (req, res) => {

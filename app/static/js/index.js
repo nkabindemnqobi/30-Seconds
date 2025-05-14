@@ -7,6 +7,7 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
+import { getCredentials } from "../utils/manage-credentials.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -58,7 +59,6 @@ const router = async () => {
     
     const sanitizeAndRender = async (container, htmlContent) => {
         
-        
         container.textContent = '';
         const temp = document.createElement('div');
         temp.textContent = htmlContent;
@@ -75,9 +75,9 @@ const router = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const accessCode = urlParams.get("code");
     if(accessCode) {
-        const token = await googleAuth.exchangeCodeForToken(accessCode);
+        const token = await googleAuth.retrieveToken(accessCode);
         if(token.idToken && token.googleId) {
-            history.pushState({}, "", "/lobby");
+            sanitizeAndRender(appContainer, htmlContent);
             router();
         } else {
             history.pushState({}, "", "/error");
@@ -114,9 +114,14 @@ const attachEventListeners = () => {
         
         // If we're on the game-play page, the submit button will be handled by the GameController
         if (!(currentView instanceof GamePlay)) {
-            newLoginButton.addEventListener("click", (clickEvent) => {
+            newLoginButton.addEventListener("click", async (clickEvent) => {
                 clickEvent.preventDefault();
-                window.location.href = ApplicationConfiguration.redirectUrl;
+                if(ApplicationConfiguration.appConfig.authUrl) {
+                    window.location.href = ApplicationConfiguration.appConfig.authUrl;
+                } else {
+                    const authenticationUrls = await googleAuth.getApplicationConfiguration();
+                    window.location.href = authenticationUrls.authUrl;
+                }
             });
         }
     }
@@ -124,7 +129,9 @@ const attachEventListeners = () => {
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
-    if(!ApplicationConfiguration.redirectUrl) googleAuth.getApplicationConfiguration();
+    console.log(sessionStorage);
+    const authenticationUrl = sessionStorage.getItem("authUrl");
+    if(!authenticationUrl) googleAuth.getApplicationConfiguration();
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
