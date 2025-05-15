@@ -90,8 +90,8 @@ export default class SelectCategories extends HTMLElement {
     
     errorMessage.addEventListener("retry", () => this.connectedCallback());
     
-    this.shadowRoot.textContent = "";
-    this.shadowRoot.appendChild(errorMessage);
+    this.shadowRoot.innerHTML = ""; // Clear existing content
+    this.shadowRoot.appendChild(errorMessage); // Append error message component
   }
 
   onCategorySelected(event) {

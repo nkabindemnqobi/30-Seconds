@@ -6,6 +6,9 @@ async function kickPlayer({sourceUserId, targetUserId, matchId}) {
     typeof matchId !== "number" ||
     typeof targetUserId !== "number"
   ) {
+    console.error(
+      "Invalid userId, matchId, targetUserId provided to addUserToLobby."
+    );
     return {
       success: false,
       message: "Invalid input: User ID and Match ID must be numbers.",

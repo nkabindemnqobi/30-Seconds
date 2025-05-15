@@ -52,11 +52,16 @@ const startRound = async (joinCode) => {
         );
       }
     } catch (error) {
+      console.error(
+        `Database error in callStartNewGameRound for join code '${joinCode}':`,
+        error.message
+      );
       throw error;
     }
   };
 
 const makeGuess = async (joinCode, userId, guessInput) => {
+  //console.log("THE INPUTS", joinCode, userId, guessInput);
   return await withTransaction(async ({ transaction }) => {
     const matchQuery = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
@@ -83,7 +88,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const round = roundQuery.recordset[0];
-    //
+    //console.log("EXPECTED GUESSER", round.guessing_user_id);
     if (round.guessing_user_id !== userId) {
       throw new Error('It is not your turn to guess');
     }
@@ -121,7 +126,7 @@ const isMatchOver = async (joinCode) => {
 
   const isMatchOverResult = await executeQuery(query, params);
   if (isMatchOverResult[0]) {
-    //
+    //console.log("IS MATCH OVER RESULT:      ",isMatchOverResult[0]);
     return isMatchOverResult[0];
   } else {
     throw new Error(
@@ -196,6 +201,7 @@ const setRoundByTimeout = async (joinCode) => {
     const result = await executeQuery(query, params); 
     return {success: true}
   } catch (error) {
+    console.error(`[setRoundByTimeout] Error executing dbo.HandleGameRoundTimeout for joinCode '${joinCode}':`, error.message);
     throw error; 
   }
 };

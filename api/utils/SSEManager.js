@@ -99,10 +99,15 @@ const broadcastToMatch = (joinCode, data, eventType = "message") => {
       const res = activeConnections.get(userIdString);
       if (res) {
         try {
+          console.log(`Sending message to user ${userIdString}`);
           res.write(message);
         } catch (error) {
+          console.error(`Error sending SSE to user ${userIdString}:`, error);
         }
       } else {
+        console.warn(
+          `User ${userIdString} in match ${joinCode} but connection not found in activeConnections.`
+        );
         // This might happen if the connection closed but the user wasn't removed from lobbyMembership yet.
       }
     });

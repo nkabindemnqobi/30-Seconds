@@ -8,7 +8,6 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
-import SSEManager from "../../services/events.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -81,8 +80,6 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
-                const eventManager = new SSEManager()
-                eventManager.init()
                 history.pushState(null, null,"/dashboard");
                 router();
             } else {
@@ -107,14 +104,18 @@ const attachEventListeners = () => {
     if (lobbyForm) {
         lobbyForm.addEventListener("submit", (e) => {
             e.preventDefault();
+            console.log("Form submitted");
         });
     }
 
+    // We'll modify the login button behavior based on the current page
     const loginButton = document.getElementById("login-button");
     if(loginButton) {
+        // Remove any existing event listeners
         const newLoginButton = loginButton.cloneNode(true);
         loginButton.parentNode.replaceChild(newLoginButton, loginButton);
         
+        // If we're on the game-play page, the submit button will be handled by the GameController
         if (!(currentView instanceof GamePlay)) {
             newLoginButton.addEventListener("click", async (clickEvent) => {
                 clickEvent.preventDefault();
