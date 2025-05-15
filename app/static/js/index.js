@@ -29,6 +29,7 @@ const navigateTo = url => {
 let currentView = null;
 
 const router = async () => {
+
     const routes = [
         { path: "/lobby", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
@@ -78,10 +79,10 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
-                history.pushState({}, "", "/lobby");
+                history.pushState(null, null,"/lobby");
                 router();
             } else {
-                history.pushState({}, "", "/error");
+                history.pushState(null, null,"/error");
                 router();
             }
         }
@@ -130,16 +131,7 @@ const attachEventListeners = () => {
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
-    const idToken = googleAuth.retrieveToken();
-    if(!idToken) {
-        const authenticationUrl = sessionStorage.getItem("authUrl");
-        googleAuth.getApplicationConfiguration(authenticationUrl.authUrl);
-        history.pushState({}, "", "/");
-        router();
-    } else {
-        history.pushState({}, "", "/lobby");
-        router();
-    }
+    if(!ApplicationConfiguration.redirectUrl) googleAuth.getApplicationConfiguration();
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
