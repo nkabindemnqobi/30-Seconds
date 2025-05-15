@@ -1,4 +1,4 @@
-const sql = require("mssql/msnodesqlv8");
+const sql = require("mssql");
 const dbConfig = require("./connection");
 
 let poolPromise;
