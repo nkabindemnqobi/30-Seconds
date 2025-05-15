@@ -13,6 +13,11 @@ router.get("/login", (req, res) => {
   res.send(authUrl);
 });
 
+router.get("/signin-google", (req, res) => {
+  const code = req.query['code'];
+  res.send({code: code});
+});
+
 router.get("/sse/connect/:googleId", handleSSEConnection);
 
 module.exports = router;
