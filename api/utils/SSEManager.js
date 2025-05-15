@@ -1,10 +1,14 @@
+const { getUserIdFromGoogleId } = require("../queries/users");
+
 const activeConnections = new Map();
 const matchMemberships = new Map();
 
-const handleSSEConnection = (req, res, userId) => {
+const handleSSEConnection = async (req, res, userId) => {
   console.log(userId, `user has connected to the server.`);
 
-  const userIdString = userId.toString();
+  const googleId = req.params.googleId;
+  const userIdString = await getUserIdFromGoogleId(googleId)+'';
+
 
   if (activeConnections.has(userIdString)) {
     console.log(`Closing existing SSE connection for user:`, userIdString);

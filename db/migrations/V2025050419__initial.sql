@@ -1,7 +1,7 @@
 CREATE TABLE Users (
     id INT PRIMARY KEY IDENTITY(1,1),
-    google_id VARCHAR(30) NOT NULL UNIQUE,
-    alias VARCHAR(20),
+    google_id VARCHAR(36) NOT NULL UNIQUE,
+    alias VARCHAR(50),
     email VARCHAR(255) NOT NULL UNIQUE
 );
 
