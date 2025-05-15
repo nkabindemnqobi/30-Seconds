@@ -132,7 +132,7 @@ BEGIN
         -- == Step 5: Update Matches Table ==
         UPDATE dbo.Matches
         SET status_id = @CompletedStatusID_Match,
-            completed_datetime = GETDATE()
+            completed_at = GETDATE()
         WHERE id = @MatchID;
 
         -- == Step 6: Update MatchParticipants Table for Winners ==

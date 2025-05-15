@@ -28,7 +28,7 @@ BEGIN
         BEGIN TRANSACTION; -- Start transaction after initial validation
 
         -- == Step 2: Check if a round is already in progress for this match ==
-        IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_datetime IS NULL)
+        IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_at IS NULL)
         BEGIN
             RAISERROR('A round is already in progress for Match ID %d (Join Code: ''%s'').', 16, 1, @MatchID, @JoinCode);
             ROLLBACK TRANSACTION;
@@ -106,7 +106,7 @@ BEGIN
             guessing_user_id,
             guessing_item_id,
             timer_started,
-            ended_datetime,
+            ended_at,
             hint_count,
             points_awarded,
             time_in_ms
