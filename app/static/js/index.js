@@ -8,7 +8,6 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
-import { getCredentials } from "../utils/manage-credentials.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -81,7 +80,7 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
-                history.pushState(null, null,"/lobby");
+                history.pushState(null, null,"/dashboard");
                 router();
             } else {
                 history.pushState(null, null,"/error");

@@ -1,7 +1,6 @@
 const { registerUserIfNotExists } = require("../queries/users");
 const { generateSessionId } = require("../shared/functions/google-auth-helpers.function");
 const { formatErrorResponse, getUnexpectedErrorStatus }  = require("../utils/formatErrorResponse");
-const { registerUserIfNotExists } = require('../queries/users');
 const dotenv = require('dotenv');
 dotenv.config();
 
