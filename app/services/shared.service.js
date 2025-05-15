@@ -1,24 +1,19 @@
 import { ApplicationConfiguration } from "../models/app-config.js";
 import { User } from "../models/user.js";
-import { GoogleAuth } from "./google-auth.service.js";
 export default class BaseService {
 
   constructor() {
-    this.googleAuth = new GoogleAuth();
-    this.idToken = this.googleAuth.retrieveToken();
+    User.setUser(JSON.parse(sessionStorage.getItem('idToken')) || {});
   }
 
-  getCredentials() { this.googleAuth.retrieveToken(); }
-
   async get(url) {
-    const idToken = this.getCredentials().idToken;
     const response = await fetch(
       `${ApplicationConfiguration.apiBaseUrl}/api/${url}`,
       {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${ this.idToken }`
+          "Authorization": `Bearer ${  User.user.idToken }`
         },
       }
     );
@@ -33,7 +28,7 @@ export default class BaseService {
         body,
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${ this.idToken }`,
+          "Authorization": `Bearer ${ User.user.idToken }`,
         },
       });
     } catch (error) {
