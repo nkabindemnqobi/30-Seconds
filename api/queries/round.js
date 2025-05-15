@@ -71,7 +71,6 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const matchId = matchQuery.recordset[0].id;
-    //console.log(joinCode, userId, guessInput, matchId);
     const roundQuery = await new sql.Request(transaction).input(
       "MatchId",
       matchId
@@ -152,4 +151,41 @@ const calculateAndFinaliseScores = async (joinCode) => {
   }
 };
 
-module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver };
+const getHint = async (joinCode, userId) => {
+  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = $@joinCode", {joinCode});
+
+  if (matchResult.recordset.length === 0) {
+    throw new Error('Invalid join code');
+  }
+
+  const matchId = matchResult[0].id;
+
+  const getActiveRoundQuery = `
+  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category
+    FROM GameRounds gr
+    JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
+    JOIN Categories c ON gi.category_id = c.id
+    WHERE gr.match_id = @matchId AND gr.ended_datetime IS NULL
+  `
+  const roundResult = await executeQuery(getActiveRoundQuery, {matchId});
+
+  if (roundResult.length === 0) {
+    throw new Error('No active round in progress');
+  }
+
+  const round = roundResult[0];
+
+  if (round.guessing_user_id !== userId) {
+    throw new Error('Not your turn to request a hint');
+  }
+
+  const newHint = await generateHint(round.item_name, round.category);
+
+  return {
+    roundId: round.roundId,
+    hint: newHint
+  };
+};
+
+
+module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver, getHint };
