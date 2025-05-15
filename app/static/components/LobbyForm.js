@@ -3,6 +3,7 @@ import "./SelectCategories.component.js";
 import "./Switch.component.js";
 import "./Button.js";
 import "./TextInput.component.js";
+import { User } from "../../models/user.js";
 
 export default class LobbyForm extends HTMLElement {
   constructor() {
@@ -11,7 +12,7 @@ export default class LobbyForm extends HTMLElement {
     this.title = "Create a Lobby";
     this.lobbyService = new LobbyService();
     this.formData = {
-      userId: 1, //needs to be removed
+      userId: User.user.googleId,
       categoryIds: [],
       isPublic: false,
       maxParticipants: 1,

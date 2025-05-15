@@ -1,6 +1,7 @@
 import { GoogleAuth } from "../../../services/google-auth.service.js";
 import AbstractView from "./AbstractView.js";
 import "../../components/View.component.js";
+import { initSSE } from "../sseManager/sse.js";
 
 export default class Dashboard extends AbstractView {
     constructor(params) {
@@ -21,5 +22,5 @@ export default class Dashboard extends AbstractView {
                 <view-lobbies></view-lobbies>
             </section>
         `;
-  }
+    }
 }

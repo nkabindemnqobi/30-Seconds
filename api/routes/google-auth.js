@@ -16,12 +16,6 @@ router.get("/login", (req, res) => {
 
 // router.get("/sse/connect/:userId", authMiddleware, (req, res) => {
   // USE THIS FOR NO AUTH
-router.get("/sse/connect/:userId", (req, res) => { 
-  /*
-   req.user = { email: <email>, sub: <googleId>, name: <name> }
-  */
-  const userId = req.params.userId;
-  handleSSEConnection(req, res, userId);
-});
+router.get("/sse/connect/:googleId", handleSSEConnection);
 
 module.exports = router;
