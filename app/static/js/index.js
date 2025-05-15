@@ -3,6 +3,7 @@ import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
 import Login from "./views/Login.js";
 import JoinLobby from "./views/JoinLobby.js";
+import Lobby from "./views/Lobby.js";
 import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
@@ -29,13 +30,14 @@ let currentView = null;
 
 const router = async () => {
     const routes = [
-        { path: "/lobby", view: Dashboard },
+        { path: "/dashboard", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
         { path: "/error", view: NotFound },
         { path: "/", view: Login },
         { path: "/signin-google", view: Authenticated },
         { path: "/join-lobby", view: JoinLobby},
-        { path: "/game-play", view: GamePlay}
+        { path: "/game-play", view: GamePlay},
+        { path: "/lobby", view: Lobby},
     ];
 
     const potentialMatches = routes.map(route => {
@@ -77,7 +79,7 @@ const router = async () => {
     if(accessCode) {
         const token = await googleAuth.exchangeCodeForToken(accessCode);
         if(token.idToken && token.googleId) {
-            history.pushState({}, "", "/lobby");
+            history.pushState({}, "", "/dashboard");
             router();
         } else {
             history.pushState({}, "", "/error");
@@ -135,3 +137,4 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 window.addEventListener("popstate", router);
+export default router

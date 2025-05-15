@@ -9,4 +9,12 @@ export default class LobbyService {
   async createLobby(requestBody) {
     await this.baseService.post("create-lobby", requestBody);
   }
+
+  async getActivePublicLobbies() {
+    return await this.baseService.get("home/lobbies?status=Lobby&public=true");
+  }
+
+   async joinLobby(joinCode,id) {
+    return await this.baseService.post(`lobby/${joinCode}`,{userJoiningId:id});
+  }
 }
