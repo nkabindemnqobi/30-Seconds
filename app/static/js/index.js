@@ -3,7 +3,7 @@ import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
 import Login from "./views/Login.js";
 import JoinLobby from "./views/JoinLobby.js";
-import Lobby from "./views/Lobby.js";
+import Lobby from "./views/LobbyView.js";
 import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
@@ -29,12 +29,10 @@ const navigateTo = url => {
 let currentView = null;
 
 const router = async () => {
-
     const routes = [
-        { path: "/dashboard", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
         { path: "/error", view: NotFound },
-        { path: "/", view: Login },
+        { path: "/", view: Dashboard },
         { path: "/signin-google", view: Authenticated },
         { path: "/join-lobby", view: JoinLobby},
         { path: "/game-play", view: GamePlay},
@@ -80,7 +78,7 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
-                history.pushState(null, null,"/dashboard");
+                history.pushState(null, null,"/");
                 router();
             } else {
                 history.pushState(null, null,"/error");
@@ -125,11 +123,11 @@ const attachEventListeners = () => {
         if (!(currentView instanceof GamePlay)) {
             newLoginButton.addEventListener("click", async (clickEvent) => {
                 clickEvent.preventDefault();
-                if(ApplicationConfiguration.appConfig.authUrl) {
-                    window.location.href = ApplicationConfiguration.appConfig.authUrl;
+                if(!ApplicationConfiguration.appConfig.authUrl) {
+                    const authorizationUrls = await googleAuth.getApplicationConfiguration();
+                    window.location.href = authorizationUrls.authUrl;
                 } else {
-                    const authenticationUrls = await googleAuth.getApplicationConfiguration();
-                    window.location.href = authenticationUrls.authUrl;
+                    window.location.href = ApplicationConfiguration.appConfig.authUrl;
                 }
             });
         }
@@ -138,6 +136,7 @@ const attachEventListeners = () => {
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
+    
     if(!ApplicationConfiguration.redirectUrl) googleAuth.getApplicationConfiguration();
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {

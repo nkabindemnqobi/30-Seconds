@@ -1,6 +1,11 @@
 import { ApplicationConfiguration } from "../models/app-config.js";
 import { User } from "../models/user.js";
 export default class BaseService {
+
+  constructor() {
+    User.setUser(JSON.parse(sessionStorage.getItem('idToken')) || {});
+  }
+
   async get(url) {
     const response = await fetch(
       `${ApplicationConfiguration.apiBaseUrl}/api/${url}`,
@@ -8,7 +13,7 @@ export default class BaseService {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${ User.user.idToken }`
+          "Authorization": `Bearer ${  User.user.idToken }`
         },
       }
     );
