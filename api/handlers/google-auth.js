@@ -1,3 +1,4 @@
+const { registerUserIfNotExists } = require("../queries/users");
 const { generateSessionId } = require("../shared/functions/google-auth-helpers.function");
 const { formatErrorResponse, getUnexpectedErrorStatus }  = require("../utils/formatErrorResponse");
 const dotenv = require('dotenv');
@@ -51,6 +52,12 @@ const exchangeCodeForIdToken = async (req, res, next) => {
         if(tokenInfo.error) {
           return next(formatErrorResponse(400, `${ errorResponse.error }: ${ errorResponse.error_description }`)); 
         }
+
+        await registerUserIfNotExists({
+          googleId: tokenInfo.sub,
+          name: tokenInfo.name,
+          email: tokenInfo.email,
+        });
 
         res.status(200).json({
           idToken: responseData.id_token,

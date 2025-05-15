@@ -1,50 +1,27 @@
-const { fetchLobbiesQuery } = require('../queries/home');
+const { startGame } = require('../queries/lobby');
+const { getUserIdFromGoogleId } = require('../queries/users');
+const { broadcastToMatch } = require('../utils/SSEManager');
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
-const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
+const handleStartGame = async (req, res, next) => {
     try {
-        const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
-        if (!result || result.length === 0) {
-            return result;
+        const { joinCode } = req.params;
+        const userId = getUserIdFromGoogleId(req.user.sub);
+
+        if (typeof joinCode !== 'string' || typeof userId !== 'number') {
+            return next(formatErrorResponse(400, "Missing joinCode or userId"));
         }
 
-        const lobbiesMap = new Map();
+        const result = await startGame({ joinCode, userId });
 
-        for (const row of result) {
-            const {
-                matchId, joinCode, lobbyName, startedDatetime, categoryId,
-                categoryName, creatorAlias, maxParticipants,
-                participantCount, bannedUserId, bannedUserAlias,
-            } = row;
+        broadcastToMatch(joinCode, {
+            data: { message: "Game started!", matchId: result.matchId }
+        }, "game_started");
 
-            if (!lobbiesMap.has(matchId)) {
-                lobbiesMap.set(matchId, {
-                    matchId,
-                    lobbyName,
-                    joinCode,
-                    startedDatetime,
-                    creatorAlias,
-                    maxParticipants,
-                    participantCount,
-                    categories: [],
-                    bannedUsers: [],
-                });
-            }
-
-            const lobby = lobbiesMap.get(matchId);
-
-            if (!lobby.categories.some(c => c.id === categoryId)) {
-                lobby.categories.push({ id: categoryId, name: categoryName });
-            }
-
-            if (bannedUserId && !lobby.bannedUsers.some(u => u.id === bannedUserId)) {
-                lobby.bannedUsers.push({ id: bannedUserId, alias: bannedUserAlias });
-            }
-        }
-        return Array.from(lobbiesMap.values());
+        res.status(200).json({ message: "Game started successfully." });
     } catch (error) {
-        throw error;
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 
-module.exports = { fetchLobbies };
+module.exports = { handleStartGame };
