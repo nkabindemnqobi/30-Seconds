@@ -1,4 +1,4 @@
-const { startRound, isMatchOver, calculateAndFinaliseScores, makeGuess } = require('../queries/round');
+const { startRound, isMatchOver, calculateAndFinaliseScores, makeGuess, getHint } = require('../queries/round');
 const { getUserIdFromGoogleId } = require('../queries/users');
 const { broadcastToMatch, sendToUser } = require('../utils/SSEManager');
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
@@ -97,7 +97,39 @@ const handleMakeGuess = async (req, res, next) => {
   }
 };
 
+const handleGetHint = async (req, res, next) => {
+  try {
+    const { joinCode } = req.params;
+    const userId = await getUserIdFromGoogleId(req.user.sub);
+
+    if (!joinCode || !userId) {
+      return next(formatErrorResponse(400, 'Missing parameters'));
+    }
+
+    const result = await getHint(joinCode, userId);
+
+    broadcastToMatch(joinCode, {
+      message: `Another hint requested`,
+      item: result.hint,
+      roundId: result.roundId,
+    }, 'hint_requested')
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message === 'Invalid join code') {
+      return next(formatErrorResponse(400, error.message));
+    }
+    if (error.message === 'No active round in progress') {
+      return next(formatErrorResponse(404, error.message));
+    }
+    if (error.message === 'Not your turn to request a hint') {
+      return next(formatErrorResponse(403, error.message));
+    }
+    return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
+  }
+};
+
 module.exports = {
   handleStartRound,
   handleMakeGuess,
+  handleGetHint,
 };
