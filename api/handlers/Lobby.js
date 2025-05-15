@@ -12,10 +12,11 @@ const {
   startGame,
 } = require("../queries/lobby");
 const {kickPlayer} = require("../queries/inGame");
+const { getUserIdFromGoogleId } = require("../queries/users");
 
 const postLobbyJoin = async (req, res, next) => {
   const joinCode = req.params.joinCode;
-  const { userJoiningId } = req.body;
+  const userJoiningId = getUserIdFromGoogleId(req.user.sub);
 
   try {
     const matchIdResult = await getMatchIdByJoinCode(joinCode);
@@ -26,7 +27,7 @@ const postLobbyJoin = async (req, res, next) => {
     }
 
     const matchId = matchIdResult[0].id;
-    const addUserToLobbyResult = await addUserToLobby(userJoiningId, matchId);
+    await addUserToLobby(userJoiningId, matchId);
     addUserToMatch(joinCode, userJoiningId);
 
     const resultRows = await getMatchLobbyInformation(matchId);
@@ -46,8 +47,7 @@ const postLobbyJoin = async (req, res, next) => {
 };
 
 const handleKickPlayer = async (req,res,next) => {
-  // const callingUserId = req.user.id; TODO: Get from user Object
-  const callingUserId = req.body.sourceUserId;
+  const callingUserId = getUserIdFromGoogleId(req.user.sub);
   const kickedUserId = req.body.targetUserId;
   const joinCode = req.params.joinCode;
 
@@ -92,7 +92,7 @@ const handleKickPlayer = async (req,res,next) => {
 const handleStartGame = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
-    const { userId } = req.body;
+    const userId = getUserIdFromGoogleId(req.user.sub);
 
     if (!joinCode || !userId) {
       return next(formatErrorResponse(400, "Missing joinCode or userId"));

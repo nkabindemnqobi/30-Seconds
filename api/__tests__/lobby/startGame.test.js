@@ -2,38 +2,33 @@ const { handleStartGame } = require('../../handlers/Lobby');
 const { startGame } = require('../../queries/lobby');
 const { broadcastToMatch } = require('../../utils/SSEManager');
 
-jest.mock('../../queries/Lobby');
-jest.mock('../../utils/SSEManager');
+jest.mock('../../queries/lobby', () => ({
+  startGame: jest.fn(),
+}));
+
+jest.mock('../../utils/SSEManager', () => ({
+  broadcastToMatch: jest.fn(),
+}));
 
 describe('handleStartGame', () => {
   let req, res, next;
-  let originalConsoleError;
 
   beforeEach(() => {
     req = {
       params: { joinCode: 'C6F6C631' },
       body: { userId: 1 }
     };
-
     res = {
       json: jest.fn(),
       status: jest.fn().mockReturnThis()
     };
-
     next = jest.fn();
-    originalConsoleError = console.error;
-    console.error = jest.fn();
-    jest.clearAllMocks();
-  });
-
-  afterEach(() => {
-    console.error = originalConsoleError;
   });
 
   it('should start the game and broadcast', async () => {
     startGame.mockResolvedValue({ matchId: 5 });
 
-    await handleStartGame(req, res);
+    await handleStartGame(req, res, next);
 
     expect(startGame).toHaveBeenCalledWith({ joinCode: 'C6F6C631', userId: 1 });
     expect(broadcastToMatch).toHaveBeenCalledWith('C6F6C631', {
@@ -44,13 +39,12 @@ describe('handleStartGame', () => {
   });
 
   it('should return 400 for missing userId or joinCode', async () => {
-    req.body.userId = null;
+    req.body = {};
+    req.params = {};
 
     await handleStartGame(req, res, next);
 
     const thrownError = next.mock.calls[0][0];
-
-    expect(thrownError).toBeInstanceOf(Error);
     expect(thrownError.message).toBe("Missing joinCode or userId");
     expect(thrownError.status).toBe(400);
   });

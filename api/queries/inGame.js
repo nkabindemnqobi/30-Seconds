@@ -1,5 +1,4 @@
 const { executeQuery } = require("../db/query");
-const { sql } = require("../db/pool");
 
 async function kickPlayer({sourceUserId, targetUserId, matchId}) {
   if (
@@ -28,13 +27,13 @@ async function kickPlayer({sourceUserId, targetUserId, matchId}) {
     MatchID: matchId,
   };
 
-  const result = await executeQuery(query, params);
+  await executeQuery(query, params);
 
 
-    return {
-      success: true,
-      message: `User with userID ${targetUserId} has been successfully kicked and banned from the lobby.`,
-    };
+  return {
+    success: true,
+    message: `User with userID ${targetUserId} has been successfully kicked and banned from the lobby.`,
+  };
 }
 
 module.exports = {
