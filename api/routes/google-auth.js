@@ -8,14 +8,9 @@ const { handleSSEConnection } = require("../utils/SSEManager");
 
 router.get('/get-token', exchangeCodeForIdToken);
 
-router.get("/login", (req, res) => {
+router.get("/login", (req, res, next) => {
   const authUrl = getAuthUrl();
-  res.send(authUrl);
-});
-
-router.get("/signin-google", (req, res) => {
-  const code = req.query['code'];
-  res.send({code: code});
+  res.send({ authUrl: authUrl });
 });
 
 router.get("/sse/connect/:googleId", handleSSEConnection);
