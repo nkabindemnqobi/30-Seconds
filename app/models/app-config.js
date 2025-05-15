@@ -7,7 +7,7 @@ export class ApplicationConfiguration {
         tokenInfo: "",
     }
     
-    static apiBaseUrl = "http://localhost:8000";
+    static apiBaseUrl = "http://30-seconds.af-south-1.elasticbeanstalk.com";
 
     static setAppConfig(appConfig) {
         ApplicationConfiguration.appConfig = { ...appConfig };
