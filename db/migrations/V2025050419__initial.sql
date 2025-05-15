@@ -70,13 +70,6 @@ CREATE TABLE Categories (
     name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE Users (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    google_id VARCHAR(30) NOT NULL,
-    alias VARCHAR(20),
-    email VARCHAR(255) NOT NULL
-);
-
 CREATE TABLE Matches (
     id INT PRIMARY KEY IDENTITY(1,1),
     join_code VARCHAR(10) NOT NULL,
@@ -98,11 +91,6 @@ CREATE TABLE MatchParticipants (
     CONSTRAINT FK_MatchParticipants_Users FOREIGN KEY (user_id) REFERENCES Users(id),
     CONSTRAINT FK_MatchParticipants_Status FOREIGN KEY (match_participants_status_id) REFERENCES MatchParticipantsStatus(id),
     CONSTRAINT UQ_Match_User UNIQUE (match_id, user_id)
-);
-
-CREATE TABLE Categories (
-    id INT PRIMARY KEY IDENTITY(1,1),
-    name VARCHAR(100) NOT NULL UNIQUE
 );
 
 CREATE TABLE CategoriesMatches (
