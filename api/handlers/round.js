@@ -16,6 +16,9 @@ const handleStartRound = async (req, res, next) => {
       guessingUserId,
       hint,
     } = await startRound(joinCode); // NOW USES PROCS
+    // start a timer on the server and on the client.
+    // When the round ends with a correct guess, stop the timer and wait.
+    // When the timer runs out, update the DB and 
 
     broadcastToMatch(joinCode, {
       message: `A new round has started!`,
@@ -51,11 +54,9 @@ const handleMakeGuess = async (req, res, next) => {
         roundId: result.roundId,
         score: result.score
       }, 'round_complete');
-      ///////////////////////////////////////////////////
-      const joinCode = "PART0730"; // FOR TESTING.
-      ///////////////////////////////////////////////////
       const matchConclusionResult = await isMatchOver(joinCode); // Check if the match is over.
-      if (matchConclusionResult.isMatchOver === true){
+      console.log(matchConclusionResult.IsMatchOver)
+      if (matchConclusionResult.IsMatchOver === true){
         const scores = await calculateAndFinaliseScores(joinCode); // Calculate the scores for everyone and do some updates.
                                                                     // This is safe to do here since match is 100% completed.
         broadcastToMatch(joinCode, { // Broadcast the results to all players.
@@ -76,6 +77,7 @@ const handleMakeGuess = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
+    //console.log(error);
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };

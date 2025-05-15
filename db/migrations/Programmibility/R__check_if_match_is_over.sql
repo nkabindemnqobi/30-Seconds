@@ -1,6 +1,5 @@
 CREATE OR ALTER PROCEDURE dbo.CheckIfMatchIsOver
-    @JoinCode VARCHAR(10),
-    @IsMatchOver BIT
+    @JoinCode VARCHAR(10)
 AS
 BEGIN
     SET NOCOUNT ON;
@@ -11,6 +10,7 @@ BEGIN
     DECLARE @TotalExpectedRounds INT;
     DECLARE @GameRoundsPlayed INT;
     DECLARE @BarredStatusID INT;
+    DECLARE @IsMatchOver BIT;
 
     BEGIN TRY
         BEGIN TRANSACTION;
@@ -82,9 +82,9 @@ BEGIN
     BEGIN
         SET @IsMatchOver = 0;
     END
-
+    COMMIT TRANSACTION;
     SELECT @IsMatchOver AS IsMatchOver;
-
+    
     END TRY
     BEGIN CATCH
     -- If an error occurs and there's an active transaction, roll it back

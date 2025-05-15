@@ -24,10 +24,10 @@ const startRound = async (joinCode) => {
         const hintQuery = `
         EXEC dbo.InsertHintForRound
             @RoundID = @RoundID,
-            @Hint = @Hint
+            @HintText = @HintText
         `;
 
-        const hintParams = { RoundID: roundId, Hint: hint};
+        const hintParams = { RoundID: roundId, HintText: hint};
 
         const hintResult = await executeQuery(hintQuery, hintParams);
 
@@ -71,7 +71,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const matchId = matchQuery.recordset[0].id;
-
+    //console.log(joinCode, userId, guessInput, matchId);
     const roundQuery = await new sql.Request(transaction).input(
       "MatchId",
       matchId
@@ -122,6 +122,7 @@ const isMatchOver = async (joinCode) => {
 
   const isMatchOverResult = await executeQuery(query, params);
   if (isMatchOverResult[0]) {
+    //console.log("IS MATCH OVER RESULT:      ",isMatchOverResult[0]);
     return isMatchOverResult[0];
   } else {
     throw new Error(
