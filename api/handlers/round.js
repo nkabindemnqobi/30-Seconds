@@ -1,6 +1,7 @@
-const { startRound } = require('../queries/round');
+const { startRound, isMatchOver, calculateAndFinaliseScores, makeGuess } = require('../queries/round');
+const { getUserIdFromGoogleId } = require('../queries/users');
 const { broadcastToMatch, sendToUser } = require('../utils/SSEManager');
-const {formatErrorResponse, getUnexpectedErrorStatus} = require('../utils/formatErrorResponse');
+const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
 const handleStartRound = async (req, res, next) => {
   try {
@@ -10,16 +11,19 @@ const handleStartRound = async (req, res, next) => {
       return res.status(400).json({ message: 'Missing join code' });
     }
 
-    const {
+    const roundInfo = {
       roundId,
       guessingAlias,
       guessingUserId,
-      hint
-    } = await startRound(joinCode);
+      hint,
+    } = await startRound(joinCode); // NOW USES PROCS
+    // start a timer on the server and on the client.
+    // When the round ends with a correct guess, stop the timer and wait.
+    // When the timer runs out, update the DB and 
 
     broadcastToMatch(joinCode, {
       message: `A new round has started!`,
-      guessingAlias
+      roundInfo
     }, 'round_started');
 
     sendToUser(guessingUserId, {
@@ -28,11 +32,70 @@ const handleStartRound = async (req, res, next) => {
 
     res.status(200).json({ roundId, guessingAlias, hint });
   } catch (error) {
+    if (error.message === 'A round is already in progress.') {
+      return next(formatErrorResponse(403, error.message));
+    }
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
 
 
+const handleMakeGuess = async (req, res, next) => {
+  try {
+    const { joinCode } = req.params;
+    const { guess } = req.body;
+    const userId = getUserIdFromGoogleId(req.user.sub);;
+
+    if (!joinCode || !userId || !guess) {
+      return next(formatErrorResponse(400, 'Missing parameters'));
+    }
+
+    const result = await makeGuess(joinCode, userId, guess); // TODO: Change this to use proc.
+
+    if (result.correct) { // Assume the answer is correct and the transaction ran as intended
+      broadcastToMatch(joinCode, {
+        message: `${result.guessingAlias} guessed it right!`,
+        item: result.itemName,
+        roundId: result.roundId,
+        score: result.score
+      }, 'round_complete');
+      const matchConclusionResult = await isMatchOver(joinCode); // Check if the match is over.
+      console.log(matchConclusionResult.IsMatchOver)
+      if (matchConclusionResult.IsMatchOver === true){
+        const scores = await calculateAndFinaliseScores(joinCode); // Calculate the scores for everyone and do some updates.
+                                                                    // This is safe to do here since match is 100% completed.
+        broadcastToMatch(joinCode, { // Broadcast the results to all players.
+          message: `The game has ended!!`,
+          scores
+        }, 'game_ended');
+        
+        return res.status(200).json({message: "You have finished the game!"})
+      }
+
+    } else {
+      broadcastToMatch(joinCode, {
+        message: `${result.guessingAlias} guessed it wrong!`,
+        item: result.itemName,
+        roundId: result.roundId,
+      }, 'wrong_guess')
+    }
+
+    res.status(200).json(result);
+  } catch (error) {
+    if (error.message === 'Invalid join code') {
+      return next(formatErrorResponse(400, error.message));
+    }
+    if (error.message === 'No active round in progress') {
+      return next(formatErrorResponse(404, error.message));
+    }
+    if (error.message === 'It is not your turn to guess') {
+      return next(formatErrorResponse(403, error.message));
+    }
+    return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
+  }
+};
+
 module.exports = {
   handleStartRound,
+  handleMakeGuess,
 };

@@ -27,7 +27,6 @@ function formatMatchWithParticipants(sqlQueryResult) {
               match_participant_id: row.match_participant_id,
               user_id: row.participant_user_id,
               alias: row.participant_alias,
-              email: row.participant_email,
               match_participants_status_id: row.match_participants_status_id, // Keeping the ID
               participant_status: row.participant_status // String status
           };
