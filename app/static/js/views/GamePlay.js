@@ -32,7 +32,6 @@ export default class GamePlay {
         if (!this.gameController) {
             this.gameController = new GameController();
             this.gameController.init();
-            console.log("Game controller initialized from GamePlay view");
         }
     }
 }

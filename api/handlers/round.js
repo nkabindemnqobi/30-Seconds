@@ -35,7 +35,6 @@ const handleStartRound = async (req, res, next) => {
     if (error.message === 'A round is already in progress.') {
       return next(formatErrorResponse(403, error.message));
     }
-    //console.log(error);
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
