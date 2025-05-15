@@ -1,7 +1,7 @@
 INSERT INTO MatchStatus (status) VALUES
 ('Completed'),
-('Ongoing'),
-('Lobby');
+('Lobby'),
+('Ongoing');
 
 INSERT INTO MatchParticipantsStatus (status) VALUES
 ('Barred'),

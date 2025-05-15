@@ -1,3 +1,4 @@
+import { GoogleAuth } from "../../../services/google-auth.service.js";
 import AbstractView from "./AbstractView.js";
 import "../../components/View.component.js";
 import { initSSE } from "../sseManager/sse.js";
@@ -5,12 +6,12 @@ import { initSSE } from "../sseManager/sse.js";
 export default class Dashboard extends AbstractView {
     constructor(params) {
         super(params);
+        const googleAuth = new GoogleAuth();
         this.setTitle("Dashboard");
-        initSSE();
     }
-
-    async getHtml() {
-        return `
+    
+  async getHtml() {
+    return `
             <section class="card">
                <header class="card-header">
                 <h1 class="card-title">30-Second Trivia Challenge</h1>

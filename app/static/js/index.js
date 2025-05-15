@@ -29,6 +29,7 @@ const navigateTo = url => {
 let currentView = null;
 
 const router = async () => {
+
     const routes = [
         { path: "/dashboard", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
@@ -74,18 +75,18 @@ const router = async () => {
       const htmlContent = await currentView.getHtml();
       sanitizeAndRender(appContainer, htmlContent);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessCode = urlParams.get("code");
-    if(accessCode) {
-        const token = await googleAuth.exchangeCodeForToken(accessCode);
-        if(token.idToken && token.googleId) {
-            history.pushState({}, "", "/dashboard");
-            router();
-        } else {
-            history.pushState({}, "", "/error");
-            router();
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessCode = urlParams.get("code");
+        if(accessCode) {
+            const token = await googleAuth.exchangeCodeForToken(accessCode);
+            if(token.idToken && token.googleId) {
+                history.pushState(null, null,"/dashboard");
+                router();
+            } else {
+                history.pushState(null, null,"/error");
+                router();
+            }
         }
-    }
     
     attachEventListeners();
     
@@ -116,9 +117,14 @@ const attachEventListeners = () => {
         
         // If we're on the game-play page, the submit button will be handled by the GameController
         if (!(currentView instanceof GamePlay)) {
-            newLoginButton.addEventListener("click", (clickEvent) => {
+            newLoginButton.addEventListener("click", async (clickEvent) => {
                 clickEvent.preventDefault();
-                window.location.href = ApplicationConfiguration.redirectUrl;
+                if(ApplicationConfiguration.appConfig.authUrl) {
+                    window.location.href = ApplicationConfiguration.appConfig.authUrl;
+                } else {
+                    const authenticationUrls = await googleAuth.getApplicationConfiguration();
+                    window.location.href = authenticationUrls.authUrl;
+                }
             });
         }
     }

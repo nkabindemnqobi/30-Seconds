@@ -57,17 +57,29 @@ CREATE TABLE Users (
 
 CREATE TABLE MatchStatus (
     id INT PRIMARY KEY IDENTITY(1,1),
-    status VARCHAR(50) NOT NULL UNIQUE
+    status VARCHAR(50) NOT NULL
 );
 
 CREATE TABLE MatchParticipantsStatus (
     id INT PRIMARY KEY IDENTITY(1,1),
-    status VARCHAR(50) NOT NULL UNIQUE
+    status VARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Categories (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE Users (
+    id INT PRIMARY KEY IDENTITY(1,1),
+    google_id VARCHAR(30) NOT NULL,
+    alias VARCHAR(20),
+    email VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE Matches (
     id INT PRIMARY KEY IDENTITY(1,1),
-    join_code VARCHAR(10) NOT NULL UNIQUE,
+    join_code VARCHAR(10) NOT NULL,
     lobby_name VARCHAR(100) NOT NULL,
     is_public BIT NOT NULL DEFAULT 1,
     max_participants INT NOT NULL,
