@@ -12,8 +12,19 @@ async function handleRoundTimeout(joinCode, roundId, guesserAlias, guesserId) {
     if (updateRoundResult.success === true){
       //console.log("Round has been updated")
       const gameScores = await calculateAndFinaliseScores(joinCode, false);
+      broadcastToMatch(
+        joinCode,
+        {
+          message: `Time's up! ${guesserAlias} failed to guess in time.`,
+          roundId: roundId,
+          guesserId: guesserId,
+          gameScores
+        },
+        "round_timeout"
+      );
       const matchConclusionResult = await isMatchOver(joinCode); // Check if the match is over.
       console.log(matchConclusionResult.IsMatchOver)
+      
       if (matchConclusionResult.IsMatchOver === true){
         const scores = await calculateAndFinaliseScores(joinCode, true); // Calculate the scores for everyone and do some updates.
                                                                     // This is safe to do here since match is 100% completed.
@@ -23,18 +34,6 @@ async function handleRoundTimeout(joinCode, roundId, guesserAlias, guesserId) {
         }, 'game_ended');
         
         return res.status(200).json({message: "You have finished the game!"})
-      }
-      else {
-        broadcastToMatch(
-          joinCode,
-          {
-            message: `Time's up! ${guesserAlias} failed to guess in time.`,
-            roundId: roundId,
-            guesserId: guesserId,
-            gameScores
-          },
-          "round_timeout"
-        );
       }
     }
   } catch (error) {

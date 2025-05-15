@@ -81,7 +81,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
         FROM GameRounds gr
         JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
         JOIN Users u ON u.id = gr.guessing_user_id
-        WHERE gr.match_id = @MatchId AND gr.ended_datetime IS NULL
+        WHERE gr.match_id = @MatchId AND gr.ended_at IS NULL
       `);
 
     if (roundQuery.recordset.length === 0) {
@@ -102,7 +102,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     if (isCorrect) {
       await new sql.Request(transaction).input("RoundId", round.roundId).query(`
           UPDATE GameRounds
-          SET ended_datetime = GETDATE(), points_awarded = 1
+          SET ended_at = GETDATE(), points_awarded = 1
           WHERE id = @RoundId
         `);
     }

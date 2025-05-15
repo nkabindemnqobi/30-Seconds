@@ -30,7 +30,7 @@ BEGIN
             @GuessingUserID = gr.guessing_user_id
         FROM dbo.GameRounds gr
         WHERE gr.match_id = @MatchID -- Use derived @MatchID
-          AND gr.ended_datetime IS NULL
+          AND gr.ended_at IS NULL
         ORDER BY gr.id DESC; -- In case (though unlikely) multiple were somehow left open, take the latest.
 
         IF @ActiveRoundID IS NULL
@@ -45,7 +45,7 @@ BEGIN
         -- == Step 2: Update the active round to reflect the timeout ==
         UPDATE dbo.GameRounds
         SET
-            ended_datetime = GETDATE(),
+            ended_at = GETDATE(),
             points_awarded = 0,         -- No points for a timeout
             time_in_ms = 30000          -- Assume 30 seconds (30000 ms) full time used
         WHERE

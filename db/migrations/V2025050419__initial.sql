@@ -22,8 +22,8 @@ CREATE TABLE Matches (
     lobby_name VARCHAR(100) NOT NULL,
     is_public BIT NOT NULL DEFAULT 1,
     max_participants INT NOT NULL,
-    started_datetime DATETIME DEFAULT GETDATE(),
-    completed_datetime DATETIME,
+    started_at DATETIME DEFAULT GETDATE(),
+    completed_at DATETIME,
     status_id INT NOT NULL REFERENCES MatchStatus(id)
 );
 
@@ -60,8 +60,8 @@ CREATE TABLE GameRounds (
     hint_count INT NOT NULL DEFAULT 1,
     points_awarded INT NOT NULL DEFAULT 0,
     time_in_ms INT NOT NULL DEFAULT 0,
-    timer_started DATETIME DEFAULT GETDATE(),
-    ended_datetime DATETIME NULL,
+    timer_started_at DATETIME DEFAULT GETDATE(),
+    ended_at DATETIME NULL,
 );
 
 CREATE TABLE Hints (

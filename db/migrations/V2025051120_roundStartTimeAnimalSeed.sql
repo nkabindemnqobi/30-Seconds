@@ -1,5 +1,5 @@
 ALTER TABLE GameRounds
-ADD ended_datetime DATETIME NULL;
+ADD ended_at DATETIME NULL;
 
 INSERT INTO Categories (name) VALUES
 ('Animal');
