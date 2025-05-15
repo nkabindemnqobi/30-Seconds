@@ -1,13 +1,14 @@
-const spinnerHTML = `
+const template = document.createElement('template');
+template.innerHTML = `
   <style>
     .spinner {
       border: 4px solid rgba(0, 0, 0, 0.1);
       width: 36px;
       height: 36px;
       border-radius: 50%;
-      border-left-color: #007bff;
+      border-left-color: #007bff; /* Your primary color */
       animation: spin 1s linear infinite;
-      margin: 10px auto;
+      margin: 10px auto; /* Center the spinner */
     }
 
     @keyframes spin {
@@ -21,10 +22,6 @@ const spinnerHTML = `
   </style>
   <div class="spinner"></div>
 `;
-
-const parser = new DOMParser();
-const doc = parser.parseFromString(`<template>${spinnerHTML}</template>`, "text/html");
-const template = doc.querySelector("template");
 
 class Spinner extends HTMLElement {
   constructor() {
