@@ -21,6 +21,7 @@ SELECT
     m.is_public AS isPublic,
     m.status_id AS matchStatusId,
     m.completed_at
+    m.completed_at
 FROM Matches m
 JOIN CategoriesMatches cm ON cm.match_id = m.id
 JOIN Categories c ON c.id = cm.category_id

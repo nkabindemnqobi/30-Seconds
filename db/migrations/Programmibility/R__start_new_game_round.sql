@@ -29,6 +29,7 @@ BEGIN
 
         -- == Step 2: Check if a round is already in progress for this match ==
         IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_at IS NULL)
+        IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_at IS NULL)
         BEGIN
             RAISERROR('A round is already in progress for Match ID %d (Join Code: ''%s'').', 16, 1, @MatchID, @JoinCode);
             ROLLBACK TRANSACTION;
