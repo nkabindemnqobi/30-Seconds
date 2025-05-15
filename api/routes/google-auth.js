@@ -5,7 +5,6 @@ const {
   exchangeCodeForIdToken,
 } = require("../handlers/google-auth");
 const { handleSSEConnection } = require("../utils/SSEManager");
-const { authMiddleware } = require("../middleware/authorization");
 
 router.get('/get-token', exchangeCodeForIdToken);
 
@@ -14,8 +13,6 @@ router.get("/login", (req, res, next) => {
   res.send({ authUrl: authUrl });
 });
 
-// router.get("/sse/connect/:userId", authMiddleware, (req, res) => {
-  // USE THIS FOR NO AUTH
 router.get("/sse/connect/:googleId", handleSSEConnection);
 
 module.exports = router;
