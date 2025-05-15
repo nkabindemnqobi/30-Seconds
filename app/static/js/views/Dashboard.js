@@ -1,14 +1,16 @@
 import AbstractView from "./AbstractView.js";
 import "../../components/View.component.js";
+import { initSSE } from "../sseManager/sse.js";
 
 export default class Dashboard extends AbstractView {
-  constructor(params) {
-    super(params);
-    this.setTitle("Dashboard");
-  }
+    constructor(params) {
+        super(params);
+        this.setTitle("Dashboard");
+        initSSE();
+    }
 
-  async getHtml() {
-    return `
+    async getHtml() {
+        return `
             <section class="card">
                <header class="card-header">
                 <h1 class="card-title">30-Second Trivia Challenge</h1>
@@ -19,5 +21,5 @@ export default class Dashboard extends AbstractView {
                 <view-lobbies></view-lobbies>
             </section>
         `;
-  }
+    }
 }
