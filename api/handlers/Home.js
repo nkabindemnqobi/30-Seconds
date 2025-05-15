@@ -1,27 +1,28 @@
-const { startGame } = require('../queries/lobby');
-const { getUserIdFromGoogleId } = require('../queries/users');
-const { broadcastToMatch } = require('../utils/SSEManager');
+const { fetchLobbies } = require('../services/lobbies'); 
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
-const handleStartGame = async (req, res, next) => {
+const handleFetchLobbies = async (req, res, next) => {
     try {
-        const { joinCode } = req.params;
-        const userId = getUserIdFromGoogleId(req.user.sub);
+        const { status, public: isPublic, creatorAlias } = req.query;
 
-        if (typeof joinCode !== 'string' || typeof userId !== 'number') {
-            return next(formatErrorResponse(400, "Missing joinCode or userId"));
+        const filters = {
+            status,
+            isPublic: isPublic === 'true',
+            creatorAlias,
+        };
+
+        const lobbies = await fetchLobbies(filters);
+
+        if (!lobbies || lobbies.length === 0) {
+            return next(formatErrorResponse(404, 'No lobbies found'));
         }
 
-        const result = await startGame({ joinCode, userId });
-
-        broadcastToMatch(joinCode, {
-            data: { message: "Game started!", matchId: result.matchId }
-        }, "game_started");
-
-        res.status(200).json({ message: "Game started successfully." });
+        res.status(200).json(lobbies);
     } catch (error) {
         return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 
-module.exports = { handleStartGame };
+module.exports = {
+    handleFetchLobbies,
+};
