@@ -89,6 +89,10 @@ const makeGuess = async (joinCode, userId, guessInput) => {
 
     const round = roundQuery.recordset[0];
 
+    if (round.guessing_user_id !== userId) {
+      throw new Error('It is not your turn to guess');
+    }
+
     const normalizedGuess = guessInput.toLowerCase().trim();
     const normalizedAnswer = round.item_name.toLowerCase().trim();
 

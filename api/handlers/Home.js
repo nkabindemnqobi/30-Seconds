@@ -1,50 +1,28 @@
-const { fetchLobbiesQuery } = require('../queries/home');
+const { fetchLobbies } = require('../services/lobbies'); 
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
-const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
+const handleFetchLobbies = async (req, res, next) => {
     try {
-        const result = await fetchLobbiesQuery({ status, isPublic, creatorAlias });
-        if (!result || result.length === 0) {
-            return result;
+        const { status, public: isPublic, creatorAlias } = req.query;
+
+        const filters = {
+            status,
+            isPublic: isPublic === 'true',
+            creatorAlias,
+        };
+
+        const lobbies = await fetchLobbies(filters);
+
+        if (!lobbies || lobbies.length === 0) {
+            return next(formatErrorResponse(404, 'No lobbies found'));
         }
 
-        const lobbiesMap = new Map();
-
-        for (const row of result) {
-            const {
-                matchId, joinCode, lobbyName, startedDatetime, categoryId,
-                categoryName, creatorAlias, maxParticipants,
-                participantCount, bannedUserId, bannedUserAlias,
-            } = row;
-
-            if (!lobbiesMap.has(matchId)) {
-                lobbiesMap.set(matchId, {
-                    matchId,
-                    lobbyName,
-                    joinCode,
-                    startedDatetime,
-                    creatorAlias,
-                    maxParticipants,
-                    participantCount,
-                    categories: [],
-                    bannedUsers: [],
-                });
-            }
-
-            const lobby = lobbiesMap.get(matchId);
-
-            if (!lobby.categories.some(c => c.id === categoryId)) {
-                lobby.categories.push({ id: categoryId, name: categoryName });
-            }
-
-            if (bannedUserId && !lobby.bannedUsers.some(u => u.id === bannedUserId)) {
-                lobby.bannedUsers.push({ id: bannedUserId, alias: bannedUserAlias });
-            }
-        }
-        return Array.from(lobbiesMap.values());
+        res.status(200).json(lobbies);
     } catch (error) {
-        throw error;
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
 
-module.exports = { fetchLobbies };
+module.exports = {
+    handleFetchLobbies,
+};

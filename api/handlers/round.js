@@ -1,4 +1,5 @@
 const { startRound, isMatchOver, calculateAndFinaliseScores, makeGuess } = require('../queries/round');
+const { getUserIdFromGoogleId } = require('../queries/users');
 const { broadcastToMatch, sendToUser } = require('../utils/SSEManager');
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 
@@ -31,6 +32,9 @@ const handleStartRound = async (req, res, next) => {
 
     res.status(200).json({ roundId, guessingAlias, hint });
   } catch (error) {
+    if (error.message === 'A round is already in progress.') {
+      return next(formatErrorResponse(403, error.message));
+    }
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
@@ -39,7 +43,8 @@ const handleStartRound = async (req, res, next) => {
 const handleMakeGuess = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
-    const { userId, guess } = req.body;
+    const { guess } = req.body;
+    const userId = getUserIdFromGoogleId(req.user.sub);;
 
     if (!joinCode || !userId || !guess) {
       return next(formatErrorResponse(400, 'Missing parameters'));
@@ -77,7 +82,15 @@ const handleMakeGuess = async (req, res, next) => {
 
     res.status(200).json(result);
   } catch (error) {
-    //console.log(error);
+    if (error.message === 'Invalid join code') {
+      return next(formatErrorResponse(400, error.message));
+    }
+    if (error.message === 'No active round in progress') {
+      return next(formatErrorResponse(404, error.message));
+    }
+    if (error.message === 'It is not your turn to guess') {
+      return next(formatErrorResponse(403, error.message));
+    }
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
