@@ -33,20 +33,10 @@ export class GoogleAuth {
         }
     }
 
-    async retrieveToken(code) {
+    retrieveToken() {
         try {
-            const idToken = sessionStorage.getItem('idToken') ? sessionStorage.getItem('idToken') : await this.exchangeCodeForToken(code);
+            const idToken = sessionStorage.getItem('idToken');
             return idToken;
-        } catch(error) {
-            return error;
-        }
-    }
-
-   async verifyToken(idToken) {
-        try {
-            const tokenInfoUrl = sessionStorage.getItem('tokenInfo') ? sessionStorage.getItem('tokenInfo') : this.getApplicationConfiguration();
-            const tokenInfo = await fetch(`${tokenInfoUrl}?id_token=${idToken}`);
-            return await tokenInfo.json();
         } catch(error) {
             return error;
         }

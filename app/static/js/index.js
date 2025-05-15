@@ -73,18 +73,18 @@ const router = async () => {
       const htmlContent = await currentView.getHtml();
       sanitizeAndRender(appContainer, htmlContent);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessCode = urlParams.get("code");
-    if(accessCode) {
-        const token = await googleAuth.retrieveToken(accessCode);
-        if(token.idToken && token.googleId) {
-            history.pushState({}, "", "/lobby");
-            router();
-        } else {
-            history.pushState({}, "", "/error");
-            router();
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessCode = urlParams.get("code");
+        if(accessCode) {
+            const token = await googleAuth.exchangeCodeForToken(accessCode);
+            if(token.idToken && token.googleId) {
+                history.pushState({}, "", "/lobby");
+                router();
+            } else {
+                history.pushState({}, "", "/error");
+                router();
+            }
         }
-    }
     
     attachEventListeners();
     
@@ -130,9 +130,16 @@ const attachEventListeners = () => {
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
-    console.log(sessionStorage);
-    const authenticationUrl = sessionStorage.getItem("authUrl");
-    if(!authenticationUrl) googleAuth.getApplicationConfiguration();
+    const idToken = googleAuth.retrieveToken();
+    if(!idToken) {
+        const authenticationUrl = sessionStorage.getItem("authUrl");
+        googleAuth.getApplicationConfiguration(authenticationUrl.authUrl);
+        history.pushState({}, "", "/");
+        router();
+    } else {
+        history.pushState({}, "", "/lobby");
+        router();
+    }
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {
             e.preventDefault();
