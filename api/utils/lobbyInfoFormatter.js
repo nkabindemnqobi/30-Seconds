@@ -14,8 +14,8 @@ function formatMatchWithParticipants(sqlQueryResult) {
       lobby_name: firstRow.lobby_name,
       is_public: firstRow.is_public,
       max_participants: firstRow.max_participants,
-      started_datetime: firstRow.started_datetime,
-      completed_datetime: firstRow.completed_datetime,
+      started_at: firstRow.started_at,
+      completed_at: firstRow.completed_at,
       status_id: firstRow.status_id, 
       match_status: firstRow.match_status, 
       participants: []

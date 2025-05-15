@@ -61,6 +61,7 @@ const startRound = async (joinCode) => {
   };
 
 const makeGuess = async (joinCode, userId, guessInput) => {
+  //console.log("THE INPUTS", joinCode, userId, guessInput);
   return await withTransaction(async ({ transaction }) => {
     const matchQuery = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
@@ -80,7 +81,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
         FROM GameRounds gr
         JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
         JOIN Users u ON u.id = gr.guessing_user_id
-        WHERE gr.match_id = @MatchId AND gr.ended_datetime IS NULL
+        WHERE gr.match_id = @MatchId AND gr.ended_at IS NULL
       `);
 
     if (roundQuery.recordset.length === 0) {
@@ -88,7 +89,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const round = roundQuery.recordset[0];
-
+    //console.log("EXPECTED GUESSER", round.guessing_user_id);
     if (round.guessing_user_id !== userId) {
       throw new Error('It is not your turn to guess');
     }
@@ -101,7 +102,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     if (isCorrect) {
       await new sql.Request(transaction).input("RoundId", round.roundId).query(`
           UPDATE GameRounds
-          SET ended_datetime = GETDATE(), points_awarded = 1
+          SET ended_at = GETDATE(), points_awarded = 1
           WHERE id = @RoundId
         `);
     }
@@ -135,12 +136,13 @@ const isMatchOver = async (joinCode) => {
   }
 };
 
-const calculateAndFinaliseScores = async (joinCode) => {
+const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
   const query = `
         EXEC dbo.CalculateAndFinalizeMatchScores
-              @JoinCode = @JoinCode
+              @JoinCode = @JoinCode,
+              @FinalizeMatch = @FinalizeMatch
         `;
-  const params = { JoinCode: joinCode };
+  const params = { JoinCode: joinCode, FinalizeMatch: finalizeMatch};
 
   const calculateMatchScoresResult = await executeQuery(query, params);
   if (calculateMatchScoresResult.length !== 0) {
@@ -152,4 +154,20 @@ const calculateAndFinaliseScores = async (joinCode) => {
   }
 };
 
-module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver };
+const setRoundByTimeout = async (joinCode) => {
+  const query = `
+      EXEC dbo.HandleGameRoundTimeout
+          @JoinCode = @JoinCode
+      `;
+  const params = { JoinCode: joinCode };
+
+  try {
+    const result = await executeQuery(query, params); 
+    return {success: true}
+  } catch (error) {
+    console.error(`[setRoundByTimeout] Error executing dbo.HandleGameRoundTimeout for joinCode '${joinCode}':`, error.message);
+    throw error; 
+  }
+};
+
+module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver, setRoundByTimeout };

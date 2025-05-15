@@ -17,7 +17,7 @@ async function generateHint(itemName, category) {
   const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 
   The hint must be fair, challenging, and not reveal the answer directly.
   Respond with just the hint — no extra text, quotes, or formatting.`;
-
+  //console.log("Generate hint is being called !!!!!!")
   try {
     const response = await aiClient.path("/chat/completions").post({
       body: {
@@ -34,7 +34,7 @@ async function generateHint(itemName, category) {
     if (isUnexpected(response)) {
       throw response.body.error;
     }
-
+    //console.log("Hint has been generated!!");
     return response.body.choices[0].message.content.trim();
   } catch (err) {
     throw new Error("Hint generation failed");

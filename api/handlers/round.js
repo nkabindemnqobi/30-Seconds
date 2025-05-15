@@ -2,6 +2,7 @@ const { startRound, isMatchOver, calculateAndFinaliseScores, makeGuess } = requi
 const { getUserIdFromGoogleId } = require('../queries/users');
 const { broadcastToMatch, sendToUser } = require('../utils/SSEManager');
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
+const { startRoundTimer, clearRoundTimer, activeRoundTimers} = require("../utils/roundTimeManager");
 
 const handleStartRound = async (req, res, next) => {
   try {
@@ -15,11 +16,10 @@ const handleStartRound = async (req, res, next) => {
       roundId,
       guessingAlias,
       guessingUserId,
-      hint,
-    } = await startRound(joinCode); // NOW USES PROCS
-    // start a timer on the server and on the client.
-    // When the round ends with a correct guess, stop the timer and wait.
-    // When the timer runs out, update the DB and 
+      hint
+    } = await startRound(joinCode);
+
+    await startRoundTimer(joinCode, roundId, guessingAlias, guessingUserId);
 
     broadcastToMatch(joinCode, {
       message: `A new round has started!`,
@@ -35,6 +35,7 @@ const handleStartRound = async (req, res, next) => {
     if (error.message === 'A round is already in progress.') {
       return next(formatErrorResponse(403, error.message));
     }
+    //console.log(error);
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
@@ -53,6 +54,7 @@ const handleMakeGuess = async (req, res, next) => {
     const result = await makeGuess(joinCode, userId, guess); // TODO: Change this to use proc.
 
     if (result.correct) { // Assume the answer is correct and the transaction ran as intended
+      clearRoundTimer(joinCode);// Clear the round timer
       broadcastToMatch(joinCode, {
         message: `${result.guessingAlias} guessed it right!`,
         item: result.itemName,
@@ -62,7 +64,7 @@ const handleMakeGuess = async (req, res, next) => {
       const matchConclusionResult = await isMatchOver(joinCode); // Check if the match is over.
       console.log(matchConclusionResult.IsMatchOver)
       if (matchConclusionResult.IsMatchOver === true){
-        const scores = await calculateAndFinaliseScores(joinCode); // Calculate the scores for everyone and do some updates.
+        const scores = await calculateAndFinaliseScores(joinCode, true); // Calculate the scores for everyone and do some updates.
                                                                     // This is safe to do here since match is 100% completed.
         broadcastToMatch(joinCode, { // Broadcast the results to all players.
           message: `The game has ended!!`,

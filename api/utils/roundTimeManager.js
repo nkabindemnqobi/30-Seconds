@@ -1,34 +1,49 @@
-const activeRoundTimers = new Map(); // lobbycode -> steTimeout
-const ROUND_DURATION_MS = 30 * 1000;
+const activeRoundTimers = new Map(); // lobbycode -> setTimeout
+const ROUND_DURATION_MS = 33 * 1000;
 
-async function handleRoundTimeout(joinCode) {
+const {broadcastToMatch} = require("./SSEManager")
+const {setRoundByTimeout, calculateAndFinaliseScores, isMatchOver} = require("../queries/round")
+
+async function handleRoundTimeout(joinCode, roundId, guesserAlias, guesserId) {
   console.log(`Round timer expired for match: ${joinCode}`);
   activeRoundTimers.delete(joinCode);
-  // Update the game round.
-  //    await db.query("UPDATE GameRounds SET ended_datetime = GETDATE(), points_awarded = 0, time_in_ms = @duration WHERE id = @currentRoundId AND match_id = (SELECT id FROM Matches WHERE join_code = @joinCode)", { duration: ROUND_DURATION_MS, currentRoundId: /* get current round ID for joinCode */, joinCode });
-
-  // Get the current guesser thru another query or through query above.
-  // const currentGuesser = await getCurrentGuesserForMatch(joinCode);
-  broadcastToMatch(
-    joinCode,
-    {
-      message: `Time's up! ${
-        currentGuesser.alias || "The player"
-      } failed to guess in time.`,
-      roundId: 1,
-      guesserId: currentGuesser.id,
-      scoreAwarded: 0,
-    },
-    "round_timeout"
-  );
-
-  const matchOverDetails = await isMatchOver(joinCode); 
-  //    if (matchOverDetails.isMatchOver) {
-  //        // Handle game end
-  //    }
+  try {
+    const updateRoundResult = await setRoundByTimeout(joinCode);
+    if (updateRoundResult.success === true){
+      //console.log("Round has been updated")
+      const gameScores = await calculateAndFinaliseScores(joinCode, false);
+      broadcastToMatch(
+        joinCode,
+        {
+          message: `Time's up! ${guesserAlias} failed to guess in time.`,
+          roundId: roundId,
+          guesserId: guesserId,
+          gameScores
+        },
+        "round_timeout"
+      );
+      const matchConclusionResult = await isMatchOver(joinCode); // Check if the match is over.
+      console.log(matchConclusionResult.IsMatchOver)
+      
+      if (matchConclusionResult.IsMatchOver === true){
+        const scores = await calculateAndFinaliseScores(joinCode, true); // Calculate the scores for everyone and do some updates.
+                                                                    // This is safe to do here since match is 100% completed.
+        broadcastToMatch(joinCode, { // Broadcast the results to all players.
+          message: `The game has ended!!`,
+          scores
+        }, 'game_ended');
+        
+        return res.status(200).json({message: "You have finished the game!"})
+      }
+    }
+  } catch (error) {
+    //console.log(error);
+    throw error
+  }
+  
 }
 
-function startRoundTimer(joinCode, roundId) {
+function startRoundTimer(joinCode, roundId, guesserAlias, guesserId ) {
     if (activeRoundTimers.has(joinCode)) {
       console.warn(`Warning: An existing timer was found for match ${joinCode} while trying to start a new one. Clearing the old timer.`);
       clearRoundTimer(joinCode);
@@ -37,7 +52,7 @@ function startRoundTimer(joinCode, roundId) {
     console.log(`Starting a ${ROUND_DURATION_MS / 1000}-second timer for match: ${joinCode}, round: ${roundId}`);
   
     const timerId = setTimeout(() => {
-      handleRoundTimeout(joinCode);
+      handleRoundTimeout(joinCode, roundId, guesserAlias, guesserId);
     }, ROUND_DURATION_MS);
   
     activeRoundTimers.set(joinCode, timerId);
@@ -53,4 +68,10 @@ function startRoundTimer(joinCode, roundId) {
     } else {
       console.log(`No active timer found to clear for match: ${joinCode}`);
     }
+  }
+
+  module.exports ={
+    activeRoundTimers,
+    clearRoundTimer,
+    startRoundTimer
   }
