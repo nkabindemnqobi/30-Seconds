@@ -7,8 +7,7 @@ export class ApplicationConfiguration {
         tokenInfo: "",
     }
     
-    static apiBaseUrl = "http://localhost:8000";
-    static loginUrl = "http://localhost:3000";
+    static apiBaseUrl = "http://db-30-seconds.cywd7qphawxe.af-south-1.rds.amazonaws.com";
 
     static setAppConfig(appConfig) {
         ApplicationConfiguration.appConfig = { ...appConfig };

@@ -5,7 +5,6 @@ export default class Dashboard extends AbstractView {
     constructor(params) {
         super(params);
         const googleAuth = new GoogleAuth();
-        console.log(googleAuth.retrieveToken());
         this.setTitle("Dashboard");
     }
     

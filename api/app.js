@@ -18,7 +18,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({
   allowedHeaders: "*",
-  origin:  notProduction ? process.env.ORIGIN_DEV : process.env.ORIGIN_PROD,
+  origin: process.env.ORIGIN,
   credentials: true,
 }))
 
