@@ -54,18 +54,22 @@ export default class LobbyForm extends HTMLElement {
   }
 
   async createLobby() {
-    return await this.lobbyService.createLobby(this.formData);
+    try {
+      await this.lobbyService.createLobby(this.formData);
+      history.pushState({}, "", "/lobby");
+    } catch (_err) {}
   }
 
   onFormValueChange(event) {
     const field = event.target.dataset.field;
     const value = event.detail;
+    console.log(value);
     this.formData[field] = value;
   }
 
- render() {
-  this.shadowRoot.innerHTML = ""; 
-  const html = `
+  render() {
+    this.shadowRoot.innerHTML = "";
+    const html = `
     <style>
       @import url("/static/css/index.css");
     </style>
@@ -107,13 +111,15 @@ export default class LobbyForm extends HTMLElement {
     </section>
   `;
 
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(`<template>${html}</template>`, "text/html");
-  const content = doc.querySelector("template").content;
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(
+      `<template>${html}</template>`,
+      "text/html"
+    );
+    const content = doc.querySelector("template").content;
 
-  this.shadowRoot.appendChild(content);
-}
-
+    this.shadowRoot.appendChild(content);
+  }
 }
 
 customElements.define("lobby-form", LobbyForm);

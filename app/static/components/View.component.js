@@ -1,7 +1,7 @@
 import LobbyService from "../../services/lobbies.service.js";
 import importStylesheet from "../utils/import-style-sheet.js";
 import "./LobbyCard.component.js";
-import SSEManager from "../../services/events.js";
+import eventbus from "../js/sseManager/eventbus.js";
 
 export default class ViewLobbies extends HTMLElement {
   constructor() {
@@ -9,20 +9,15 @@ export default class ViewLobbies extends HTMLElement {
     this.attachShadow({ mode: "open" });
     this.lobbyService = new LobbyService();
     this.lobbies = [];
-    this.eventsManager = new SSEManager();
   }
 
   connectedCallback() {
     this.retrieveActivePublicLobbies();
-    SSEManager.on("match_created", this.handleMatchCreated);
-  }
-
-    async handleMatchCreated(_data) {
-      console.log("data changed");
-    await this.retrieveActivePublicLobbies();
+     eventbus.on("match_created", this.retrieveActivePublicLobbies);
   }
 
   async retrieveActivePublicLobbies() {
+    console.log("üpdating");
     this.lobbies = await this.lobbyService.getActivePublicLobbies();
     this.render();
   }

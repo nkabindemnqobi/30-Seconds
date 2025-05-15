@@ -89,13 +89,15 @@ const removeUserFromMatch = (joinCode, userId) => {
   }
 };
 
-const broadcastToMatch = (joinCode, data, eventType = "message") => {
-  console.log(`Broadcasting '${eventType}' to match ${joinCode}`);
+const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId = null) => {
   if (matchMemberships.has(joinCode)) {
     const userIdsInMatch = matchMemberships.get(joinCode);
     const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
 
     userIdsInMatch.forEach((userIdString) => {
+      if (excludeUserId && userIdString === excludeUserId.toString()) {
+        return;
+      }
       const res = activeConnections.get(userIdString);
       if (res) {
         try {
@@ -103,7 +105,7 @@ const broadcastToMatch = (joinCode, data, eventType = "message") => {
         } catch (error) {
         }
       } else {
-        // This might happen if the connection closed but the user wasn't removed from lobbyMembership yet.
+       
       }
     });
   } else {
@@ -138,3 +140,4 @@ module.exports = {
   removeUserFromMatch,
   matchMemberships, // Should we centralize this elsewhere?
 };
+ 
