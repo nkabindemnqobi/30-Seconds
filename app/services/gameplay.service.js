@@ -22,7 +22,6 @@ export default class GameController {
       this.submitButton = document.querySelector('#login-button');
       
       if (!this.countdownTimer || !this.hintBox || !this.textInput || !this.submitButton) {
-        console.error('Could not find all required game components');
         return;
       }
       
@@ -34,7 +33,6 @@ export default class GameController {
       
       this.addEventListeners();
       
-      console.log('Game controller initialized');
     }
     
     
@@ -58,7 +56,6 @@ export default class GameController {
         this.gameStarted = true;
         this.enableHints();
         this.enableSubmit();
-        console.log('Game started');
       }, 500);
     }
     
@@ -123,8 +120,6 @@ export default class GameController {
       
       const cardContent = document.querySelector('#appContent');
       cardContent.insertBefore(successMessage, this.submitButton);
-      
-      console.log('Game over - correct answer');
     }
     
 

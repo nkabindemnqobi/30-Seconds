@@ -12,8 +12,10 @@ export default class TextInput extends HTMLElement {
     this.value = this.getAttribute("value") || "";
     this.required = this.hasAttribute("required");
     this.id = this.getAttribute("id") || "";
-    this.maxlength = this.getAttribute("maxlength") || null;
+    this.maxlength = this.getAttribute("maxlength");
+    this.minLength = this.getAttribute("minLength");
 
+    this.error = "";
     this.render();
     this.setupListeners();
   }
@@ -49,6 +51,11 @@ export default class TextInput extends HTMLElement {
         border-color: #A855F7;
         box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.4);
       }
+
+      small {
+        color: #DC2626;
+        font-size: 0.75rem;
+      }
     `;
 
     const wrapper = document.createElement("section");
@@ -67,28 +74,46 @@ export default class TextInput extends HTMLElement {
     input.placeholder = this.placeholder;
     input.value = this.value;
     input.required = this.required;
-    input.maxLength = this.maxlength !== null ? parseInt(this.maxlength, 10) : 100;
+    if (this.maxlength) input.maxLength = parseInt(this.maxlength, 10);
+
+    input.addEventListener("change", (e) => {
+      this.value = e.target.value;
+      this.validateInput();
+      this.render();
+      this.dispatchEvent(new CustomEvent("updated", {
+        bubbles: true,
+        composed: true,
+        detail: this.value,
+      }));
+    });
 
     wrapper.appendChild(input);
+
+    if (this.error) {
+      const errorEl = document.createElement("small");
+      errorEl.textContent = this.error;
+      wrapper.appendChild(errorEl);
+    }
 
     this.shadowRoot.appendChild(style);
     this.shadowRoot.appendChild(wrapper);
   }
 
+  validateInput() {
+    this.error = "";
+    const trimmed = this.value.trim();
+
+    if (this.required && trimmed === "") {
+      this.error = "This field is required.";
+    } else if (this.minLength && trimmed.length < parseInt(this.minLength, 10)) {
+      this.error = `Minimum length is ${this.minLength} characters.`;
+    } else if (this.maxlength && trimmed.length > parseInt(this.maxlength, 10)) {
+      this.error = `Maximum length is ${this.maxlength} characters.`;
+    }
+  }
+
   setupListeners() {
-    const input = this.shadowRoot.querySelector("input");
-
-    input.addEventListener("change", () => {
-      this.value = input.value;
-
-      this.dispatchEvent(
-        new CustomEvent("updated", {
-          bubbles: true,
-          composed: true,
-          detail: this.value,
-        })
-      );
-    });
+    // no-op here, because input events are now fully handled inside render
   }
 
   get inputValue() {
@@ -97,8 +122,8 @@ export default class TextInput extends HTMLElement {
 
   set inputValue(val) {
     this.value = val;
-    const input = this.shadowRoot.querySelector("input");
-    if (input) input.value = val;
+    this.validateInput();
+    this.render();
   }
 }
 

@@ -18,12 +18,6 @@ const executeQuery = async (sqlQuery, params) => {
       err.name === "ConnectionError" ||
       err instanceof sql.ConnectionError;
 
-    console.error("[DB ERROR]", {
-      message: err.message,
-      code: err.code,
-      name: err.name,
-    });
-
     throw err;
   }
 };
