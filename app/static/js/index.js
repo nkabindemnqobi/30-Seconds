@@ -87,12 +87,18 @@ const router = async () => {
                 router();
             }
         }
+    if (typeof currentView.afterRender === 'function') {
+        console.log('Router: Calling afterRender for view:', currentView.constructor.name);
+        await currentView.afterRender(); 
+    } else {
+        console.log('Router: View does not have afterRender method:', currentView.constructor.name);
+    }
     
     attachEventListeners();
     
-    // Initialize the GameController if on the GamePlay page
+
     if (currentView instanceof GamePlay) {
-        // Give the DOM time to fully render custom elements
+
         setTimeout(() => {
             currentView.initGameController();
         }, 100);

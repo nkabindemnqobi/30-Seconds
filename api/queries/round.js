@@ -154,9 +154,8 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
 };
 
 const getHint = async (joinCode, userId) => {
-  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = $@joinCode", {joinCode});
-
-  if (matchResult.recordset.length === 0) {
+  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = @joinCode", {joinCode});
+  if (matchResult.length === 0) {
     throw new Error('Invalid join code');
   }
 
@@ -167,7 +166,7 @@ const getHint = async (joinCode, userId) => {
     FROM GameRounds gr
     JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
     JOIN Categories c ON gi.category_id = c.id
-    WHERE gr.match_id = @matchId AND gr.ended_datetime IS NULL
+    WHERE gr.match_id = @matchId AND gr.ended_at IS NULL
   `
   const roundResult = await executeQuery(getActiveRoundQuery, {matchId});
 
@@ -183,10 +182,38 @@ const getHint = async (joinCode, userId) => {
 
   const newHint = await generateHint(round.item_name, round.category);
 
-  return {
-    roundId: round.roundId,
-    hint: newHint
-  };
+  const hintQuery = `
+        EXEC dbo.InsertHintForRound
+            @RoundID = @RoundID,
+            @HintText = @HintText
+        `;
+
+        const hintParams = { RoundID: roundId, HintText: newHint};
+
+        const hintResult = await executeQuery(hintQuery, hintParams);
+        console.log(hintResult[0]);
+        if (hintResult && hintResult.length > 0 ){
+            const hintDetails = hintResult[0];
+            if (hintDetails.CanRequestMoreHints === 0){
+              return {
+              roundId: roundId,
+              hint: null,
+              success: false
+              };
+            }
+            else {
+              return {
+              roundId: roundId,
+              hint: newHint,
+              success: true
+            };
+            }
+        }
+        else{
+            throw new Error(
+                "There was an error in generating the hint and storing it in the database."
+              );
+        }
 };
 
 

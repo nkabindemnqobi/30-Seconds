@@ -14,7 +14,7 @@ export default class LobbyForm extends HTMLElement {
     this.formData = {
       userId: User.user.googleId,
       categoryIds: [],
-      isPublic: false,
+      isPublic: true,
       maxParticipants: 1,
       lobbyName: undefined,
     };

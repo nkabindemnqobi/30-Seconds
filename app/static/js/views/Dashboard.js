@@ -20,7 +20,27 @@ export default class Dashboard extends AbstractView {
                 <a href="/create-lobby" data-link>Create Lobby</a>
                 <a href="/join-lobby" data-link>Join with Code</a>
                 <view-lobbies></view-lobbies>
+                <button id="refreshLobbiesBtn">Refresh Lobbies</button>
             </section>
         `;
     }
+
+    afterRender() {
+        console.log('Dashboard: afterRender called'); // For debugging
+
+        const refreshLobbiesBtn = document.getElementById('refreshLobbiesBtn');
+        const viewLobbiesElement = document.querySelector('view-lobbies'); 
+        if (refreshLobbiesBtn && viewLobbiesElement) {
+            refreshLobbiesBtn.addEventListener('click', () => {
+                if (typeof viewLobbiesElement.refreshLobbies === 'function') {
+                    viewLobbiesElement.refreshLobbies(); 
+                } else {
+                    console.warn('Dashboard: view-lobbies element does not have a refreshLobbies method.');
+                }
+            });
+        } else {
+            if (!refreshLobbiesBtn) console.error('Dashboard: Refresh button (refreshLobbiesBtn) not found.');
+            if (!viewLobbiesElement) console.error('Dashboard: <view-lobbies> element not found.');
+        }
+      }
 }

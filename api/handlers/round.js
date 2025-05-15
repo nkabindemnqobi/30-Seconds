@@ -107,13 +107,17 @@ const handleGetHint = async (req, res, next) => {
     }
 
     const result = await getHint(joinCode, userId);
+    if (!result.success){
+      return res.status(200).json(result);
+    }
 
     broadcastToMatch(joinCode, {
       message: `Another hint requested`,
       item: result.hint,
       roundId: result.roundId,
     }, 'hint_requested')
-    res.status(200).json(result);
+    return res.status(200).json(result);
+    
   } catch (error) {
     if (error.message === 'Invalid join code') {
       return next(formatErrorResponse(400, error.message));

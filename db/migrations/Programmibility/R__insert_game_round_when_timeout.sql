@@ -47,7 +47,7 @@ BEGIN
         SET
             ended_at = GETDATE(),
             points_awarded = 0,         -- No points for a timeout
-            time_in_ms = 30000          -- Assume 30 seconds (30000 ms) full time used
+            time_in_ms = 30000          -- Assume 33 seconds (30000 ms) full time used
         WHERE
             id = @ActiveRoundID;
 

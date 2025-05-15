@@ -2,6 +2,7 @@ const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/form
 const { getAllCategoriesFromDb, createLobby } = require("../queries/createLobby");
 const { addUserToMatch, sendToUser } = require("../utils/SSEManager");
 const { getUserIdFromGoogleId } = require('../queries/users');
+const {getMatchIdByJoinCode, getMatchLobbyInformation} = require("../queries/lobby");
 
 const getAllCategories = async (_, res, next) => {
     try {
@@ -20,7 +21,6 @@ const getAllCategories = async (_, res, next) => {
 const handleCreateLobby = async (req, res, next) => {
     try {
         const userId = await getUserIdFromGoogleId(req.user.sub);
-        const { categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
 
         // function to check the body of a post request
         if (
@@ -44,6 +44,16 @@ const handleCreateLobby = async (req, res, next) => {
         });
 
         addUserToMatch(joinCode, userId);
+        const matchIdResult = await getMatchIdByJoinCode(joinCode);
+        console.log("matchId Result", matchIdResult);
+
+        if (matchIdResult.length === 0) {
+        return next(formatErrorResponse(404, "Lobby not found"));
+        }
+
+        const matchId = matchIdResult[0].id;
+        const resultRows = await getMatchLobbyInformation(matchId);
+
         const result = {
             data: {
                 message: "Match created successfully.",
@@ -52,7 +62,7 @@ const handleCreateLobby = async (req, res, next) => {
             }
         }
         sendToUser(userId, result, "match_created");
-        res.status(201).json({ data: { joinCode: joinCode } });
+        res.status(201).json({ data: resultRows });
     } catch (error) {
         return next(formatErrorResponse(getUnexpectedErrorStatus(error), error));
     }
