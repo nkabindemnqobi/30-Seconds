@@ -1,8 +1,9 @@
 const { formatErrorResponse, getUnexpectedErrorStatus } = require('../utils/formatErrorResponse');
 const { getAllCategoriesFromDb, createLobby } = require("../queries/createLobby");
 const { addUserToMatch, sendToUser } = require("../utils/SSEManager");
+const { getUserIdFromGoogleId } = require('../queries/users');
 
-const getAllCategories = async (req, res, next) => {
+const getAllCategories = async (_, res, next) => {
     try {
         const result = await getAllCategoriesFromDb();
 
@@ -18,7 +19,8 @@ const getAllCategories = async (req, res, next) => {
 
 const handleCreateLobby = async (req, res, next) => {
     try {
-        const { userId, categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
+        const userId = getUserIdFromGoogleId(req.user.sub);
+        const { categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
 
         if (
             !userId ||
