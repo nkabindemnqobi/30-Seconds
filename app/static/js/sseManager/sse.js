@@ -1,4 +1,4 @@
-import { ApplicationConfiguration } from "../../../models/app-config";
+import { ApplicationConfiguration } from "../../../models/app-config.js";
 import { User } from "../../../models/user.js";
 
 export function initSSE() {

@@ -1,9 +1,6 @@
 ALTER TABLE GameRounds
 ADD ended_datetime DATETIME NULL;
 
-INSERT INTO Categories (name) VALUES
-('Animal');
-
 INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Elephant', 7),
 ('Lion', 7),

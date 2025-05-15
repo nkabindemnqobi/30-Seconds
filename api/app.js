@@ -1,6 +1,9 @@
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
+const dotenv = require('dotenv');
+dotenv.config();
+
 
 const authRouter = require("./routes/google-auth");
 const usersRouter = require("./routes/users");
@@ -18,7 +21,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({
   allowedHeaders: "*",
-  origin:  notProduction ? process.env.ORIGIN_DEV : process.env.ORIGIN_PROD,
+  origin: process.env.ORIGIN,
   credentials: true,
 }))
 
