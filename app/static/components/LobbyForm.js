@@ -4,6 +4,7 @@ import "./Switch.component.js";
 import "./Button.js";
 import "./TextInput.component.js";
 import { User } from "../../models/user.js";
+import router from "../js/index.js";
 
 export default class LobbyForm extends HTMLElement {
   constructor() {
@@ -54,7 +55,12 @@ export default class LobbyForm extends HTMLElement {
   }
 
   async createLobby() {
-    return await this.lobbyService.createLobby(this.formData);
+    try {
+      await this.lobbyService.createLobby(this.formData);
+      window.history.back();
+    } catch(error) {
+      return error;
+    }
   }
 
   onFormValueChange(event) {
