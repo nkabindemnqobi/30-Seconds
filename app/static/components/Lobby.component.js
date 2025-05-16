@@ -29,7 +29,7 @@ export default class AppLobby extends HTMLElement {
 
   render() {
     this.shadowRoot.innerHTML = `
-    <app-button id="start-game">Start game</app-button>
+    <app-button id="start-game">Start games</app-button>
     `;
   }
 }

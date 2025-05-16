@@ -79,8 +79,7 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
-                const eventManager = new SSEManager()
-                eventManager.init()
+                initSSE();
                 history.pushState(null, null,"/");
                 router();
             } else {
