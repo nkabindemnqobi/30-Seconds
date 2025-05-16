@@ -23,7 +23,7 @@ async function generateHint(itemName, category, hintCount) {
   Make the hint be of difficulty ${hintCount}`;
   try {
     console.log("Generate hint is being called============")
-    const model = "openai/gpt-4.1";
+    const model = "meta/Meta-Llama-3-8B-Instruct";
     const aiClient = getAiClient();
     const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
     const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 

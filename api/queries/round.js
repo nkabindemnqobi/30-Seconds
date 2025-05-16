@@ -194,7 +194,7 @@ const getHint = async (joinCode, userId) => {
         console.log(hintResult[0]);
         if (hintResult && hintResult.length > 0 ){
             const hintDetails = hintResult[0];
-            if (hintDetails.CanRequestMoreHints === 0){
+            if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.'){
               return {
               roundId: roundId,
               hint: null,
