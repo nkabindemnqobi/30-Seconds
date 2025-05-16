@@ -12,6 +12,7 @@ const handleFetchLobbies = async (req, res, next) => {
         };
 
         const lobbies = await fetchLobbies(filters);
+
         res.status(200).json(lobbies);
     } catch (error) {
         return next(formatErrorResponse(getUnexpectedErrorStatus(error)));

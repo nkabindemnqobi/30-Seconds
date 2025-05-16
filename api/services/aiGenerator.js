@@ -15,12 +15,12 @@ const getAiClient = () => {
   return ModelClient(endpoint, new AzureKeyCredential(token));
 }
 
-async function generateHint(itemName, category) {
+async function generateHint(itemName, category, hintCount) {
   const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
   const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 
   The hint must be fair, challenging, and not reveal the answer directly.
-  Respond with just the hint — no extra text, quotes, or formatting.`;
-
+  Respond with just the hint — no extra text, quotes, or formatting. The difficulty should be on a scale from 1 (really hard) to 10 (really easy).
+  Make the hint be of difficulty ${hintCount}`;
   try {
     const model = "meta/Meta-Llama-3-8B-Instruct";
     const aiClient = getAiClient();
@@ -43,7 +43,6 @@ async function generateHint(itemName, category) {
     if (isUnexpected(response)) {
       throw response.body.error;
     }
-    //console.log("Hint has been generated!!");
     return response.body.choices[0].message.content.trim();
   } catch (err) {
     throw new Error(err.message);

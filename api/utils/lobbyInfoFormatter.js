@@ -1,7 +1,6 @@
 function formatMatchWithParticipants(sqlQueryResult) {
 
   if (!Array.isArray(sqlQueryResult) || sqlQueryResult.length === 0 || !sqlQueryResult[0]) {
-    console.log(Array.isArray(sqlQueryResult), sqlQueryResult.length, !sqlQueryResult[0]);
       console.log("Formatter returning null due to invalid input or no data.");
       return null;
   }
@@ -27,8 +26,8 @@ function formatMatchWithParticipants(sqlQueryResult) {
               match_participant_id: row.match_participant_id,
               user_id: row.participant_user_id,
               alias: row.participant_alias,
-              match_participants_status_id: row.match_participants_status_id, // Keeping the ID
-              participant_status: row.participant_status // String status
+              match_participants_status_id: row.match_participants_status_id, 
+              participant_status: row.participant_status 
           };
           if (!formattedMatch.participants.find(p => p.match_participant_id === participant.match_participant_id)) {
                formattedMatch.participants.push(participant);

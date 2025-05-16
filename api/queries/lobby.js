@@ -53,7 +53,6 @@ async function getMatchLobbyInformation(matchId) {
     const resultRows = await executeQuery(getMatchLobbyInfoQuery, {
       matchId: matchId,
     });
-    console.log(resultRows);
 
     if (resultRows && resultRows.length > 0) {
       const formattedData = formatMatchWithParticipants(resultRows);

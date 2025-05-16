@@ -4,7 +4,7 @@ AS
 BEGIN
     SET NOCOUNT ON;
 
-    -- Declare variables for internal use
+    
     DECLARE @MatchID INT;
     DECLARE @GuessingUserID INT;
     DECLARE @GuessingUserAlias VARCHAR(20);
@@ -14,7 +14,7 @@ BEGIN
     DECLARE @NewRoundID INT;
 
     BEGIN TRY
-        -- == Step 1: Get MatchID from JoinCode ==
+        
         SELECT @MatchID = id
         FROM dbo.Matches
         WHERE join_code = @JoinCode;
@@ -22,13 +22,13 @@ BEGIN
         IF @MatchID IS NULL
         BEGIN
             RAISERROR('Invalid join code provided: ''%s''. Match not found.', 16, 1, @JoinCode);
-            RETURN; -- Exit if match not found, transaction not yet started
-        END; -- Added semicolon for clarity, though not strictly needed before BEGIN TRANSACTION
+            RETURN; 
+        END;
 
-        BEGIN TRANSACTION; -- Start transaction after initial validation
+        BEGIN TRANSACTION; 
 
-        -- == Step 2: Check if a round is already in progress for this match ==
-        IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_at IS NULL)
+        
+        
         IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_at IS NULL)
         BEGIN
             RAISERROR('A round is already in progress for Match ID %d (Join Code: ''%s'').', 16, 1, @MatchID, @JoinCode);
@@ -36,15 +36,8 @@ BEGIN
             RETURN;
         END;
 
-        -- == Step 3: Determine the next GuessingUserID ==
-        SELECT @GuessingUserAlias = alias FROM dbo.Users WHERE id = @GuessingUserID; -- This line was misplaced, moved after @GuessingUserID is determined
-                                                                                    -- Also, @GuessingUserID is not yet set here. This logic needs to be after @GuessingUserID is found.
-
-        -- The following WITH clause needs the preceding statement (END from IF or the SELECT above) to have a semicolon.
-        -- For safety, ensure the statement before WITH always has a semicolon.
-        -- The previous SELECT @GuessingUserAlias would be the one needing a semicolon if it were here.
-        -- Correct placement of @GuessingUserAlias selection is after @GuessingUserID is determined.
-
+        
+        
         WITH EligiblePlayers AS (
             SELECT mp.user_id
             FROM dbo.MatchParticipants mp
@@ -61,7 +54,7 @@ BEGIN
         )
         SELECT TOP 1 @GuessingUserID = prc.user_id
         FROM PlayerRoundCounts prc
-        ORDER BY prc.rounds_played ASC, NEWID() ASC; -- NEWID() for random tie-breaking
+        ORDER BY prc.rounds_played ASC, NEWID() ASC; 
 
         IF @GuessingUserID IS NULL
         BEGIN
@@ -70,16 +63,16 @@ BEGIN
             RETURN;
         END;
 
-        -- Now that @GuessingUserID is determined, get the alias
+        
         SELECT @GuessingUserAlias = alias FROM dbo.Users WHERE id = @GuessingUserID;
         IF @GuessingUserAlias IS NULL
         BEGIN
              RAISERROR('Could not find alias for Guessing User ID %d.', 16, 1, @GuessingUserID);
             ROLLBACK TRANSACTION;
             RETURN;
-        END; -- Corrected: Added semicolon before the next WITH or major block
+        END;
 
-        -- == Step 4: Select an unused GuessingItem for the match ==
+        
         SELECT TOP 1
             @GuessingItemID = gi.id,
             @GuessingItemName = gi.item_name,
@@ -88,10 +81,10 @@ BEGIN
         INNER JOIN dbo.Categories c ON c.id = gi.category_id
         INNER JOIN dbo.CategoriesMatches cm ON cm.category_id = c.id AND cm.match_id = @MatchID
         WHERE gi.id NOT IN (
-              SELECT DISTINCT gr.guessing_item_id
-              FROM dbo.GameRounds gr
-              WHERE gr.match_id = @MatchID AND gr.guessing_item_id IS NOT NULL
-          )
+                SELECT DISTINCT gr.guessing_item_id
+                FROM dbo.GameRounds gr
+                WHERE gr.match_id = @MatchID AND gr.guessing_item_id IS NOT NULL
+            )
         ORDER BY NEWID();
 
         IF @GuessingItemID IS NULL
@@ -101,27 +94,26 @@ BEGIN
             RETURN;
         END;
 
-        -- == Step 5: Insert the new GameRound ==
+        
         INSERT INTO dbo.GameRounds (
             match_id,
             guessing_user_id,
             guessing_item_id,
             timer_started_at,
             ended_at,
-            hint_count,
+            hint_count,         
             points_awarded,
             time_in_ms
         )
-        -- OUTPUT INSERTED.id -- Removed this as SCOPE_IDENTITY() is used below and this sends an extra result set
         VALUES (
             @MatchID,
             @GuessingUserID,
             @GuessingItemID,
-            GETDATE(),
-            NULL,
-            1,
-            0,
-            0
+            GETDATE(),          
+            NULL,               
+            0,                  
+            0,                  
+            0                   
         );
 
         SET @NewRoundID = SCOPE_IDENTITY();
@@ -135,7 +127,7 @@ BEGIN
 
         COMMIT TRANSACTION;
 
-        -- == Step 6: Return details of the newly started round ==
+        
         SELECT
             @NewRoundID AS round_id,
             @GuessingUserID AS guessing_user_id,
@@ -148,6 +140,6 @@ BEGIN
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
-        THROW;
+        THROW; 
     END CATCH
 END;

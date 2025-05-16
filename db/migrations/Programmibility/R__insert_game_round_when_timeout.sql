@@ -1,16 +1,16 @@
 CREATE OR ALTER PROCEDURE dbo.HandleGameRoundTimeout
-    @JoinCode VARCHAR(10) -- Changed input to JoinCode
+    @JoinCode VARCHAR(10) 
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    DECLARE @MatchID INT; -- Will be derived from JoinCode
+    DECLARE @MatchID INT; 
     DECLARE @ActiveRoundID INT;
     DECLARE @GuessingUserID INT;
     DECLARE @UserAlias VARCHAR(20);
 
     BEGIN TRY
-        -- == Step 0: Get MatchID from JoinCode ==
+        
         SELECT @MatchID = id
         FROM dbo.Matches
         WHERE join_code = @JoinCode;
@@ -18,20 +18,20 @@ BEGIN
         IF @MatchID IS NULL
         BEGIN
             RAISERROR('Match with Join Code ''%s'' not found. Cannot handle round timeout.', 16, 1, @JoinCode);
-            RETURN; -- Exit if match not found, transaction not yet started
+            RETURN; 
         END;
 
-        BEGIN TRANSACTION; -- Start transaction after initial validation
+        BEGIN TRANSACTION; 
 
-        -- == Step 1: Find the active round for the derived MatchID ==
-        -- An active round is one that has not yet ended.
-        SELECT TOP 1 -- Should only be one active round per match
+        
+        
+        SELECT TOP 1 
             @ActiveRoundID = gr.id,
             @GuessingUserID = gr.guessing_user_id
         FROM dbo.GameRounds gr
-        WHERE gr.match_id = @MatchID -- Use derived @MatchID
+        WHERE gr.match_id = @MatchID 
           AND gr.ended_at IS NULL
-        ORDER BY gr.id DESC; -- In case (though unlikely) multiple were somehow left open, take the latest.
+        ORDER BY gr.id DESC; 
 
         IF @ActiveRoundID IS NULL
         BEGIN
@@ -42,19 +42,19 @@ BEGIN
 
         SELECT @UserAlias = u.alias FROM dbo.Users u WHERE u.id = @GuessingUserID;
 
-        -- == Step 2: Update the active round to reflect the timeout ==
+        
         UPDATE dbo.GameRounds
         SET
             ended_at = GETDATE(),
-            points_awarded = 0,         -- No points for a timeout
-            time_in_ms = 30000          -- Assume 30 seconds (30000 ms) full time used
+            points_awarded = 0,         
+            time_in_ms = 30000          
         WHERE
             id = @ActiveRoundID;
 
         IF @@ROWCOUNT = 0
         BEGIN
             RAISERROR('Failed to update GameRound ID %d for timeout in Match ID %d (Join Code: ''%s''). Round might have been updated or deleted concurrently.', 16, 1, @ActiveRoundID, @MatchID, @JoinCode);
-            -- ROLLBACK will be handled by CATCH
+            
         END;
 
         PRINT 'SUCCESS: GameRound ID ' + CAST(@ActiveRoundID AS VARCHAR) +
@@ -63,12 +63,12 @@ BEGIN
               ' marked as timed out.';
 
         COMMIT TRANSACTION;
-        RETURN 0; -- Indicate success
+        RETURN 0; 
 
     END TRY
     BEGIN CATCH
         IF @@TRANCOUNT > 0
             ROLLBACK TRANSACTION;
-        THROW; -- Re-throw the error to the calling application
+        THROW; 
     END CATCH
 END;

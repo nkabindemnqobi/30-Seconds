@@ -6,7 +6,6 @@ dotenv.config();
 
 
 const authRouter = require("./routes/google-auth");
-const usersRouter = require("./routes/users");
 const createLobby = require("./routes/createLobby");
 const homeRouter = require("./routes/home");
 const lobbyRoutes = require("./routes/lobby");
@@ -27,7 +26,6 @@ app.use(cors({
 
 app.use("/api/auth", authRouter);
 app.use("/", authRouter);
-app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);
 app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);

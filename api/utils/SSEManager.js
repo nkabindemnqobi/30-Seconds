@@ -5,21 +5,20 @@ const matchMemberships = new Map();
 
 const handleSSEConnection = async (req, res, userId) => {
   console.log(userId, `user has connected to the server.`);
-
-  const googleId = req.params.googleId;
-  const userIdString = await getUserIdFromGoogleId(googleId)+'';
+  
+  const userIdString = req.params.googleId.toString();
 
 
   if (activeConnections.has(userIdString)) {
     console.log(`Closing existing SSE connection for user:`, userIdString);
     const oldRes = activeConnections.get(userIdString);
     try {
-      oldRes.end(); // kills old client connection
+      oldRes.end(); 
     } catch (error) {
       console.error(
         `Error closing old SSE connection for user ${userIdString}:`,
         error
-      ); // If that fails, error out and hope it resolves
+      ); 
     }
   }
 
@@ -42,14 +41,14 @@ const handleSSEConnection = async (req, res, userId) => {
       activeConnections.delete(userIdString);
       console.log(`Active connection removed for user:`, userIdString);
 
-      // Do we kick someone from the match if they disconnect? Maybe we set up a timeout instead somehow?
+      
       matchMemberships.forEach((members, joinCode) => {
         if (members.has(userIdString)) {
           members.delete(userIdString);
           if (members.size === 0) {
             matchMemberships.delete(joinCode);
           }
-          // Broadcast that a user has disconnected. Optional?
+          
           broadcastToMatch(joinCode, {
             event: "user_disconnected",
             userId: userIdString,
@@ -65,7 +64,7 @@ const handleSSEConnection = async (req, res, userId) => {
 };
 
 const addUserToMatch = (joinCode, userId) => {
-  const userIdString = userId.toString(); // Ensure consistency
+  const userIdString = userId.toString(); 
   if (!matchMemberships.has(joinCode)) {
     matchMemberships.set(joinCode, new Set());
   }
@@ -74,7 +73,7 @@ const addUserToMatch = (joinCode, userId) => {
 };
 
 const removeUserFromMatch = (joinCode, userId) => {
-  const userIdString = userId.toString(); // Ensure consistency
+  const userIdString = userId.toString(); 
   if (matchMemberships.has(joinCode)) {
     const members = matchMemberships.get(joinCode);
     if (members.delete(userIdString)) {
@@ -107,7 +106,10 @@ const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId =
           console.error(`Error sending SSE to user ${userIdString}:`, error);
         }
       } else {
-       
+        console.warn(
+          `User ${userIdString} in match ${joinCode} but connection not found in activeConnections.`
+        );
+        
       }
     });
   } else {
@@ -117,7 +119,7 @@ const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId =
   }
 };
 
-// If we have to send to a specific user on their SSE.
+
 const sendToUser = (userId, data, eventType = "message") => {
   const userIdString = userId.toString();
   const res = activeConnections.get(userIdString);
@@ -140,6 +142,6 @@ module.exports = {
   sendToUser,
   addUserToMatch,
   removeUserFromMatch,
-  matchMemberships, // Should we centralize this elsewhere?
+  matchMemberships, 
 };
  

@@ -16,10 +16,10 @@ const startRound = async (joinCode) => {
       const dbResult = await executeQuery(startQuery, startParams);
   
       if (dbResult && dbResult.length > 0) {
-        const roundDetails = dbResult[0]; // The proc returns a single row with round details
+        const roundDetails = dbResult[0]; 
         const roundId = roundDetails.round_id;
 
-        const hint = await generateHint(roundDetails.guessing_item_name, roundDetails.guessing_item_category_name);
+        const hint = await generateHint(roundDetails.guessing_item_name, roundDetails.guessing_item_category_name, 1);
 
         const hintQuery = `
         EXEC dbo.InsertHintForRound
@@ -61,7 +61,7 @@ const startRound = async (joinCode) => {
   };
 
 const makeGuess = async (joinCode, userId, guessInput) => {
-  //console.log("THE INPUTS", joinCode, userId, guessInput);
+  
   return await withTransaction(async ({ transaction }) => {
     const matchQuery = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
@@ -88,7 +88,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const round = roundQuery.recordset[0];
-    //console.log("EXPECTED GUESSER", round.guessing_user_id);
+    
     if (round.guessing_user_id !== userId) {
       throw new Error('It is not your turn to guess');
     }
@@ -126,7 +126,7 @@ const isMatchOver = async (joinCode) => {
 
   const isMatchOverResult = await executeQuery(query, params);
   if (isMatchOverResult[0]) {
-    //console.log("IS MATCH OVER RESULT:      ",isMatchOverResult[0]);
+    
     return isMatchOverResult[0];
   } else {
     throw new Error(
@@ -145,7 +145,7 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
 
   const calculateMatchScoresResult = await executeQuery(query, params);
   if (calculateMatchScoresResult.length !== 0) {
-    return calculateMatchScoresResult; // This should be an arr of objects.
+    return calculateMatchScoresResult; 
   } else {
     throw new Error(
       "Stored procedure did not return a result. Possible invalid join code or logic issue."
@@ -154,20 +154,19 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
 };
 
 const getHint = async (joinCode, userId) => {
-  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = $@joinCode", {joinCode});
-
-  if (matchResult.recordset.length === 0) {
+  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = @joinCode", {joinCode});
+  if (matchResult.length === 0) {
     throw new Error('Invalid join code');
   }
 
   const matchId = matchResult[0].id;
 
   const getActiveRoundQuery = `
-  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category
+  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category, gr.hint_count as hintCount
     FROM GameRounds gr
     JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
     JOIN Categories c ON gi.category_id = c.id
-    WHERE gr.match_id = @matchId AND gr.ended_datetime IS NULL
+    WHERE gr.match_id = @matchId AND gr.ended_at IS NULL
   `
   const roundResult = await executeQuery(getActiveRoundQuery, {matchId});
 
@@ -181,12 +180,39 @@ const getHint = async (joinCode, userId) => {
     throw new Error('Not your turn to request a hint');
   }
 
-  const newHint = await generateHint(round.item_name, round.category);
+  const newHint = await generateHint(round.item_name, round.category, round.hintCount);
 
-  return {
-    roundId: round.roundId,
-    hint: newHint
-  };
+  const hintQuery = `
+        EXEC dbo.InsertHintForRound
+            @RoundID = @RoundID,
+            @HintText = @HintText
+        `;
+
+        const hintParams = { RoundID: roundId, HintText: newHint};
+
+        const hintResult = await executeQuery(hintQuery, hintParams);
+        if (hintResult && hintResult.length > 0 ){
+            const hintDetails = hintResult[0];
+            if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.'){
+              return {
+              roundId: roundId,
+              hint: null,
+              success: false
+              };
+            }
+            else {
+              return {
+              roundId: roundId,
+              hint: newHint,
+              success: true
+            };
+            }
+        }
+        else{
+            throw new Error(
+                "There was an error in generating the hint and storing it in the database."
+              );
+        }
 };
 
 
