@@ -8,6 +8,7 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
+import initSSE from "./sseManager/sse.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -78,6 +79,7 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
+                initSSE();
                 history.pushState(null, null,"/");
                 router();
             } else {
@@ -85,22 +87,9 @@ const router = async () => {
                 router();
             }
         }
-    if (typeof currentView.afterRender === 'function') {
-        console.log('Router: Calling afterRender for view:', currentView.constructor.name);
-        await currentView.afterRender(); 
-    } else {
-        console.log('Router: View does not have afterRender method:', currentView.constructor.name);
-    }
     
     attachEventListeners();
-    
-
-    if (currentView instanceof GamePlay) {
-
-        setTimeout(() => {
-            currentView.initGameController();
-        }, 100);
-    }
+  
 };
 
 const attachEventListeners = () => {

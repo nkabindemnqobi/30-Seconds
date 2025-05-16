@@ -7,17 +7,17 @@ const {getMatchIdByJoinCode, getMatchLobbyInformation} = require("../queries/lob
 const getAllCategories = async (_, res, next) => {
     try {
         const result = await getAllCategoriesFromDb();
-
+ 
         if (!result || result.length === 0) {
             return next(formatErrorResponse(404, 'No categories found'));
         }
-        
+       
         res.status(200).json(result);
     } catch (error) {
         return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
-
+ 
 const handleCreateLobby = async (req, res, next) => {
     try {
 
@@ -36,7 +36,7 @@ const handleCreateLobby = async (req, res, next) => {
         ) {
             return next(formatErrorResponse(400, "Invalid input"));
         }
-
+ 
         const joinCode = await createLobby({
             userId,
             categoryIds,
@@ -44,7 +44,7 @@ const handleCreateLobby = async (req, res, next) => {
             maxParticipants,
             lobbyName,
         });
-
+ 
         addUserToMatch(joinCode, userId);
         const matchIdResult = await getMatchIdByJoinCode(joinCode);
 
@@ -62,15 +62,16 @@ const handleCreateLobby = async (req, res, next) => {
                 lobbyName,
             }
         }
-        sendToUser(userId, result, "match_created");
+        sendToUser(userId, resultRows, "match_created");
         res.status(201).json({ data: resultRows });
     } catch (error) {
         return next(formatErrorResponse(getUnexpectedErrorStatus(error), error));
     }
 };
-
-
+ 
+ 
 module.exports = {
     getAllCategories,
     handleCreateLobby
 };
+ 

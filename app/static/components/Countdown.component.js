@@ -1,101 +1,96 @@
-import importStylesheet from "../utils/import-style-sheet.js";
+import LobbyService from "../../services/lobbies.service.js";
+import eventbus from "../js/sseManager/eventbus.js";
 
 export default class CountdownTimer extends HTMLElement {
-    constructor() {
-      super();
-      this.attachShadow({ mode: "open" });
-      
-      // Get attributes or set defaults
-      this.seconds = parseInt(this.getAttribute("seconds") || 30);
-      this.team = this.getAttribute("team") || "Team Red";
-      this.questionId = this.getAttribute("question-id") || "q1"; // Store ID instead of full question
-      this.remaining = this.seconds;
-      this.isRunning = false;
-      this.interval = null;
-      this.isClueRevealed = false;
-      this.question = ""; // Will be fetched from server when revealed
-    }
-  
-    static get observedAttributes() {
-      return ["seconds", "team", "question-id"];
-    }
-  
-    attributeChangedCallback(name, oldValue, newValue) {
-      if (oldValue !== newValue) {
-        if (name === "seconds") {
-          this.seconds = parseInt(newValue);
-          this.remaining = this.seconds;
-        } else if (name === "team") {
-          this.team = newValue;
-        } else if (name === "question-id") {
-          this.questionId = newValue;
-          // Reset question state when ID changes
-          this.question = "";
-          this.isClueRevealed = false;
-        }
-        this.render();
+  constructor() {
+    super();
+    this.attachShadow({ mode: "open" });
+
+    this.seconds = parseInt(this.getAttribute("seconds") || 30);
+    this.team = this.getAttribute("team") || "Team Red";
+    this.team = this.getAttribute("team") || "Team Red";
+    this.joinCode = this.getAttribute("joinCode");
+    this.remaining = this.seconds;
+    this.isRunning = false;
+    this.interval = null;
+    this.isClueRevealed = false;
+    this.question = "";
+    this.lobbyService = new LobbyService();
+    this.currentQuestion = ""
+  }
+
+  static get observedAttributes() {
+    return ["seconds", "team", "question-id"];
+  }
+
+  attributeChangedCallback(name, oldValue, newValue) {
+    if (oldValue !== newValue) {
+      if (name === "seconds") {
+        this.seconds = parseInt(newValue);
+        this.remaining = this.seconds;
+      } else if (name === "team") {
+        this.team = newValue;
+      } else if (name === "question-id") {
+        this.questionId = newValue;
+        this.question = "";
+        this.isClueRevealed = false;
       }
-    }
-  
-    connectedCallback() {
       this.render();
     }
-  
-    disconnectedCallback() {
-      this.stop();
+  }
+
+  connectedCallback() {
+    this.render();
+    eventbus.on("round_started", (event) => {
+      this.round = event.detail.roundInfo;
+      this.currentQuestion = event.detail.roundInfo.hint;
+    });
+  }
+
+  disconnectedCallback() {
+    this.stop();
+  }
+
+  async fetchQuestion() {
+    try {
+      return new Promise((resolve) => {
+        setTimeout(() => {
+          resolve(this.currentQuestion);
+        }, 300);
+      });
+    } catch (error) {
+      console.error("Failed to fetch question:", error);
+      return "Error loading question";
     }
-  
-    async fetchQuestion() {
-      try {
-        // In a real implementation, this would be a call to your backend
-        // Example: const response = await fetch(`/api/questions/${this.questionId}`);
-        
-        // For demo purposes, we'll simulate a fetch with a timeout
-        return new Promise((resolve) => {
-          setTimeout(() => {
-            // This would normally come from your server
-            const questions = {
-              "q1": "Who painted the Mona Lisa?",
-              "q2": "What is the capital of France?",
-              "q3": "Who wrote Romeo and Juliet?"
-            };
-            resolve(questions[this.questionId] || "Question not found");
-          }, 300);
-        });
-      } catch (error) {
-        console.error("Failed to fetch question:", error);
-        return "Error loading question";
+  }
+
+  async revealQuestion() {
+    const code = sessionStorage.getItem("joinCode");
+    await this.lobbyService.startRound(code);
+    if (!this.isClueRevealed) {
+      const loadingPlaceholder = document.createElement("div");
+      loadingPlaceholder.textContent = "Loading question...";
+      loadingPlaceholder.style.opacity = "0.7";
+
+      const questionElement = this.shadowRoot.querySelector(".question");
+      if (questionElement) {
+        questionElement.innerHTML = "";
+        questionElement.appendChild(loadingPlaceholder);
       }
+
+      this.question = await this.fetchQuestion();
+      this.isClueRevealed = true;
+
+      this.start();
+      this.render();
     }
-  
-    async revealQuestion() {
-      if (!this.isClueRevealed) {
-        const loadingPlaceholder = document.createElement("div");
-        loadingPlaceholder.textContent = "Loading question...";
-        loadingPlaceholder.style.opacity = "0.7";
-        
-        const questionElement = this.shadowRoot.querySelector(".question");
-        if (questionElement) {
-          questionElement.innerHTML = "";
-          questionElement.appendChild(loadingPlaceholder);
-        }
-        
-        // Fetch the actual question content from server
-        this.question = await this.fetchQuestion();
-        this.isClueRevealed = true;
-        
-        // Start the timer once question is revealed
-        this.start();
-        this.render();
-      }
-    }
-  
-    render() {
-      
-      const progress = (this.remaining / this.seconds) * 100;
-      
-      const style = document.createElement("style");
-      style.textContent = `
+  }
+
+  render() {
+    const progress = (this.remaining / this.seconds) * 100;
+
+    const style = document.createElement("style");
+    style.textContent = `
          figure{
          margin:0;
          }
@@ -213,140 +208,142 @@ export default class CountdownTimer extends HTMLElement {
         }
 
       `;
-  
-      const container = document.createElement("header");
-      container.classList.add("countdown-container");
-      
-      const header = document.createElement("header");
-      header.classList.add("header");
-      
-      const teamLabel = document.createElement("header");
-      teamLabel.classList.add("team-label");
-      teamLabel.textContent = `${this.team}'s Turn`;
-      
-      const timer = document.createElement("figure");
-      timer.classList.add("timer");
-      
-      const timerIcon = document.createElement("figure");
-      timerIcon.classList.add("material-symbols-outlined");
-      timerIcon.textContent = "schedule"; 
-      
-      const timerText = document.createTextNode(`${this.remaining}s`);
-      timer.appendChild(timerIcon);
-      timer.appendChild(timerText);
-      
-      header.appendChild(teamLabel);
-      header.appendChild(timer);
-      
-      const questionWrapper = document.createElement("article");
-      questionWrapper.classList.add("question-wrapper");
-  
-      const questionElement = document.createElement("p");
-      questionElement.classList.add("question");
-      
-      if (this.isClueRevealed) {
-        questionElement.textContent = this.question;
-      } else {
-        // Add a prompt text below the question placeholder
-        const promptText = document.createElement("div");
-        promptText.classList.add("prompt-text");
-        promptText.textContent = "Press the eye button to reveal question and start timer";
-        questionElement.appendChild(promptText);
-      }
-  
-      const eyeButton = document.createElement("button");
-      eyeButton.classList.add("eye-button");
-      
-      const eyeIcon = document.createElement("figure");
-      eyeIcon.classList.add("material-symbols-outlined");
-      eyeIcon.textContent = "visibility";
-      eyeButton.appendChild(eyeIcon);
-      
-      eyeButton.title = "Reveal Question & Start Timer";
-      eyeButton.disabled = this.isClueRevealed;
-      
-      if (!this.isClueRevealed) {
-        eyeButton.addEventListener("click", () => this.revealQuestion());
-      }
-  
-      questionWrapper.appendChild(questionElement);
-      questionWrapper.appendChild(eyeButton);
-  
-      const progressBar = document.createElement("section");
-      progressBar.classList.add("progress-bar");
-      
-      const progressFill = document.createElement("section");
-      progressFill.classList.add("progress-fill");
-      
-      progressBar.appendChild(progressFill);
-      
-      container.appendChild(header);
-      container.appendChild(questionWrapper);
-      container.appendChild(progressBar);
-      
-      while (this.shadowRoot.firstChild) {
-        this.shadowRoot.removeChild(this.shadowRoot.firstChild);
-      }
-      
-      this.shadowRoot.appendChild(style);
-      this.shadowRoot.appendChild(container);
+
+    const container = document.createElement("header");
+    container.classList.add("countdown-container");
+
+    const header = document.createElement("header");
+    header.classList.add("header");
+
+    const teamLabel = document.createElement("header");
+    teamLabel.classList.add("team-label");
+    teamLabel.textContent = `${this.team}'s Turn`;
+
+    const timer = document.createElement("figure");
+    timer.classList.add("timer");
+
+    const timerIcon = document.createElement("figure");
+    timerIcon.classList.add("material-symbols-outlined");
+    timerIcon.textContent = "schedule";
+
+    const timerText = document.createTextNode(`${this.remaining}s`);
+    timer.appendChild(timerIcon);
+    timer.appendChild(timerText);
+
+    header.appendChild(teamLabel);
+    header.appendChild(timer);
+
+    const questionWrapper = document.createElement("article");
+    questionWrapper.classList.add("question-wrapper");
+
+    const questionElement = document.createElement("p");
+    questionElement.classList.add("question");
+
+    if (this.isClueRevealed) {
+      questionElement.textContent = this.question;
+    } else {
+      // Add a prompt text below the question placeholder
+      const promptText = document.createElement("div");
+      promptText.classList.add("prompt-text");
+      promptText.textContent =
+        "Press the eye button to reveal question and start timer";
+      questionElement.appendChild(promptText);
     }
-  
-    start() {
-      if (!this.isRunning) {
-        this.isRunning = true;
-        this.interval = setInterval(() => {
-          this.remaining--;
-          
-          if (this.remaining <= 0) {
-            this.stop();
-            this.dispatchEvent(
-              new CustomEvent("timeout", { bubbles: true, composed: true })
-            );
-          }
-          
-          this.render();
-        }, 1000);
-      }
-      return this;
+
+    const eyeButton = document.createElement("button");
+    eyeButton.classList.add("eye-button");
+
+    const eyeIcon = document.createElement("figure");
+    eyeIcon.classList.add("material-symbols-outlined");
+    eyeIcon.textContent = "visibility";
+    eyeButton.appendChild(eyeIcon);
+
+    eyeButton.title = "Reveal Question & Start Timer";
+    eyeButton.disabled = this.isClueRevealed;
+
+    if (!this.isClueRevealed) {
+      eyeButton.addEventListener("click", () => this.revealQuestion());
     }
-  
-    stop() {
-      if (this.isRunning) {
-        clearInterval(this.interval);
-        this.isRunning = false;
-      }
-      return this;
+
+    questionWrapper.appendChild(questionElement);
+    questionWrapper.appendChild(eyeButton);
+
+    const progressBar = document.createElement("section");
+    progressBar.classList.add("progress-bar");
+
+    const progressFill = document.createElement("section");
+    progressFill.classList.add("progress-fill");
+
+    progressBar.appendChild(progressFill);
+
+    container.appendChild(header);
+    container.appendChild(questionWrapper);
+    container.appendChild(progressBar);
+
+    while (this.shadowRoot.firstChild) {
+      this.shadowRoot.removeChild(this.shadowRoot.firstChild);
     }
-  
-    reset() {
-      this.stop();
-      this.remaining = this.seconds;
-      this.isClueRevealed = false;
-      this.render();
-      return this;
-    }
-  
-    static create(container, options = {}) {
-      const timerElement = document.createElement("countdown-timer");
-      
-      if (options.seconds) timerElement.setAttribute("seconds", options.seconds);
-      if (options.team) timerElement.setAttribute("team", options.team);
-      if (options.questionId) timerElement.setAttribute("question-id", options.questionId);
-      
-      if (typeof container === "string") {
-        container = document.querySelector(container);
-      }
-  
-      if (container) {
-        while (container.firstChild) {
-          container.removeChild(container.firstChild);
-        }
-        container.appendChild(timerElement);
-      }
-  
-      return timerElement;
-    }
+
+    this.shadowRoot.appendChild(style);
+    this.shadowRoot.appendChild(container);
   }
-  
-  customElements.define("countdown-timer", CountdownTimer);
+
+  start() {
+    if (!this.isRunning) {
+      this.isRunning = true;
+      this.interval = setInterval(() => {
+        this.remaining--;
+
+        if (this.remaining <= 0) {
+          this.stop();
+          this.dispatchEvent(
+            new CustomEvent("timeout", { bubbles: true, composed: true })
+          );
+        }
+
+        this.render();
+      }, 1000);
+    }
+    return this;
+  }
+
+  stop() {
+    if (this.isRunning) {
+      clearInterval(this.interval);
+      this.isRunning = false;
+    }
+    return this;
+  }
+
+  reset() {
+    this.stop();
+    this.remaining = this.seconds;
+    this.isClueRevealed = false;
+    this.render();
+    return this;
+  }
+
+  static create(container, options = {}) {
+    const timerElement = document.createElement("countdown-timer");
+
+    if (options.seconds) timerElement.setAttribute("seconds", options.seconds);
+    if (options.team) timerElement.setAttribute("team", options.team);
+    if (options.questionId)
+      timerElement.setAttribute("question-id", options.questionId);
+
+    if (typeof container === "string") {
+      container = document.querySelector(container);
+    }
+
+    if (container) {
+      while (container.firstChild) {
+        container.removeChild(container.firstChild);
+      }
+      container.appendChild(timerElement);
+    }
+
+    return timerElement;
+  }
+}
+
+customElements.define("countdown-timer", CountdownTimer);

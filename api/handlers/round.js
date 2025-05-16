@@ -23,7 +23,7 @@ const handleStartRound = async (req, res, next) => {
 
     broadcastToMatch(joinCode, {
       message: `A new round has started!`,
-      roundInfo
+      roundInfo, guessingUserId
     }, 'round_started');
 
     sendToUser(guessingUserId, {
@@ -32,6 +32,8 @@ const handleStartRound = async (req, res, next) => {
 
     res.status(200).json({ roundId, guessingAlias, hint });
   } catch (error) {
+    console.log(error);
+    
     if (error.message === 'A round is already in progress.') {
       return next(formatErrorResponse(403, error.message));
     }
@@ -45,7 +47,7 @@ const handleMakeGuess = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
     const { guess } = req.body;
-    const userId = getUserIdFromGoogleId(req.user.sub);
+    const userId = await getUserIdFromGoogleId(req.user.sub);;
 
     if (!joinCode || !userId || !guess) {
       return next(formatErrorResponse(400, 'Missing parameters'));
@@ -136,3 +138,5 @@ module.exports = {
   handleMakeGuess,
   handleGetHint,
 };
+ 
+ 

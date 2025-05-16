@@ -2,6 +2,7 @@ import LobbyService from "../../services/lobbies.service.js";
 import importStylesheet from "../utils/import-style-sheet.js";
 import "./Chip.component.js";
 import router from "../js/index.js";
+import eventbus from "../js/sseManager/eventbus.js";
 
 export default class LobbyCard extends HTMLElement {
   constructor() {
@@ -11,16 +12,22 @@ export default class LobbyCard extends HTMLElement {
     this.lobbyService = new LobbyService();
   }
 
-  connectedCallback() {
-    this.render();
-    this.addEventListener("click", async () => {
-      await this.joinLobby(this.lobby.joinCode, 1);
-      history.pushState({}, "", "/lobby");
-      router();
-    });
-  }
+ connectedCallback() {
+  this.render();
+  this.addEventListener("click", async () => {
+    await this.joinLobby(this.lobby.joinCode, 1);
+    history.pushState({}, "", "/lobby");
+    router();
+
+    setTimeout(() => {
+      eventbus.emit("lobby-started", { joinCode: this.lobby.joinCode });
+    }, 0);
+  });
+}
+
 
   async joinLobby(joinCode, id) {
+    eventbus.emit("lobby-started", { joinCode: this.lobby.joinCode });
     return await this.lobbyService.joinLobby(joinCode, id);
   }
 
