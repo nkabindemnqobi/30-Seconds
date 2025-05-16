@@ -1,5 +1,5 @@
 import AbstractView from "./AbstractView.js";
-import "../../components/lobby.component.js";
+import "../../components/Lobby.component.js";
 import "../../components/Button.js";
 
 
