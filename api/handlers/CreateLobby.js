@@ -21,18 +21,18 @@ const getAllCategories = async (_, res, next) => {
 const handleCreateLobby = async (req, res, next) => {
     try {
 
-        // const userId = await getUserIdFromGoogleId(req.user.sub);
-        const { userId, categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
+        const userId = await getUserIdFromGoogleId(req.user.sub);
+        const { categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
 
-        // function to check the body of a post request
+        
         if (
             !userId ||
             !Array.isArray(categoryIds) ||
             categoryIds.length === 0 ||
             typeof isPublic !== "boolean" ||
-            typeof maxParticipants !== "number" || //isNan(maxParticipants)
+            typeof maxParticipants !== "number" || 
             maxParticipants < 1 ||
-            !lobbyName // Validate empty space
+            !lobbyName 
         ) {
             return next(formatErrorResponse(400, "Invalid input"));
         }

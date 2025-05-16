@@ -16,8 +16,7 @@ const { getUserIdFromGoogleId } = require("../queries/users");
 
 const postLobbyJoin = async (req, res, next) => {
   const joinCode = req.params.joinCode;
-  // const userJoiningId = getUserIdFromGoogleId(req.user.sub);
-  const userJoiningId = req.body.userJoiningId;
+  const userJoiningId = getUserIdFromGoogleId(req.user.sub);
 
   try {
     const matchIdResult = await getMatchIdByJoinCode(joinCode);
@@ -48,8 +47,7 @@ const postLobbyJoin = async (req, res, next) => {
 };
 
 const handleKickPlayer = async (req,res,next) => {
-  // const callingUserId = getUserIdFromGoogleId(req.user.sub);
-  const callingUserId = req.body.callingUserId;
+  const callingUserId = getUserIdFromGoogleId(req.user.sub);
   const kickedUserId = req.body.targetUserId;
   const joinCode = req.params.joinCode;
 
@@ -94,8 +92,7 @@ const handleKickPlayer = async (req,res,next) => {
 const handleStartGame = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
-    // const userId = getUserIdFromGoogleId(req.user.sub);
-    const userId = req.body.userId;
+    const userId = getUserIdFromGoogleId(req.user.sub);
 
     if (!joinCode || !userId) {
       return next(formatErrorResponse(400, "Missing joinCode or userId"));
@@ -104,7 +101,6 @@ const handleStartGame = async (req, res, next) => {
     broadcastToMatch(joinCode, {
       data: { message: "Game started!", matchId: result.matchId, joinCode: joinCode },
     }, "game_started");
-
     res.status(200).json({ message: "Game started successfully." });
   } catch (error) {
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
