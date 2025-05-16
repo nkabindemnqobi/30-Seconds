@@ -20,7 +20,9 @@ const getAllCategories = async (_, res, next) => {
 
 const handleCreateLobby = async (req, res, next) => {
     try {
-        const userId = await getUserIdFromGoogleId(req.user.sub);
+
+        // const userId = await getUserIdFromGoogleId(req.user.sub);
+        const { userId, categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
 
         // function to check the body of a post request
         if (

@@ -19,7 +19,7 @@ const startRound = async (joinCode) => {
         const roundDetails = dbResult[0]; // The proc returns a single row with round details
         const roundId = roundDetails.round_id;
 
-        const hint = await generateHint(roundDetails.guessing_item_name, roundDetails.guessing_item_category_name);
+        const hint = await generateHint(roundDetails.guessing_item_name, roundDetails.guessing_item_category_name, 1);
 
         const hintQuery = `
         EXEC dbo.InsertHintForRound
@@ -162,7 +162,7 @@ const getHint = async (joinCode, userId) => {
   const matchId = matchResult[0].id;
 
   const getActiveRoundQuery = `
-  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category
+  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category, gr.hint_count as hintCount
     FROM GameRounds gr
     JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
     JOIN Categories c ON gi.category_id = c.id
@@ -180,7 +180,7 @@ const getHint = async (joinCode, userId) => {
     throw new Error('Not your turn to request a hint');
   }
 
-  const newHint = await generateHint(round.item_name, round.category);
+  const newHint = await generateHint(round.item_name, round.category, round.hintCount);
 
   const hintQuery = `
         EXEC dbo.InsertHintForRound

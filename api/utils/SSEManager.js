@@ -6,8 +6,9 @@ const matchMemberships = new Map();
 const handleSSEConnection = async (req, res, userId) => {
   console.log(userId, `user has connected to the server.`);
   
-  const googleId = req.params.googleId;
-  const userIdString = await getUserIdFromGoogleId(googleId)+'';
+  // const googleId = req.params.googleId;
+  // const userIdString = await getUserIdFromGoogleId(googleId)+'';
+  const userIdString = req.params.googleId.toString();
 
 
   if (activeConnections.has(userIdString)) {

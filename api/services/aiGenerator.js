@@ -15,12 +15,14 @@ const getAiClient = () => {
   return ModelClient(endpoint, new AzureKeyCredential(token));
 }
 
-async function generateHint(itemName, category) {
+async function generateHint(itemName, category, hintCount) {
   const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
   const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 
   The hint must be fair, challenging, and not reveal the answer directly.
-  Respond with just the hint — no extra text, quotes, or formatting.`;
+  Respond with just the hint — no extra text, quotes, or formatting. The difficulty should be on a scale from 1 (really hard) to 10 (really easy).
+  Make the hint be of difficulty ${hintCount}`;
   try {
+    console.log("Generate hint is being called============")
     const model = "openai/gpt-4.1";
     const aiClient = getAiClient();
     const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
@@ -42,6 +44,7 @@ async function generateHint(itemName, category) {
     if (isUnexpected(response)) {
       throw response.body.error;
     }
+    console.log("Generate hint is completed==========")
     return response.body.choices[0].message.content.trim();
   } catch (err) {
     throw new Error(err.message);

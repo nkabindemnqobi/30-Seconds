@@ -44,8 +44,8 @@ const handleStartRound = async (req, res, next) => {
 const handleMakeGuess = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
-    const { guess } = req.body;
-    const userId = getUserIdFromGoogleId(req.user.sub);;
+    const { userId, guess } = req.body;
+    // const userId = getUserIdFromGoogleId(req.user.sub);;
 
     if (!joinCode || !userId || !guess) {
       return next(formatErrorResponse(400, 'Missing parameters'));
@@ -100,7 +100,8 @@ const handleMakeGuess = async (req, res, next) => {
 const handleGetHint = async (req, res, next) => {
   try {
     const { joinCode } = req.params;
-    const userId = await getUserIdFromGoogleId(req.user.sub);
+    // const userId = await getUserIdFromGoogleId(req.user.sub);
+    const userId = req.body.userId;
 
     if (!joinCode || !userId) {
       return next(formatErrorResponse(400, 'Missing parameters'));
