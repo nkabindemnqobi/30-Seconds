@@ -27,12 +27,13 @@ export default class ViewLobbies extends HTMLElement {
 
     const section = document.createElement("section");
     section.setAttribute("aria-label", "Active Lobbies");
-
-    this.lobbies.forEach((lobby) => {
-      const card = document.createElement("lobby-card");
-      card.lobby = lobby;
-      section.appendChild(card);
-    });
+    if (this.lobbies && this.lobbies.length > 0) {
+      this.lobbies.forEach((lobby) => {
+        const card = document.createElement("lobby-card");
+        card.lobby = lobby;
+        section.appendChild(card);
+      });
+    }
 
     this.shadowRoot.appendChild(section);
   }
