@@ -47,7 +47,6 @@ const handleCreateLobby = async (req, res, next) => {
 
         addUserToMatch(joinCode, userId);
         const matchIdResult = await getMatchIdByJoinCode(joinCode);
-        console.log("matchId Result", matchIdResult);
 
         if (matchIdResult.length === 0) {
         return next(formatErrorResponse(404, "Lobby not found"));

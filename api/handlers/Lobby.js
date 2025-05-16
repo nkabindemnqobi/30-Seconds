@@ -20,7 +20,6 @@ const postLobbyJoin = async (req, res, next) => {
 
   try {
     const matchIdResult = await getMatchIdByJoinCode(joinCode);
-    console.log("matchId Result", matchIdResult);
 
     if (matchIdResult.length === 0) {
       return next(formatErrorResponse(404, "Lobby not found"));
@@ -83,7 +82,6 @@ const handleKickPlayer = async (req,res,next) => {
     res.status(200).json( { kickSuccess: true, kickMessage: ``, ...resultRows });
     
   } catch (error) {
-    console.log(error)
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 

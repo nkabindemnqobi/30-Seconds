@@ -22,7 +22,6 @@ async function generateHint(itemName, category, hintCount) {
   Respond with just the hint — no extra text, quotes, or formatting. The difficulty should be on a scale from 1 (really hard) to 10 (really easy).
   Make the hint be of difficulty ${hintCount}`;
   try {
-    console.log("Generate hint is being called============")
     const model = "meta/Meta-Llama-3-8B-Instruct";
     const aiClient = getAiClient();
     const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
@@ -44,7 +43,6 @@ async function generateHint(itemName, category, hintCount) {
     if (isUnexpected(response)) {
       throw response.body.error;
     }
-    console.log("Generate hint is completed==========")
     return response.body.choices[0].message.content.trim();
   } catch (err) {
     throw new Error(err.message);

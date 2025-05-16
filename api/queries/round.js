@@ -16,7 +16,7 @@ const startRound = async (joinCode) => {
       const dbResult = await executeQuery(startQuery, startParams);
   
       if (dbResult && dbResult.length > 0) {
-        const roundDetails = dbResult[0]; // The proc returns a single row with round details
+        const roundDetails = dbResult[0]; 
         const roundId = roundDetails.round_id;
 
         const hint = await generateHint(roundDetails.guessing_item_name, roundDetails.guessing_item_category_name, 1);
@@ -61,7 +61,7 @@ const startRound = async (joinCode) => {
   };
 
 const makeGuess = async (joinCode, userId, guessInput) => {
-  //console.log("THE INPUTS", joinCode, userId, guessInput);
+  
   return await withTransaction(async ({ transaction }) => {
     const matchQuery = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
@@ -88,7 +88,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const round = roundQuery.recordset[0];
-    //console.log("EXPECTED GUESSER", round.guessing_user_id);
+    
     if (round.guessing_user_id !== userId) {
       throw new Error('It is not your turn to guess');
     }
@@ -126,7 +126,7 @@ const isMatchOver = async (joinCode) => {
 
   const isMatchOverResult = await executeQuery(query, params);
   if (isMatchOverResult[0]) {
-    //console.log("IS MATCH OVER RESULT:      ",isMatchOverResult[0]);
+    
     return isMatchOverResult[0];
   } else {
     throw new Error(
@@ -145,7 +145,7 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
 
   const calculateMatchScoresResult = await executeQuery(query, params);
   if (calculateMatchScoresResult.length !== 0) {
-    return calculateMatchScoresResult; // This should be an arr of objects.
+    return calculateMatchScoresResult; 
   } else {
     throw new Error(
       "Stored procedure did not return a result. Possible invalid join code or logic issue."
@@ -191,7 +191,6 @@ const getHint = async (joinCode, userId) => {
         const hintParams = { RoundID: roundId, HintText: newHint};
 
         const hintResult = await executeQuery(hintQuery, hintParams);
-        console.log(hintResult[0]);
         if (hintResult && hintResult.length > 0 ){
             const hintDetails = hintResult[0];
             if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.'){

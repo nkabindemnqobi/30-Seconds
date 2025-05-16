@@ -35,7 +35,7 @@ const handleStartRound = async (req, res, next) => {
     if (error.message === 'A round is already in progress.') {
       return next(formatErrorResponse(403, error.message));
     }
-    //console.log(error);
+    
     return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
   }
 };
@@ -51,22 +51,21 @@ const handleMakeGuess = async (req, res, next) => {
       return next(formatErrorResponse(400, 'Missing parameters'));
     }
 
-    const result = await makeGuess(joinCode, userId, guess); // TODO: Change this to use proc.
+    const result = await makeGuess(joinCode, userId, guess); 
 
-    if (result.correct) { // Assume the answer is correct and the transaction ran as intended
-      clearRoundTimer(joinCode);// Clear the round timer
+    if (result.correct) { 
+      clearRoundTimer(joinCode);
       broadcastToMatch(joinCode, {
         message: `${result.guessingAlias} guessed it right!`,
         item: result.itemName,
         roundId: result.roundId,
         score: result.score
       }, 'round_complete');
-      const matchConclusionResult = await isMatchOver(joinCode); // Check if the match is over.
-      console.log(matchConclusionResult.IsMatchOver)
+      const matchConclusionResult = await isMatchOver(joinCode); 
       if (matchConclusionResult.IsMatchOver === true){
-        const scores = await calculateAndFinaliseScores(joinCode, true); // Calculate the scores for everyone and do some updates.
-                                                                    // This is safe to do here since match is 100% completed.
-        broadcastToMatch(joinCode, { // Broadcast the results to all players.
+        const scores = await calculateAndFinaliseScores(joinCode, true); 
+                                                                    
+        broadcastToMatch(joinCode, { 
           message: `The game has ended!!`,
           scores
         }, 'game_ended');
