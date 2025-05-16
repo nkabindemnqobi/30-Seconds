@@ -1,6 +1,7 @@
 import LobbyService from "../../services/lobbies.service.js";
 import importStylesheet from "../utils/import-style-sheet.js";
 import "./LobbyCard.component.js";
+import eventbus from "../js/sseManager/eventbus.js";
 
 export default class ViewLobbies extends HTMLElement {
   constructor() {
@@ -12,9 +13,11 @@ export default class ViewLobbies extends HTMLElement {
 
   connectedCallback() {
     this.retrieveActivePublicLobbies();
+     eventbus.on("match_created", this.retrieveActivePublicLobbies);
   }
 
   async retrieveActivePublicLobbies() {
+    console.log("üpdating");
     this.lobbies = await this.lobbyService.getActivePublicLobbies();
     this.render();
   }

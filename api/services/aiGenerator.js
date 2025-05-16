@@ -20,9 +20,9 @@ async function generateHint(itemName, category) {
   const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 
   The hint must be fair, challenging, and not reveal the answer directly.
   Respond with just the hint — no extra text, quotes, or formatting.`;
-  //console.log("Generate hint is being called !!!!!!")
+
   try {
-    const model = "openai/gpt-4.1";
+    const model = "meta/Meta-Llama-3-8B-Instruct";
     const aiClient = getAiClient();
     const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
     const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 

@@ -8,6 +8,7 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
+import initSSE from "./sseManager/sse.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -78,6 +79,7 @@ const router = async () => {
         if(accessCode) {
             const token = await googleAuth.exchangeCodeForToken(accessCode);
             if(token.idToken && token.googleId) {
+                initSSE();
                 history.pushState(null, null,"/");
                 router();
             } else {
@@ -87,14 +89,7 @@ const router = async () => {
         }
     
     attachEventListeners();
-    
-    // Initialize the GameController if on the GamePlay page
-    if (currentView instanceof GamePlay) {
-        // Give the DOM time to fully render custom elements
-        setTimeout(() => {
-            currentView.initGameController();
-        }, 100);
-    }
+  
 };
 
 const attachEventListeners = () => {

@@ -33,7 +33,6 @@ async function handleRoundTimeout(joinCode, roundId, guesserAlias, guesserId) {
           scores
         }, 'game_ended');
         
-        return res.status(200).json({message: "You have finished the game!"})
       }
     }
   } catch (error) {

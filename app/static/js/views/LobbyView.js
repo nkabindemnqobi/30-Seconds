@@ -1,5 +1,6 @@
 import AbstractView from "./AbstractView.js";
 import "../../components/Lobby.js";
+import "../../components/Lobby.component.js";
 
 
 
@@ -11,7 +12,7 @@ export default class JoinLobby extends AbstractView {
    
     async getHtml() {
         return `
-        <lobby-view></lobby-view>
+        <app-lobby></app-lobby>
         `;
     }
 }
