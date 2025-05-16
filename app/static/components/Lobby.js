@@ -1,4 +1,4 @@
-import "./lobby.component.js";
+import "./Lobby.component.js";
 import "./Button.js";
 
 export default class LobbyView extends HTMLElement {
