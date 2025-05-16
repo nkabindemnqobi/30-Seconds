@@ -101,8 +101,10 @@ const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId =
       const res = activeConnections.get(userIdString);
       if (res) {
         try {
+          console.log(`Sending message to user ${userIdString}`);
           res.write(message);
         } catch (error) {
+          console.error(`Error sending SSE to user ${userIdString}:`, error);
         }
       } else {
        

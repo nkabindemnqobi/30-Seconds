@@ -5,6 +5,7 @@ const { formatMatchWithParticipants } = require("../utils/lobbyInfoFormatter");
 
 async function getMatchLobbyInformation(matchId) {
   if (typeof matchId !== "number") {
+    console.error("Invalid matchId provided to getMatchLobbyInfo.");
     return {
       success: false,
       message: "Invalid input: Match ID must be a number.",
@@ -52,6 +53,8 @@ async function getMatchLobbyInformation(matchId) {
     const resultRows = await executeQuery(getMatchLobbyInfoQuery, {
       matchId: matchId,
     });
+    console.log(resultRows);
+
     if (resultRows && resultRows.length > 0) {
       const formattedData = formatMatchWithParticipants(resultRows);
       if (formattedData) {
@@ -75,6 +78,10 @@ async function getMatchLobbyInformation(matchId) {
       };
     }
   } catch (err) {
+    console.error(
+      "Error in getMatchLobbyInformation for matchId " + matchId + ":",
+      err
+    );
     return {
       success: false,
       message:
@@ -95,6 +102,7 @@ async function getMatchIdByJoinCode(joinCode) {
 
 async function addUserToLobby(userId, matchId) {
   if (typeof userId !== "number" || typeof matchId !== "number") {
+    console.error("Invalid userId or matchId provided to addUserToLobby.");
     return {
       success: false,
       message: "Invalid input: User ID and Match ID must be numbers.",
@@ -112,6 +120,9 @@ async function addUserToLobby(userId, matchId) {
     MatchID: matchId,
   };
   await executeQuery(directQuery, directParams);
+  console.log(
+    `Attempt to add user ${userId} to match ${matchId} successful (or user was already in team).`
+  );
   return { success: true, message: "User processed for match team." };
 }
 

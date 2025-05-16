@@ -52,11 +52,16 @@ const startRound = async (joinCode) => {
         );
       }
     } catch (error) {
+      console.error(
+        `Database error in callStartNewGameRound for join code '${joinCode}':`,
+        error.message
+      );
       throw error;
     }
   };
 
 const makeGuess = async (joinCode, userId, guessInput) => {
+  //console.log("THE INPUTS", joinCode, userId, guessInput);
   return await withTransaction(async ({ transaction }) => {
     const matchQuery = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
@@ -83,7 +88,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const round = roundQuery.recordset[0];
-    //
+    //console.log("EXPECTED GUESSER", round.guessing_user_id);
     if (round.guessing_user_id !== userId) {
       throw new Error('It is not your turn to guess');
     }
@@ -121,7 +126,7 @@ const isMatchOver = async (joinCode) => {
 
   const isMatchOverResult = await executeQuery(query, params);
   if (isMatchOverResult[0]) {
-    //
+    //console.log("IS MATCH OVER RESULT:      ",isMatchOverResult[0]);
     return isMatchOverResult[0];
   } else {
     throw new Error(
@@ -148,6 +153,43 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
   }
 };
 
+const getHint = async (joinCode, userId) => {
+  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = $@joinCode", {joinCode});
+
+  if (matchResult.recordset.length === 0) {
+    throw new Error('Invalid join code');
+  }
+
+  const matchId = matchResult[0].id;
+
+  const getActiveRoundQuery = `
+  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category
+    FROM GameRounds gr
+    JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
+    JOIN Categories c ON gi.category_id = c.id
+    WHERE gr.match_id = @matchId AND gr.ended_datetime IS NULL
+  `
+  const roundResult = await executeQuery(getActiveRoundQuery, {matchId});
+
+  if (roundResult.length === 0) {
+    throw new Error('No active round in progress');
+  }
+
+  const round = roundResult[0];
+
+  if (round.guessing_user_id !== userId) {
+    throw new Error('Not your turn to request a hint');
+  }
+
+  const newHint = await generateHint(round.item_name, round.category);
+
+  return {
+    roundId: round.roundId,
+    hint: newHint
+  };
+};
+
+
 const setRoundByTimeout = async (joinCode) => {
   const query = `
       EXEC dbo.HandleGameRoundTimeout
@@ -159,8 +201,9 @@ const setRoundByTimeout = async (joinCode) => {
     const result = await executeQuery(query, params); 
     return {success: true}
   } catch (error) {
+    console.error(`[setRoundByTimeout] Error executing dbo.HandleGameRoundTimeout for joinCode '${joinCode}':`, error.message);
     throw error; 
   }
 };
 
-module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver, setRoundByTimeout };
+module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver, setRoundByTimeout, getHint };
