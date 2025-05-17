@@ -91,7 +91,7 @@ const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId =
   if (matchMemberships.has(joinCode)) {
     const userIdsInMatch = matchMemberships.get(joinCode);
     const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
-
+    
     userIdsInMatch.forEach((userIdString) => {
       if (excludeUserId && userIdString === excludeUserId.toString()) {
         return;
