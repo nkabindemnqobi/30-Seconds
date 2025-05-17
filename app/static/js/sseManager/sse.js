@@ -10,10 +10,6 @@ export default function initSSE() {
     console.log("[SSE] Connection opened.");
   };
 
-  eventSource.onerror = (err) => {
-    console.error("[SSE] Connection error:", err);
-  };
-
   const supportedEvents = [
     "match_created",
     "game_started",
