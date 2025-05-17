@@ -1,0 +1,28 @@
+#lobbyCode::placeholder {
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    color: #999;
+}
+  
+  .join-code-label {
+    color: #6b21a8; 
+    font-weight: 500;
+  }
+  
+  .join-code-input {
+    border: 1px solid #d8b4fe; 
+    padding: 0.5rem 0.75rem;
+    border-radius: 4px;
+    text-align: center;
+    font-family: monospace;
+    font-size: 1.125rem;
+    text-transform: uppercase;
+    outline: none;
+    transition: border-color 0.3s, box-shadow 0.3s;
+  }
+  
+  .join-code-input:focus {
+    border-color: #a855f7; 
+    box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.4);
+  }
+  

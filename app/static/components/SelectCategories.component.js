@@ -1,5 +1,6 @@
-import "./ListItems.component.js";
 import CategoriesService from "../../services/categories.service.js";
+import "./Error.component.js"; 
+import "./ListItems.component.js"
 
 export default class SelectCategories extends HTMLElement {
   constructor() {
@@ -11,11 +12,20 @@ export default class SelectCategories extends HTMLElement {
   }
 
   async connectedCallback() {
+    try {
     this.categories = await this.categoryService.retrieveCategories();
-    this.render();
-  }
+      if (this.categories.length === 0) {
+        this.renderError("No categories available. Please try again.");
+        return;
+      }
+      console.log(this.categories)
+      this.render();
+    } catch (error) {
+      this.renderError("Failed to load categories. Please try again.");
+    }
+    }
+    render() {
 
-  render() {
     const fieldset = document.createElement("fieldset");
     const legend = document.createElement("legend");
     legend.textContent = "Categories";
@@ -43,10 +53,8 @@ export default class SelectCategories extends HTMLElement {
     const style = document.createElement("style");
     style.textContent = `
       .categories {
-        display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-        gap: 0.5rem;
-        margin: 10px 0;
+         display: grid;
+         grid-template-columns: repeat(2, 1fr); 
       }
 
       fieldset {
@@ -66,40 +74,24 @@ export default class SelectCategories extends HTMLElement {
         margin-top: 10px;
         color: #666;
       }
-      .category-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-        padding: 0;
-        list-style: none;
-        max-width: 400px;
-        margin: 2rem auto;
-      }
-
-      .category-list li {
-        padding: 0.75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.375rem;
-        background-color: #fff;
-        color: #374151;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-
-      .category-list li:hover {
-        background-color: #f5f3ff;
-      }
-
-      .category-list li.selected {
-        background-color: #f3e8ff;
-        border-color: #d8b4fe;
-        color: #6b21a8;
-      }
+       
+      
     `;
 
     this.shadowRoot.innerHTML = "";
     this.shadowRoot.appendChild(style);
     this.shadowRoot.appendChild(fieldset);
+  }
+
+  renderError(message) {
+    const errorMessage = document.createElement("error-message");
+    errorMessage.setAttribute("message", message);
+    errorMessage.setAttribute("retry", "");
+    
+    errorMessage.addEventListener("retry", () => this.connectedCallback());
+    
+    this.shadowRoot.innerHTML = ""; // Clear existing content
+    this.shadowRoot.appendChild(errorMessage); // Append error message component
   }
 
   onCategorySelected(event) {
@@ -111,18 +103,17 @@ export default class SelectCategories extends HTMLElement {
 
     if (
       selectedCategory &&
-      this.selectedCategories.some(
-        (category) => category.name === selectedCategory.name
-      )
+      this.selectedCategories.includes(selectedCategory.id)
     ) {
       this.selectedCategories = this.selectedCategories.filter(
-        (category) => category.name !== selectedCategory.name
+        (categoryId) => categoryId !== selectedCategory.id
       );
     } else {
-      this.selectedCategories.push(selectedCategory);
+      this.selectedCategories.push(selectedCategory.id);
     }
+
     this.dispatchEvent(
-      new CustomEvent("change", {
+      new CustomEvent("updated", {
         detail: this.selectedCategories,
         bubbles: true,
         composed: true,
