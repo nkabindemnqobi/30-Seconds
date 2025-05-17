@@ -1,4 +1,3 @@
-import EventBus from "../utils/event-bus.js";
 export default class HintBox extends HTMLElement {
   constructor() {
     super();
