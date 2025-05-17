@@ -23,8 +23,8 @@ async function getMatchLobbyInformation(matchId) {
       m.lobby_name,
       m.is_public,
       m.max_participants,
-      m.started_datetime,
-      m.completed_datetime,
+      m.started_at,
+      m.completed_at,
       m.status_id,          -- Match Status ID
       ms.status AS match_status, -- Match Status string
 
@@ -53,7 +53,6 @@ async function getMatchLobbyInformation(matchId) {
     const resultRows = await executeQuery(getMatchLobbyInfoQuery, {
       matchId: matchId,
     });
-    console.log(resultRows);
 
     if (resultRows && resultRows.length > 0) {
       const formattedData = formatMatchWithParticipants(resultRows);
@@ -171,7 +170,7 @@ async function startGame({ joinCode, userId }) {
     await new sql.Request(transaction).input("MatchId", match.matchId).query(`
         UPDATE Matches
         SET status_id = (SELECT id FROM MatchStatus WHERE status = 'Ongoing'),
-            started_datetime = GETDATE()
+            started_at = GETDATE()
         WHERE id = @MatchId
       `);
 

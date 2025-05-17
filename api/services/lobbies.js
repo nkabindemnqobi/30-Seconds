@@ -9,7 +9,7 @@ const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
 
         for (const row of result) {
             const {
-                matchId, joinCode, lobbyName, startedDatetime, categoryId,
+                matchId, joinCode, lobbyName, startedAt, categoryId,
                 categoryName, creatorAlias, maxParticipants,
                 participantCount, bannedUserId, bannedUserAlias,
             } = row;
@@ -19,7 +19,7 @@ const fetchLobbies = async ({ status, isPublic, creatorAlias }) => {
                     matchId,
                     lobbyName,
                     joinCode,
-                    startedDatetime,
+                    startedAt,
                     creatorAlias,
                     maxParticipants,
                     participantCount,

@@ -1,9 +1,11 @@
 const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
+const dotenv = require('dotenv');
+dotenv.config();
+
 
 const authRouter = require("./routes/google-auth");
-const usersRouter = require("./routes/users");
 const createLobby = require("./routes/createLobby");
 const homeRouter = require("./routes/home");
 const lobbyRoutes = require("./routes/lobby");
@@ -18,13 +20,12 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cors({
   allowedHeaders: "*",
-  origin:  notProduction ? process.env.ORIGIN_DEV : process.env.ORIGIN_PROD,
+  origin: process.env.ORIGIN,
   credentials: true,
 }))
 
 app.use("/api/auth", authRouter);
 app.use("/", authRouter);
-app.use("/users", usersRouter);
 app.use("/api/create-lobby", createLobby);
 app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);

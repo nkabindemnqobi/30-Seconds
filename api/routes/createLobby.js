@@ -4,10 +4,7 @@ const { authMiddleware } = require("../middleware/authorization");
 
 const router = express.Router();
 
-// router.get('/categories', authMiddleware, getAllCategories);
-// router.post("/", authMiddleware, handleCreateLobby);
-// USE THESE FOR NO AUTH
-router.get('/categories', getAllCategories);
-router.post("/", handleCreateLobby);
+router.get('/categories', authMiddleware, getAllCategories);
+router.post("/", authMiddleware, handleCreateLobby);
 
 module.exports = router;

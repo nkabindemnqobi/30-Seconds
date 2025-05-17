@@ -3,7 +3,7 @@ SELECT
     m.id AS matchId,
     m.join_code AS joinCode,
     m.lobby_name AS lobbyName,
-    m.started_datetime AS startedDatetime,
+    m.started_at AS startedAt,
     u.alias AS creatorAlias,
     m.max_participants AS maxParticipants,
     (
@@ -20,7 +20,7 @@ SELECT
     bu.alias AS bannedUserAlias,
     m.is_public AS isPublic,
     m.status_id AS matchStatusId,
-    m.completed_datetime
+    m.completed_at
 FROM Matches m
 JOIN CategoriesMatches cm ON cm.match_id = m.id
 JOIN Categories c ON c.id = cm.category_id

@@ -8,7 +8,7 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
-import Result from "./views/ResultView.js";
+import initSSE from "./sseManager/sse.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -31,16 +31,13 @@ let currentView = null;
 
 const router = async () => {
     const routes = [
-        { path: "/dashboard", view: Dashboard },
         { path: "/create-lobby", view: CreateLobby },
         { path: "/error", view: NotFound },
-        { path: "/", view: Login },
+        { path: "/", view: Dashboard },
         { path: "/signin-google", view: Authenticated },
         { path: "/join-lobby", view: JoinLobby},
         { path: "/game-play", view: GamePlay},
         { path: "/lobby", view: Lobby},
-        { path: "/results", view:Result}
-
     ];
 
     const potentialMatches = routes.map(route => {
@@ -77,28 +74,22 @@ const router = async () => {
       const htmlContent = await currentView.getHtml();
       sanitizeAndRender(appContainer, htmlContent);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const accessCode = urlParams.get("code");
-    if(accessCode) {
-        const token = await googleAuth.exchangeCodeForToken(accessCode);
-        if(token.idToken && token.googleId) {
-            history.pushState({}, "", "/dashboard");
-            router();
-        } else {
-            history.pushState({}, "", "/error");
-            router();
+        const urlParams = new URLSearchParams(window.location.search);
+        const accessCode = urlParams.get("code");
+        if(accessCode) {
+            const token = await googleAuth.exchangeCodeForToken(accessCode);
+            if(token.idToken && token.googleId) {
+                initSSE();
+                history.pushState(null, null,"/");
+                router();
+            } else {
+                history.pushState(null, null,"/error");
+                router();
+            }
         }
-    }
     
     attachEventListeners();
-    
-    // Initialize the GameController if on the GamePlay page
-    if (currentView instanceof GamePlay) {
-        // Give the DOM time to fully render custom elements
-        setTimeout(() => {
-            currentView.initGameController();
-        }, 100);
-    }
+  
 };
 
 const attachEventListeners = () => {
@@ -119,9 +110,14 @@ const attachEventListeners = () => {
         
         // If we're on the game-play page, the submit button will be handled by the GameController
         if (!(currentView instanceof GamePlay)) {
-            newLoginButton.addEventListener("click", (clickEvent) => {
+            newLoginButton.addEventListener("click", async (clickEvent) => {
                 clickEvent.preventDefault();
-                window.location.href = ApplicationConfiguration.redirectUrl;
+                if(!ApplicationConfiguration.appConfig.authUrl) {
+                    const authorizationUrls = await googleAuth.getApplicationConfiguration();
+                    window.location.href = authorizationUrls.authUrl;
+                } else {
+                    window.location.href = ApplicationConfiguration.appConfig.authUrl;
+                }
             });
         }
     }
@@ -129,6 +125,7 @@ const attachEventListeners = () => {
 
 // Add event listeners for navigation
 document.addEventListener("DOMContentLoaded", () => {
+    
     if(!ApplicationConfiguration.redirectUrl) googleAuth.getApplicationConfiguration();
     document.body.addEventListener("click", e => {
         if (e.target.matches("[data-link]")) {

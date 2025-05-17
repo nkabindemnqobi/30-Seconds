@@ -3,6 +3,7 @@ import "./SelectCategories.component.js";
 import "./Switch.component.js";
 import "./Button.js";
 import "./TextInput.component.js";
+import { User } from "../../models/user.js";
 
 export default class LobbyForm extends HTMLElement {
   constructor() {
@@ -11,9 +12,9 @@ export default class LobbyForm extends HTMLElement {
     this.title = "Create a Lobby";
     this.lobbyService = new LobbyService();
     this.formData = {
-      userId: 1, //needs to be removed
+      userId: User.user.googleId,
       categoryIds: [],
-      isPublic: false,
+      isPublic: true,
       maxParticipants: 1,
       lobbyName: undefined,
     };
@@ -53,51 +54,71 @@ export default class LobbyForm extends HTMLElement {
   }
 
   async createLobby() {
-    return await this.lobbyService.createLobby(this.formData);
+    try {
+      await this.lobbyService.createLobby(this.formData);
+      history.pushState({}, "", "/lobby");
+    } catch (_err) {}
   }
 
   onFormValueChange(event) {
     const field = event.target.dataset.field;
     const value = event.detail;
+    console.log(value);
     this.formData[field] = value;
   }
 
   render() {
-    this.shadowRoot.innerHTML = `
-                    <style>
-                    @import url("/static/css/index.css");
-                    </style>
-                    <section class="card" aria-labelledby="create-lobby-heading">
-                    <header class="card-header">
-                        <h1 class="card-title" id="create-lobby-heading">Create a Lobby</h1>
-                        <p class="card-description">Set up a lobby for teams to join and play trivia</p>
-                    </header>
-                    <main class="card-content" id="appContent">
-                    <text-input
-                        label="Lobby name"
-                        data-field="lobbyName"
-                        placeholder="Enter a name for your lobby"
-                    ></text-input>
+    this.shadowRoot.innerHTML = "";
+    const html = `
+    <style>
+      @import url("/static/css/index.css");
+    </style>
+    <section class="card" aria-labelledby="create-lobby-heading">
+      <header class="card-header">
+        <h1 class="card-title" id="create-lobby-heading">Create a Lobby</h1>
+        <p class="card-description">Set up a lobby for teams to join and play trivia</p>
+      </header>
+      <main class="card-content" id="appContent">
+        <text-input
+          label="Lobby name"
+          data-field="lobbyName"
+          placeholder="Enter a name for your lobby"
+        ></text-input>
 
-                    <section class="input-group">
-                        <label for="maxParticipants"></label>
-                        <input
-                        type="range"
-                        min="1"
-                        max="5"
-                        value="1"
-                        id="maxParticipants"
-                        name="maxTeams"
-                        data-field="maxParticipants"
-                        />
-                    </section>
-                    <app-switch data-field="isPublic" label="Public Lobby" description="Visible to everyone in the lobby list"></app-switch>
-                    <select-categories data-field="categoryIds"></select-categories>
-                    <app-button id="createLobby" class="submit-button">Create lobby</app-button>
-                    </main>
-                    </section>
+        <section class="input-group">
+          <label for="maxParticipants"></label>
+          <input
+            type="range"
+            min="1"
+            max="5"
+            value="1"
+            id="maxParticipants"
+            name="maxTeams"
+            data-field="maxParticipants"
+          />
+        </section>
 
-`;
+        <app-switch
+          data-field="isPublic"
+          label="Public Lobby"
+          description="Visible to everyone in the lobby list"
+        ></app-switch>
+
+        <select-categories data-field="categoryIds"></select-categories>
+
+        <app-button id="createLobby" class="submit-button">Create lobby</app-button>
+      </main>
+    </section>
+  `;
+
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(
+      `<template>${html}</template>`,
+      "text/html"
+    );
+    const content = doc.querySelector("template").content;
+
+    this.shadowRoot.appendChild(content);
   }
 }
 
