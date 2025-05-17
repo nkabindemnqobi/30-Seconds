@@ -5,9 +5,8 @@ const matchMemberships = new Map();
 
 const handleSSEConnection = async (req, res, userId) => {
   console.log(userId, `user has connected to the server.`);
-  
-  const userIdString = req.params.googleId.toString();
-
+  const userIdFetched = await getUserIdFromGoogleId(req.params.googleId);
+  const userIdString = userIdFetched.toString();
 
   if (activeConnections.has(userIdString)) {
     console.log(`Closing existing SSE connection for user:`, userIdString);
@@ -88,7 +87,7 @@ const removeUserFromMatch = (joinCode, userId) => {
   }
 };
 
-const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId = null) => {
+const broadcastToMatch = (joinCode, data, eventType = "message", excludeUserId = null) => { 
   if (matchMemberships.has(joinCode)) {
     const userIdsInMatch = matchMemberships.get(joinCode);
     const message = `event: ${eventType}\ndata: ${JSON.stringify(data)}\n\n`;
