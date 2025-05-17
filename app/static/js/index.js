@@ -93,7 +93,6 @@ const router = async () => {
 };
 
 const attachEventListeners = () => {
-    initSSE();
     const lobbyForm = document.getElementById("lobbyForm");
     if (lobbyForm) {
         lobbyForm.addEventListener("submit", (e) => {

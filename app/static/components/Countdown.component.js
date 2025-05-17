@@ -17,6 +17,7 @@ export default class CountdownTimer extends HTMLElement {
     this.question = "";
     this.lobbyService = new LobbyService();
     this.currentQuestion = ""
+    this.currentPlayer = '' || 'No one is currently playing';
   }
 
   static get observedAttributes() {
@@ -44,6 +45,8 @@ export default class CountdownTimer extends HTMLElement {
     eventbus.on("round_started", (event) => {
       this.round = event.detail.roundInfo;
       this.currentQuestion = event.detail.roundInfo.hint;
+      const currentPlayer = event.detail.roundInfo.guessingAlias
+      this.currentPlayer = `${currentPlayer || 'someone else'} is playing`;
     });
   }
 
@@ -217,7 +220,7 @@ export default class CountdownTimer extends HTMLElement {
 
     const teamLabel = document.createElement("header");
     teamLabel.classList.add("team-label");
-    teamLabel.textContent = `${this.team}'s Turn`;
+    teamLabel.textContent = this.currentPlayer;
 
     const timer = document.createElement("figure");
     timer.classList.add("timer");
