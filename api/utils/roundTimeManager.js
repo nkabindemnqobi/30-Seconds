@@ -7,15 +7,15 @@ const {setRoundByTimeout, calculateAndFinaliseScores, isMatchOver} = require("..
 async function handleRoundTimeout(joinCode, roundId, guesserAlias, guesserId) {
   activeRoundTimers.delete(joinCode);
   try {
-    const updateRoundResult = await setRoundByTimeout(joinCode);
+    const updateRoundResult = await setRoundByTimeout(joinCode, roundId);
     if (updateRoundResult.success === true){
-      
       const gameScores = await calculateAndFinaliseScores(joinCode, false);
       broadcastToMatch(
         joinCode,
         {
           message: `Time's up! ${guesserAlias} failed to guess in time.`,
           roundId: roundId,
+          correctAnswer: updateRoundResult.data,
           guesserId: guesserId,
           gameScores
         },
