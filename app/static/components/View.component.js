@@ -17,7 +17,7 @@ export default class ViewLobbies extends HTMLElement {
   }
 
   async retrieveActivePublicLobbies() {
-    console.log("üpdating");
+    console.log("updating");
     this.lobbies = await this.lobbyService.getActivePublicLobbies();
     this.render();
   }
