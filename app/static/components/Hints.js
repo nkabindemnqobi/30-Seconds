@@ -1,4 +1,5 @@
 import LobbyService from "../../services/lobbies.service.js";
+import eventbus from "../js/sseManager/eventbus.js";
 
 export default class HintBox extends HTMLElement {
   constructor() {
@@ -10,6 +11,18 @@ export default class HintBox extends HTMLElement {
 
   connectedCallback() {
     this.render();
+    eventbus.on("round_started", this.preventUserFromPlaying.bind(this));
+    eventbus.on("your_turn", this.allowUserToPlay.bind(this));
+  }
+
+  preventUserFromPlaying() {
+    this.style.pointerEvents = "none";
+    this.style.opacity = "0.5";
+  }
+
+  allowUserToPlay() {
+    this.style.pointerEvents = "auto";
+    this.style.opacity = "1";
   }
 
   async fetchHint() {
