@@ -56,7 +56,7 @@ const handleMakeGuess = async (req, res, next) => {
     const result = await makeGuess(joinCode, userId, guess); 
 
     if (result.correct) { 
-      clearRoundTimer(joinCode);
+      clearRoundTimer(joinCode); 
       broadcastToMatch(joinCode, {
         message: `${result.guessingAlias} guessed it right!`,
         item: result.itemName,
