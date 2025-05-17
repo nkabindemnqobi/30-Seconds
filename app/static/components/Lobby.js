@@ -1,6 +1,7 @@
 import "./lobby.component.js";
 import "./Button.js";
 
+
 export default class LobbyView extends HTMLElement {
   constructor() {
     super();

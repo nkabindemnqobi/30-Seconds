@@ -8,6 +8,7 @@ import GamePlay from "./views/GamePlay.js";
 import { ApplicationConfiguration } from "../../models/app-config.js";
 import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
+import Result from "./views/ResultView.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -38,6 +39,8 @@ const router = async () => {
         { path: "/join-lobby", view: JoinLobby},
         { path: "/game-play", view: GamePlay},
         { path: "/lobby", view: Lobby},
+        { path: "/results", view:Result}
+
     ];
 
     const potentialMatches = routes.map(route => {

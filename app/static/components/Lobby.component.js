@@ -3,37 +3,29 @@ export default class TriviaLobby extends HTMLElement {
       super();
       this.attachShadow({ mode: "open" });
       this.lobbyData = {
-        success: true,
-        message: "Lobby information fetched successfully.",
-        data: {
-          match_id: 24,
-          join_code: "3E43119B",
-          lobby_name: "Cool Trivia Lobby",
-          is_public: false,
-          max_participants: 2,
-          started_datetime: "2025-05-15T11:15:43.710Z",
-          completed_datetime: null,
-          status_id: 1,
-          match_status: "Lobby",
-          participants: [
-            {
-              match_participant_id: 13,
-              user_id: 1,
-              alias: "Alpha",
-              match_participants_status_id: 1,
-              participant_status: "Creator"
-            },
-            {
-              match_participant_id: 14,
-              user_id: 2,
-              alias: "Beta",
-              match_participants_status_id: 1,
-              participant_status: "Participant"
-            },
-          ]
-        },
-        joiningUserId: 1
-      };
+        "success": true,
+        "message": "Lobby information fetched successfully.",
+        "data": {
+            "match_id": 17,
+            "join_code": "CF69D5CA",
+            "lobby_name": "new lobby",
+            "is_public": false,
+            "max_participants": 3,
+            "started_at": "2025-05-15T20:34:28.360Z",
+            "completed_at": null,
+            "status_id": 2,
+            "match_status": "Lobby",
+            "participants": [
+                {
+                    "match_participant_id": 17,
+                    "user_id": 2,
+                    "alias": "Tebogo Motibane",
+                    "match_participants_status_id": 2,
+                    "participant_status": "Creator"
+                }
+            ]
+        }
+    };
     }
   
     connectedCallback() {
@@ -109,7 +101,6 @@ export default class TriviaLobby extends HTMLElement {
         }
           
         .material-symbols-outlined {
-          font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
           font-size: 18px;
           vertical-align: middle;
         }

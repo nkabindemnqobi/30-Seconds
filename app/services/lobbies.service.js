@@ -11,7 +11,7 @@ export default class LobbyService {
   }
 
   async getActivePublicLobbies() {
-    return await this.baseService.get("home/lobbies?status=Lobby&public=true");
+    return await this.baseService.get("home/lobbies?status=Lobby&public=false");
   }
 
    async joinLobby(joinCode,id) {
