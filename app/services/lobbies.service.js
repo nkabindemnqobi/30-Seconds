@@ -31,4 +31,7 @@ export default class LobbyService {
   async getHint(joinCode) {
     return await this.baseService.get(`round/${joinCode}/get-hint`);
   }
+  async submitGuess(joinCode,guess){
+    return await this.baseService.post(`round/${joinCode}/guess`,{guess})
+  }
 }

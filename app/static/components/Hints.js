@@ -146,7 +146,7 @@ export default class HintBox extends HTMLElement {
       button.textContent = "Reveal hint";
 
       const reveal = async () => {
-        const hint = await this.fetchHint(i);
+        const hint = await this.fetchHint();
         this.hints[i] = hint;
 
         const hintText = document.createElement("p");
