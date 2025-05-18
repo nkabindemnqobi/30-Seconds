@@ -32,21 +32,25 @@ export class GamePlayComponent extends HTMLElement {
       this.joinCode = event.detail.joinCode;
     });
     eventbus.on("round_timeout", async (_event) => {
-      const answerResponse = this.shadowRoot.querySelector("#round-update");
-      answerResponse.classList.add("display");
-      answerResponse.textContent = "Times's up";
-      this.render();
-      this.addEventListeners();
-      this.startRound();
-      const timerComponent = this.shadowRoot.querySelector("countdown-timer");
-      const shadowRoot = timerComponent.shadowRoot;
-      const eyeButton = shadowRoot.querySelector(".eye-button");
-      eyeButton.click();
+      this.onNewRoundStarted("Time's up");
     });
     this.guess = "";
     this.shadowRoot.addEventListener("typing", this.onGuess.bind(this));
     const submitGuessButton = this.shadowRoot.querySelector("#submit-guess");
     submitGuessButton.addEventListener("click", this.submitGuess.bind(this));
+  }
+
+  onNewRoundStarted(message) {
+    const answerResponse = this.shadowRoot.querySelector("#round-update");
+    answerResponse.classList.add("display");
+    answerResponse.textContent = message;
+    this.render();
+    this.addEventListeners();
+    this.startRound();
+    const timerComponent = this.shadowRoot.querySelector("countdown-timer");
+    const shadowRoot = timerComponent.shadowRoot;
+    const eyeButton = shadowRoot.querySelector(".eye-button");
+    eyeButton.click();
   }
 
   async submitGuess() {
@@ -57,16 +61,7 @@ export class GamePlayComponent extends HTMLElement {
     const answerResponse = this.shadowRoot.querySelector("#round-update");
     answerResponse.classList.add("display");
     if (response.correct) {
-      const answerResponse = this.shadowRoot.querySelector("#round-update");
-      answerResponse.classList.add("display");
-      answerResponse.textContent = "Times's up";
-      this.render();
-      this.addEventListeners();
-      this.startRound();
-      const timerComponent = this.shadowRoot.querySelector("countdown-timer");
-      const shadowRoot = timerComponent.shadowRoot;
-      const eyeButton = shadowRoot.querySelector(".eye-button");
-      eyeButton.click();
+      this.onNewRoundStarted("Correct answer. Switching round...");
     } else {
       answerResponse.textContent = "Incorrect answer. Try again";
     }

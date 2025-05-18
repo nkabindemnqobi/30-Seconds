@@ -16,8 +16,8 @@ export default class CountdownTimer extends HTMLElement {
     this.isClueRevealed = false;
     this.question = "";
     this.lobbyService = new LobbyService();
-    this.currentQuestion = ""
-    this.currentPlayer = '' || 'No one is currently playing';
+    this.currentQuestion = "";
+    this.currentPlayer = "" || "No one is currently playing";
   }
 
   static get observedAttributes() {
@@ -43,11 +43,11 @@ export default class CountdownTimer extends HTMLElement {
   connectedCallback() {
     this.render();
     eventbus.on("round_started", (event) => {
-      this.render()
+      this.render();
       this.round = event.detail.roundInfo;
       this.currentQuestion = event.detail.roundInfo.hint;
-      const currentPlayer = event.detail.roundInfo.guessingAlias
-      this.currentPlayer = `${currentPlayer || 'someone else'} is playing`;
+      const currentPlayer = event.detail.roundInfo.guessingAlias;
+      this.currentPlayer = `${currentPlayer || "someone else"} is playing`;
     });
   }
 
@@ -70,22 +70,24 @@ export default class CountdownTimer extends HTMLElement {
 
   async revealQuestion() {
     const code = sessionStorage.getItem("joinCode");
-     await this.lobbyService.startRound(code);
-    if (!this.isClueRevealed) {
-      const loadingPlaceholder = document.createElement("div");
-      loadingPlaceholder.textContent = "Loading question...";
-      loadingPlaceholder.style.opacity = "0.7";
+    const response = await this.lobbyService.startRound(code);
+    if (response && response.hint) {
+      if (!this.isClueRevealed) {
+        const loadingPlaceholder = document.createElement("div");
+        loadingPlaceholder.textContent = "Loading question...";
+        loadingPlaceholder.style.opacity = "0.7";
 
-      const questionElement = this.shadowRoot.querySelector(".question");
-      if (questionElement) {
-        questionElement.innerHTML = "";
-        questionElement.appendChild(loadingPlaceholder);
+        const questionElement = this.shadowRoot.querySelector(".question");
+        if (questionElement) {
+          questionElement.innerHTML = "";
+          questionElement.appendChild(loadingPlaceholder);
+        }
+
+        this.question = await this.fetchQuestion();
+        this.isClueRevealed = true;
+
+        this.start();
       }
-
-      this.question = await this.fetchQuestion();
-      this.isClueRevealed = true;
-
-      this.start();
     }
   }
 
