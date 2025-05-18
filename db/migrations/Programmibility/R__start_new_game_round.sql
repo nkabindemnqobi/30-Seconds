@@ -3,16 +3,15 @@ IF OBJECT_ID('dbo.StartNewGameRound', 'P') IS NOT NULL
 GO
 
 CREATE OR ALTER PROCEDURE dbo.StartNewGameRound
-    @JoinCode VARCHAR(10)
+    @JoinCode VARCHAR(10),
+    @GuessingItemID INT
 AS
 BEGIN
     SET NOCOUNT ON;
-
     
     DECLARE @MatchID INT;
     DECLARE @GuessingUserID INT;
     DECLARE @GuessingUserAlias VARCHAR(20);
-    DECLARE @GuessingItemID INT;
     DECLARE @GuessingItemName VARCHAR(100);
     DECLARE @GuessingItemCategoryName VARCHAR(100);
     DECLARE @NewRoundID INT;
@@ -30,8 +29,6 @@ BEGIN
         END;
 
         BEGIN TRANSACTION; 
-
-        
         
         IF EXISTS (SELECT 1 FROM dbo.GameRounds WHERE match_id = @MatchID AND ended_at IS NULL)
         BEGIN
@@ -40,8 +37,6 @@ BEGIN
             RETURN;
         END;
 
-        
-        
         WITH EligiblePlayers AS (
             SELECT mp.user_id
             FROM dbo.MatchParticipants mp
@@ -56,10 +51,11 @@ BEGIN
             LEFT JOIN dbo.GameRounds gr ON gr.match_id = @MatchID AND gr.guessing_user_id = ep.user_id
             GROUP BY ep.user_id
         )
+
         SELECT TOP 1 @GuessingUserID = prc.user_id
         FROM PlayerRoundCounts prc
         ORDER BY prc.rounds_played ASC, NEWID() ASC; 
-
+        
         IF @GuessingUserID IS NULL
         BEGIN
             RAISERROR('Could not determine the next player for Match ID %d. No eligible players found.', 16, 1, @MatchID);
@@ -75,21 +71,6 @@ BEGIN
             ROLLBACK TRANSACTION;
             RETURN;
         END;
-
-        
-        SELECT TOP 1
-            @GuessingItemID = gi.id,
-            @GuessingItemName = gi.item_name,
-            @GuessingItemCategoryName = c.name
-        FROM dbo.GuessingItems gi
-        INNER JOIN dbo.Categories c ON c.id = gi.category_id
-        INNER JOIN dbo.CategoriesMatches cm ON cm.category_id = c.id AND cm.match_id = @MatchID
-        WHERE gi.id NOT IN (
-                SELECT DISTINCT gr.guessing_item_id
-                FROM dbo.GameRounds gr
-                WHERE gr.match_id = @MatchID AND gr.guessing_item_id IS NOT NULL
-            )
-        ORDER BY NEWID();
 
         IF @GuessingItemID IS NULL
         BEGIN
