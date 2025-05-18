@@ -2,38 +2,62 @@ import { ApplicationConfiguration } from "../../../models/app-config.js";
 import { User } from "../../../models/user.js";
 import EventBus from "./eventbus.js";
 
-export default function initSSE() {
-  const googleId = User.user.googleId;
-  const eventSource = new EventSource(`${ApplicationConfiguration.apiBaseUrl}/sse/connect/${googleId}`);
+let eventSource = null;
+let isInitialized = false;
 
-  eventSource.onopen = () => {
-    console.log("[SSE] Connection opened.");
-  };
+const initSSE = async () => {
 
-  eventSource.onerror = (err) => {
-    console.error("[SSE] Connection error:", err);
-  };
+  if (isInitialized && eventSource) {
+    console.log("[SSE] Already initialized");
+    return;
+  }
+  try {
+    const googleId = User.user.googleId;
+    const eventSource = new EventSource(`${ApplicationConfiguration.apiBaseUrl}/sse/connect/${googleId}`);
 
-  const supportedEvents = [
-    "match_created",
-    "game_started",
-    "round_started",
-    "your_turn",
-    "wrong_guess",
-    "round_timeout",
-    "game_ended",
-    "hint_requested"
-  ];
+    eventSource.onopen = () => {
+      console.log("[SSE] Connection opened.");
+    };
 
-  supportedEvents.forEach((eventName) => {
-    eventSource.addEventListener(eventName, (event) => {
-      try {
-        const data = JSON.parse(event.data);
-        console.log(`[SSE] ${eventName}:`, data);
-        EventBus.emit(eventName, data);
-      } catch (err) {
-        console.error(`[SSE] Failed to parse data for ${eventName}`, err);
-      }
+    const supportedEvents = [
+      "match_created",
+      "game_started",
+      "round_started",
+      "your_turn",
+      "wrong_guess",
+      "round_timeout",
+      "game_ended",
+      "hint_requested"
+    ];
+
+    supportedEvents.forEach((eventName) => {
+      eventSource.addEventListener(eventName, (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          console.log(`[SSE] ${eventName}:`, data);
+          EventBus.emit(eventName, data);
+        } catch (err) {
+          console.error(`[SSE] Failed to parse data for ${eventName}`, err);
+        }
+      });
     });
-  });
+  } catch (error) {
+    console.error('Failed to initialize SSE:', error);
+    isInitialized = false;
+  }
+
+};
+
+const isSSEInitialized = () => {
+  return isInitialized && eventSource !== null;
+};
+
+const cleanupSSE = () => {
+  if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+      isInitialized = false;
+  }
 }
+
+export { initSSE, isSSEInitialized, cleanupSSE };

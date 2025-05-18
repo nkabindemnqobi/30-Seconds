@@ -41,4 +41,14 @@ export class GoogleAuth {
             return error;
         }
     }
+
+    isAuthenticated(){
+        try {
+            const idToken = this.retrieveToken();
+            return !!idToken;
+        } catch (error) {
+            console.error('Error checking authentication:', error);
+            return false;
+        }
+    }
 }

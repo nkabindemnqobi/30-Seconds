@@ -1,6 +1,6 @@
 import LobbyService from "../../services/lobbies.service.js";
 import "./SelectCategories.component.js";
-import "./Switch.component.js";
+import "./Switch.component.js"; 
 import "./Button.js";
 import "./TextInput.component.js";
 import { User } from "../../models/user.js";
@@ -14,7 +14,7 @@ export default class LobbyForm extends HTMLElement {
     this.formData = {
       userId: User.user.googleId,
       categoryIds: [],
-      isPublic: true,
+      isPublic: false, 
       maxParticipants: 1,
       lobbyName: undefined,
     };
@@ -26,6 +26,11 @@ export default class LobbyForm extends HTMLElement {
       "updated",
       this.onFormValueChange.bind(this)
     );
+    this.shadowRoot.addEventListener(
+      "change",
+      this.onFormValueChange.bind(this)
+    );
+
     this.shadowRoot
       .querySelector("#createLobby")
       ?.addEventListener("click", this.createLobby.bind(this));
@@ -44,7 +49,7 @@ export default class LobbyForm extends HTMLElement {
 
         teamSlider.dispatchEvent(
           new CustomEvent("updated", {
-            detail: value,
+            detail: value, 
             bubbles: true,
             composed: true,
           })
@@ -57,18 +62,23 @@ export default class LobbyForm extends HTMLElement {
     try {
       await this.lobbyService.createLobby(this.formData);
       history.pushState({}, "", "/lobby");
-    } catch (_err) {}
+    } catch (_err) {
+      console.error("Error creating lobby:", _err);
+    }
   }
 
   onFormValueChange(event) {
     const field = event.target.dataset.field;
-    const value = event.detail;
-    console.log(value);
+    let value = event.detail;
+    if (value === undefined && event.target.id === 'maxParticipants' && event.type === 'change') {
+      value = parseInt(event.target.value, 10);
+      console.log(`[LobbyForm onFormValueChange] Value overridden from event.target.value for slider 'change' event:`, value, `(Type: ${typeof value})`);
+    }
     this.formData[field] = value;
   }
 
   render() {
-    this.shadowRoot.innerHTML = "";
+    this.shadowRoot.innerHTML = ""; 
     const html = `
     <style>
       @import url("/static/css/index.css");
@@ -93,15 +103,16 @@ export default class LobbyForm extends HTMLElement {
             max="5"
             value="1"
             id="maxParticipants"
-            name="maxTeams"
-            data-field="maxParticipants"
+            name="maxTeams" 
+            data-field="maxParticipants" 
           />
         </section>
 
         <app-switch
-          data-field="isPublic"
+          data-field="isPublic" 
           label="Public Lobby"
           description="Visible to everyone in the lobby list"
+          aria-checked="${this.formData.isPublic}" 
         ></app-switch>
 
         <select-categories data-field="categoryIds"></select-categories>

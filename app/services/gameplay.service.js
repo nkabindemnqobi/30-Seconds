@@ -21,11 +21,6 @@ export default class GameController {
       this.textInput = document.querySelector('text-input');
       this.submitButton = document.querySelector('#login-button');
       
-      if (!this.countdownTimer || !this.hintBox || !this.textInput || !this.submitButton) {
-        console.error('Could not find all required game components');
-        return;
-      }
-      
       this.textInput.setAttribute('placeholder', 'Enter your answer');
       this.textInput.setAttribute('label', 'Your Answer');
       
