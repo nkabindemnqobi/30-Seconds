@@ -1,4 +1,5 @@
 import { ApplicationConfiguration } from "../../../models/app-config.js";
+import { GameSession } from "../../../models/game-session.js";
 import { LobbyData } from "../../../models/LobbyData.js";
 import { User } from "../../../models/user.js";
 import EventBus from "./eventbus.js";
@@ -44,6 +45,9 @@ export const initSSE = async () => {
           else if (eventName === 'match_created'){
             console.log(data)
             LobbyData.setData(data.data);
+          }
+          else if(eventName  === "game_ended"){
+            GameSession.setData(data.scores)
           }
         } catch (err) {
           console.error(`[SSE] Failed to parse data for ${eventName}`, err);

@@ -9,6 +9,8 @@ import { GoogleAuth } from "../../services/google-auth.service.js";
 import Authenticated from "./views/Authenticated.js";
 import { initSSE, isSSEInitialized } from "./sseManager/sse.js";
 import PlayerLobby from "./views/PlayerLobby.js";
+import ResultView from "./views/ResultView.js";
+import eventbus from "./sseManager/eventbus.js";
 
 const pathToRegex = path => new RegExp("^" + path.replace(/\//g, "\\/").replace(/:\w+/g, "(.+)") + "$");
 const googleAuth = new GoogleAuth();
@@ -38,7 +40,8 @@ const router = async () => {
         { path: "/join-lobby", view: JoinLobby },
         { path: "/game-play", view: GamePlay },
         { path: "/lobby", view: Lobby },
-        { path: "/trivia-lobby", view: PlayerLobby}
+        { path: "/trivia-lobby", view: PlayerLobby},
+        { path: "/results", view:ResultView}
     ];
 
     const potentialMatches = routes.map(route => {
@@ -96,6 +99,12 @@ const router = async () => {
 };
 
 const attachEventListeners = () => {
+     eventbus.on("game_ended", (event) => {
+      eventbus.emit("game-ended", event);
+      history.pushState({}, "", "/results");
+      router();
+    });
+
     const lobbyForm = document.getElementById("lobbyForm");
     if (lobbyForm) {
         lobbyForm.addEventListener("submit", (e) => {
@@ -103,6 +112,7 @@ const attachEventListeners = () => {
             console.log("Form submitted");
         });
     }
+
 
     const loginButton = document.getElementById("login-button");
     if (loginButton) {
@@ -119,6 +129,9 @@ const attachEventListeners = () => {
                     window.location.href = ApplicationConfiguration.appConfig.authUrl;
                 }
             });
+        }
+        else if(currentView instanceof GamePlay){
+            currentView.afterRender()
         }
     }
 };

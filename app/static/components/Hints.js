@@ -127,7 +127,7 @@ export default class HintBox extends HTMLElement {
 
     const value = document.createElement("section");
     value.classList.add("hints-value");
-    value.textContent = "Value: 10 points";
+    value.textContent = "Max points : 1000 points";
 
     header.appendChild(title);
     header.appendChild(value);
