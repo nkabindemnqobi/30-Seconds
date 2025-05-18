@@ -161,3 +161,5 @@ export default class SelectCategories extends HTMLElement {
 }
 
 customElements.define("select-categories", SelectCategories);
+
+

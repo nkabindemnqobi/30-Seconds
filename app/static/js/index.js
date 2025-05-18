@@ -1,7 +1,6 @@
 import Dashboard from "./views/Dashboard.js";
 import CreateLobby from "./views/CreateLobby.js";
 import NotFound from "./views/NotFound.js";
-import Login from "./views/Login.js";
 import JoinLobby from "./views/JoinLobby.js";
 import Lobby from "./views/LobbyView.js";
 import GamePlay from "./views/GamePlay.js";
