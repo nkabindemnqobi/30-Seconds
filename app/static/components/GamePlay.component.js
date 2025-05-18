@@ -18,21 +18,68 @@ export class GamePlayComponent extends HTMLElement {
   connectedCallback() {
     document.title = "30 Seconds - Game Play";
     this.render();
-    this.gameController.init();
+    this.addEventListeners();
+  }
+
+  addEventListeners() {
     eventbus.on("game_started", async (event) => {
       const { joinCode } = event.detail;
       this.joinCode = joinCode;
       const timer = document.querySelector("countdown-timer");
-
       timer.joinCode = joinCode;
     });
     eventbus.on("lobby-started", (event) => {
       this.joinCode = event.detail.joinCode;
     });
+    eventbus.on("round_timeout", async (_event) => {
+      const answerResponse = this.shadowRoot.querySelector("#round-update");
+      answerResponse.classList.add("display");
+      answerResponse.textContent = "Times's up";
+      this.render();
+      this.addEventListeners();
+      this.startRound();
+      const timerComponent = this.shadowRoot.querySelector("countdown-timer");
+      const shadowRoot = timerComponent.shadowRoot;
+      const eyeButton = shadowRoot.querySelector(".eye-button");
+      eyeButton.click();
+    });
+    this.guess = "";
+    this.shadowRoot.addEventListener("typing", this.onGuess.bind(this));
+    const submitGuessButton = this.shadowRoot.querySelector("#submit-guess");
+    submitGuessButton.addEventListener("click", this.submitGuess.bind(this));
   }
 
-  onFormValueChange(event) {
-    this.answer = event.detail
+  async submitGuess() {
+    const response = await this.lobbyService.submitGuess(
+      sessionStorage.getItem("joinCode"),
+      this.guess
+    );
+    const answerResponse = this.shadowRoot.querySelector("#round-update");
+    answerResponse.classList.add("display");
+    if (response.correct) {
+      const answerResponse = this.shadowRoot.querySelector("#round-update");
+      answerResponse.classList.add("display");
+      answerResponse.textContent = "Times's up";
+      this.render();
+      this.addEventListeners();
+      this.startRound();
+      const timerComponent = this.shadowRoot.querySelector("countdown-timer");
+      const shadowRoot = timerComponent.shadowRoot;
+      const eyeButton = shadowRoot.querySelector(".eye-button");
+      eyeButton.click();
+    } else {
+      answerResponse.textContent = "Incorrect answer. Try again";
+    }
+  }
+
+  async startRound() {
+    return await this.lobbyService.startRound(
+      sessionStorage.getItem("joinCode")
+    );
+  }
+
+  onGuess(event) {
+    this.guess = event.detail;
   }
 
   render() {
@@ -43,10 +90,12 @@ export class GamePlayComponent extends HTMLElement {
           team="Team Red"
           question-id="q1">
         </countdown-timer>
+ 
         <main class="card-content" id="appContent">
           <hint-box value="10 points"></hint-box>  
-          <text-input></text-input>      
-          <app-button leftIcon="check" id="login-button" class="blue-button">Submit</app-button>
+          <text-input data-field="guess" id="guess"></text-input>    
+                <p id="round-update" class="hidden"></p>
+          <app-button leftIcon="check" id="submit-guess" class="blue-button">Submit</app-button>
         </main>
       </section>
     `;
@@ -66,6 +115,8 @@ export class GamePlayComponent extends HTMLElement {
           background-color: #007bff;
           color: white;
         }
+          .hidden{visibility:hidden}
+          .display{visibility : visible}
       </style>
     `;
 

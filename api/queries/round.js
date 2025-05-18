@@ -102,7 +102,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     const normalizedAnswer = round.item_name.toLowerCase().trim();
 
     const isCorrect = normalizedGuess === normalizedAnswer;
-
+    
     if (isCorrect) {
       await new sql.Request(transaction).input("RoundId", round.roundId).query(`
           UPDATE GameRounds
@@ -229,16 +229,17 @@ const getHint = async (joinCode, userId) => {
 };
 
 
-const setRoundByTimeout = async (joinCode) => {
+const setRoundByTimeout = async (joinCode, roundId) => {
   const query = `
       EXEC dbo.HandleGameRoundTimeout
-          @JoinCode = @JoinCode
+          @JoinCode = @JoinCode,
+          @RoundID = @RoundID
       `;
-  const params = { JoinCode: joinCode };
+  const params = { JoinCode: joinCode, RoundID: roundId };
 
   try {
     const result = await executeQuery(query, params); 
-    return {success: true}
+    return {success: true, data: result[0].item_name}
   } catch (error) {
     console.error(`[setRoundByTimeout] Error executing dbo.HandleGameRoundTimeout for joinCode '${joinCode}':`, error.message);
     throw error; 

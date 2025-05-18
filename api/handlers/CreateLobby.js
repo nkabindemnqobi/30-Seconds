@@ -23,7 +23,6 @@ const handleCreateLobby = async (req, res, next) => {
 
         const userId = await getUserIdFromGoogleId(req.user.sub);
         const { categoryIds, isPublic, maxParticipants, lobbyName } = req.body;
-
         
         if (
             !userId ||

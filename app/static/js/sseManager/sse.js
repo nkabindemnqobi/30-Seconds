@@ -19,16 +19,17 @@ const initSSE = async () => {
       console.log("[SSE] Connection opened.");
     };
 
-    const supportedEvents = [
-      "match_created",
-      "game_started",
-      "round_started",
-      "your_turn",
-      "wrong_guess",
-      "round_timeout",
-      "game_ended",
-      "hint_requested"
-    ];
+  const supportedEvents = [
+    "match_created",
+    "game_started",
+    "round_started",
+    "your_turn",
+    "round_complete",
+    "wrong_guess",
+    "round_timeout",
+    "game_ended",
+    "hint_requested"
+  ];
 
     supportedEvents.forEach((eventName) => {
       eventSource.addEventListener(eventName, (event) => {
