@@ -1,4 +1,4 @@
-import LobbyService from "../../services/Lobbies.service.js";
+import LobbyService from "../../services/lobbies.service.js";
 import { User } from "../../models/user.js";
 import "./Button.js";
 import "./TextInput.component.js";
