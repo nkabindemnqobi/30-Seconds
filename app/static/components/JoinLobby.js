@@ -137,8 +137,8 @@ export default class JoinWithCode extends HTMLElement {
             required
           ></text-input>
           
-          <p id="error-message"></p>              
-          
+          <p id="error-message"></p>  
+                      
           <article class="how-to">
             <h2>How to Join</h2>
             <ul>

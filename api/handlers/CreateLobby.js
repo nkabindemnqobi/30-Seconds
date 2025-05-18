@@ -64,10 +64,9 @@ const handleCreateLobby = async (req, res, next) => {
         sendToUser(userId, resultRows, "match_created");
         res.status(201).json({ data: resultRows });
     } catch (error) {
-        return next(formatErrorResponse(getUnexpectedErrorStatus(error), error));
+        return next(formatErrorResponse(getUnexpectedErrorStatus(error)));
     }
 };
- 
  
 module.exports = {
     getAllCategories,

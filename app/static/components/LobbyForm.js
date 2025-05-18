@@ -19,6 +19,7 @@ export default class LobbyForm extends HTMLElement {
       maxParticipants: 1,
       lobbyName: undefined,
     };
+    
   }
 
   connectedCallback() {
@@ -57,11 +58,33 @@ export default class LobbyForm extends HTMLElement {
         );
       });
     }
+    const createLobbyButton = this.shadowRoot.getElementById("createLobby");
+    const isValid = this.formData.lobbyName && this.formData.categoryIds.length > 0;
+    if(createLobbyButton && !isValid) {
+      createLobbyButton.setAttribute('disabled', 'true');
+    }
   }
 
   async createLobby() {
     try {
+      const createLobbyButton = this.shadowRoot.getElementById("createLobby");
+      const isValid = this.formData.lobbyName && this.formData.categoryIds.length > 0;
+      const submitLobbyError = this.shadowRoot.getElementById('error-message-submit');
+
+      if (createLobbyButton || isValid) {
+        submitLobbyError.textContent = '';
+      }
+
+      if (!createLobbyButton || !isValid) {
+        submitLobbyError.textContent = 'Please select 1 or more categories or input a lobby name and try again.';
+        return;
+      }
+
+      const errorMsg = this.shadowRoot.querySelector("#error-message");
       const createLobby = await this.lobbyService.createLobby(this.formData);
+      if(!createLobby.data) {
+        errorMsg.textContent = createLobby.message;
+      }
       if(createLobby.data.success) {
         history.pushState({}, "", "/lobby");
         router();
@@ -74,6 +97,7 @@ export default class LobbyForm extends HTMLElement {
   onFormValueChange(event) {
     const field = event.target.dataset.field;
     let value = event.detail;
+    
     if (value === undefined && event.target.id === 'maxParticipants' && event.type === 'change') {
       value = parseInt(event.target.value, 10);
       console.log(`[LobbyForm onFormValueChange] Value overridden from event.target.value for slider 'change' event:`, value, `(Type: ${typeof value})`);
@@ -86,6 +110,14 @@ export default class LobbyForm extends HTMLElement {
     const html = `
     <style>
       @import url("/static/css/index.css");
+
+      #error-message,
+      #error-message-submit {
+          color: #e53935;
+          font-size: 0.85rem;
+          margin-top: 0.5rem;
+          min-height: 1.2rem;
+      }
     </style>
     <section class="card" aria-labelledby="create-lobby-heading">
       <header class="card-header">
@@ -98,7 +130,8 @@ export default class LobbyForm extends HTMLElement {
           data-field="lobbyName"
           placeholder="Enter a name for your lobby"
         ></text-input>
-
+        
+        <p id="error-message"></p>
         <section class="input-group">
           <label for="maxParticipants"></label>
           <input
@@ -121,7 +154,8 @@ export default class LobbyForm extends HTMLElement {
 
         <select-categories data-field="categoryIds"></select-categories>
 
-        <app-button id="createLobby" class="submit-button">Create lobby</app-button>
+        <p id="error-message-submit"></p>
+        <app-button id="createLobby" class="submit-button" disabled>Create lobby</app-button>
       </main>
     </section>
   `;
