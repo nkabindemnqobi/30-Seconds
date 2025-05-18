@@ -1,4 +1,5 @@
 import { ApplicationConfiguration } from "../../../models/app-config.js";
+import { LobbyData } from "../../../models/LobbyData.js";
 import { User } from "../../../models/user.js";
 import EventBus from "./eventbus.js";
 
@@ -37,6 +38,9 @@ const initSSE = async () => {
           const data = JSON.parse(event.data);
           console.log(`[SSE] ${eventName}:`, data);
           EventBus.emit(eventName, data);
+          if(eventName === 'player_join'){
+            LobbyData.setData(data.lobbyData.data);
+          }
         } catch (err) {
           console.error(`[SSE] Failed to parse data for ${eventName}`, err);
         }

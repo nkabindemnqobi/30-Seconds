@@ -1,31 +1,19 @@
 import "./Lobby.component.js";
 import "./Button.js";
-import eventbus from "../js/sseManager/eventbus.js";
+import { LobbyData } from "../../models/LobbyData.js";
 
 export default class TriviaLobby extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
     this.lobbyData = {
-    data: {
-        participants: [],
-        max_participants: 0,
-        join_code: "",
-        lobby_name: "Loading...",
-        started_at: new Date().toISOString(),
-      },
+    data: LobbyData.data,
     };
   }
 
   connectedCallback() {
     this.render();
     this.setupEventListeners();
-
-    eventbus.on("player_join", (event) => {
-
-      this.lobbyData = event.detail;
-      this.render();
-    });
   }
 
   disconnectedCallback() {
