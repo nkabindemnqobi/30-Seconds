@@ -8,25 +8,26 @@ export default class Chip extends HTMLElement {
 
   connectedCallback() {
     this.labelText = this.getAttribute("label");
-
     this.render();
     this.setupListener();
   }
 
   render() {
     importStylesheet(this.shadowRoot, "/static/css/lists.css");
-    const ul = document.createElement("ul");
+    this.shadowRoot.innerHTML = ""; 
+
     const li = document.createElement("li");
     li.textContent = this.labelText;
+    li.setAttribute("role", "checkbox");
 
     if (this.hasAttribute("selected")) {
       li.classList.add("selected");
       li.setAttribute("aria-checked", "true");
+    } else {
+      li.setAttribute("aria-checked", "false");
     }
 
-    ul.appendChild(li);
-
-    this.shadowRoot.appendChild(ul);
+    this.shadowRoot.appendChild(li);
   }
 
   setupListener() {
@@ -48,3 +49,4 @@ export default class Chip extends HTMLElement {
 }
 
 customElements.define("app-list", Chip);
+

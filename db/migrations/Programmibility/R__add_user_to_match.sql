@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.AddUserToMatch', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.AddUserToMatch;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.AddUserToMatch
     @UserID INT,
     @MatchID INT

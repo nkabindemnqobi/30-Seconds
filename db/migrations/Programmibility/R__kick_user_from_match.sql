@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.KickUserFromMatch', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.KickUserFromMatch;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.KickUserFromMatch
     @SourceUserID INT,          
     @MatchID INT,               

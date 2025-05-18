@@ -62,9 +62,8 @@ export default class LobbyForm extends HTMLElement {
   async createLobby() {
     try {
       const createLobby = await this.lobbyService.createLobby(this.formData);
-      console.log(createLobby);
       if(createLobby.data.success) {
-        history.pushState({}, "", "/game-play");
+        history.pushState({}, "", "/lobby");
         router();
       }
     } catch (_err) {

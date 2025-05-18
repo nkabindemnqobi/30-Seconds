@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.InsertHintForRound', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.InsertHintForRound;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.InsertHintForRound
     @RoundID INT,
     @HintText VARCHAR(200)

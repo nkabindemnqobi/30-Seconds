@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.CalculateAndFinalizeMatchScores', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.CalculateAndFinalizeMatchScores;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.CalculateAndFinalizeMatchScores
     @JoinCode VARCHAR(10),
     @FinalizeMatch BIT 

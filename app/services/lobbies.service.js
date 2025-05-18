@@ -3,16 +3,15 @@ import BaseService from "./shared.service.js";
 export default class LobbyService {
   constructor() {
     this.baseService = new BaseService();
-    console.log(this.baseService);
   }
 
   async createLobby(requestBody) {
     const response = await this.baseService.post("create-lobby", requestBody);
-    return response
+    return response;
   }
 
   async getActivePublicLobbies() {
-    return await this.baseService.get("home/lobbies?status=Lobby&public=true");
+    return await this.baseService.get("home/lobbies?status=Lobby&public=false");
   }
 
   async joinLobby(joinCode, id) {
@@ -29,7 +28,7 @@ export default class LobbyService {
     return await this.baseService.post(`round/${joinCode}/start-round`);
   }
 
-  async getHint(joinCode){
-    return await this.baseService.get(`round/${joinCode}/get-hint`)
+  async getHint(joinCode) {
+    return await this.baseService.get(`round/${joinCode}/get-hint`);
   }
 }
