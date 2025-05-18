@@ -5,6 +5,8 @@ import "./TextInput.component.js";
 import GameController from "../../services/gameplay.service.js";
 import eventbus from "../js/sseManager/eventbus.js";
 import LobbyService from "../../services/lobbies.service.js";
+import router from "../js/index.js";
+import { GameSession } from "../../models/game-session.js";
 
 export class GamePlayComponent extends HTMLElement {
   constructor() {
@@ -19,6 +21,12 @@ export class GamePlayComponent extends HTMLElement {
     document.title = "30 Seconds - Game Play";
     this.render();
     this.addEventListeners();
+    eventbus.on("game_ended", (event) => {
+      this.removeEventListener('round_timeout',this.onNewRoundStarted)
+      // GameSession.setData(event.detail.scores);
+      history.pushState({}, "", "/results");
+      router();
+    });
   }
 
   addEventListeners() {
