@@ -86,7 +86,7 @@ export default class LobbyForm extends HTMLElement {
         errorMsg.textContent = createLobby.message;
       }
       if(createLobby.data.success) {
-        history.pushState({}, "", "/lobby");
+        history.pushState({}, "", "/trivia-lobby");
         router();
       }
     } catch (_err) {

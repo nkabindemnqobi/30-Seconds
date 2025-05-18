@@ -16,7 +16,7 @@ export default class LobbyCard extends HTMLElement {
   this.render();
   this.addEventListener("click", async () => {
     await this.joinLobby(this.lobby.joinCode, 1);
-    history.pushState({}, "", "/lobby");
+    history.pushState({}, "", "/trivia-lobby");
     router();
 
     setTimeout(() => {
