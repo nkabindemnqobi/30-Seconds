@@ -21,6 +21,9 @@ const handleSSEConnection = async (req, res, userId) => {
     }
   }
 
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000"); 
+  res.setHeader("Access-Control-Allow-Credentials", "true");
+
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
     "Cache-Control": "no-cache",
