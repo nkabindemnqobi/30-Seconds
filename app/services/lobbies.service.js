@@ -28,7 +28,7 @@ export default class LobbyService {
   }
 
   async startRound(joinCode) {
-    console.log(LobbyData.data.join_codee)
+    console.log(LobbyData.data.join_code)
     return await this.baseService.post(`round/${LobbyData.data.join_code}/start-round`);
   }
 

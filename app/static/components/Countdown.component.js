@@ -1,23 +1,24 @@
 import LobbyService from "../../services/lobbies.service.js";
 import eventbus from "../js/sseManager/eventbus.js";
+import { LobbyData } from "../../models/LobbyData.js";
 
 export default class CountdownTimer extends HTMLElement {
-  constructor() {
+    constructor() {
     super();
     this.attachShadow({ mode: "open" });
 
     this.seconds = parseInt(this.getAttribute("seconds") || 30);
-    this.team = this.getAttribute("team") || "Team Red";
-    this.team = this.getAttribute("team") || "Team Red";
-    this.joinCode = this.getAttribute("joinCode");
+    this.team = this.getAttribute("team") || "Team Red"; 
+    this.joinCode = this.getAttribute("joinCode"); 
     this.remaining = this.seconds;
     this.isRunning = false;
     this.interval = null;
     this.isClueRevealed = false;
-    this.question = "";
+    this.question = ""; 
     this.lobbyService = new LobbyService();
-    this.currentQuestion = "";
-    this.currentPlayer = "" || "No one is currently playing";
+    this.currentQuestion = ""; 
+    this.currentPlayer = "Waiting for round to start..."; 
+    
   }
 
   static get observedAttributes() {
@@ -41,13 +42,24 @@ export default class CountdownTimer extends HTMLElement {
   }
 
   connectedCallback() {
+    if (!this.joinCode && this.hasAttribute("joinCode")) {
+        this.joinCode = this.getAttribute("joinCode");
+    }
     this.render();
     eventbus.on("round_started", (event) => {
+      console.log("EVENT -->",event)
+      const { roundInfo } = event.detail;
+      console.log("ROUND INFO -->",roundInfo)
+      this.round = roundInfo;
+      this.currentQuestion = roundInfo.hint;
+      console.log("CURRENT QUESTION -->",this.currentQuestion);
+      const currentPlayer = roundInfo.guessingAlias;
+      this.currentPlayer = `${currentPlayer}` || "someone else is playing";
+      this.question = this.currentQuestion;
+      this.isClueRevealed = true;
+
       this.render();
-      this.round = event.detail.roundInfo;
-      this.currentQuestion = event.detail.roundInfo.hint;
-      const currentPlayer = event.detail.roundInfo.guessingAlias;
-      this.currentPlayer = `${currentPlayer || "someone else"} is playing`;
+      this.start();
     });
   }
 
@@ -69,24 +81,38 @@ export default class CountdownTimer extends HTMLElement {
   }
 
   async revealQuestion() {
-    const code = sessionStorage.getItem("joinCode");
-    const response = await this.lobbyService.startRound(code);
-    if (response && response.hint) {
-      if (!this.isClueRevealed) {
-        const loadingPlaceholder = document.createElement("div");
-        loadingPlaceholder.textContent = "Loading question...";
-        loadingPlaceholder.style.opacity = "0.7";
-
-        const questionElement = this.shadowRoot.querySelector(".question");
-        if (questionElement) {
-          questionElement.innerHTML = "";
-          questionElement.appendChild(loadingPlaceholder);
+    
+    const code = this.joinCode || LobbyData.data.join_code;
+    if (!code) {
+      console.error("Cannot start round: Join code is missing.");
+      
+      return;
+    }
+    const eyeButton = this.shadowRoot.querySelector(".eye-button");
+    if (eyeButton) {
+      eyeButton.disabled = true;
+    }
+    try {
+      console.log(`Requesting backend to start round for lobby: ${code}`);
+      const response = await this.lobbyService.startRound(code);
+      if (response && response.error) { 
+        console.error("API Error starting round:", response.error);
+        if (eyeButton && !this.isClueRevealed) { 
+          eyeButton.disabled = false;
         }
-
-        this.question = await this.fetchQuestion();
-        this.isClueRevealed = true;
-
-        this.start();
+      } else if (!response || (response.status && response.status >= 400)) { 
+        console.error("Failed to trigger startRound on backend.", response);
+        if (eyeButton && !this.isClueRevealed) {
+            eyeButton.disabled = false;
+        }
+      } else {
+        console.log("startRound request sent to backend. Waiting for 'round_started' SSE event.");
+      }
+    } catch (error) {
+      console.error("Exception when calling startRound service:", error);
+      
+      if (eyeButton && !this.isClueRevealed) {
+        eyeButton.disabled = false;
       }
     }
   }
@@ -247,7 +273,7 @@ export default class CountdownTimer extends HTMLElement {
     if (this.isClueRevealed) {
       questionElement.textContent = this.question;
     } else {
-      // Add a prompt text below the question placeholder
+      questionElement.innerHTML = "";
       const promptText = document.createElement("div");
       promptText.classList.add("prompt-text");
       promptText.textContent =
