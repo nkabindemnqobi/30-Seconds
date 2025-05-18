@@ -28,20 +28,24 @@ async function fetchHintFromDb(itemName, categoryId, hintOrder) {
       JOIN GuessingItems gi ON gi.id = h.guessing_item_id
       WHERE gi.item_name = @ItemName AND gi.category_id = @CategoryId AND h.hint_order = @HintOrder
     `
-  const dbHint = await executeQuery(query, params);
-  const result = {
-    hint: dbHint.recordset[0]?.hint_text,
+  try {
+    const dbHint = await executeQuery(query, params);
+    const result = {
+    hintText: dbHint[0]?.hint_text,
     saveHint: false,
   };
 
   return result;
+  } catch (error) {
+    throw new Error(error)
+  }
+  
 }
 
 async function generateHint(itemName, category, hintCount, categoryId) {
   const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
   const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 
   Consider one of the following approaches for the hint:
-  * A metaphorical or analogous description.
   * If it's an object, comment on what it's used for, or what it's not used for.
   * A hint focusing on a less obvious characteristic or a surprising fact.
   * A hint describing what it's often confused with, but highlighting a key difference. 
@@ -78,5 +82,6 @@ async function generateHint(itemName, category, hintCount, categoryId) {
 }
 
 module.exports = {
-  generateHint
+  generateHint,
+  fetchHintFromDb
 };

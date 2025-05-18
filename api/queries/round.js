@@ -1,14 +1,98 @@
 const { sql } = require("../db/pool");
 const { executeQuery } = require("../db/query");
 const { withTransaction } = require("../db/transaction");
-const { generateHint } = require("../services/aiGenerator");
+const { generateHint, fetchHintFromDb } = require("../services/aiGenerator");
+const { timeoutPromise } = require("../utils/AIFallBackTimeout");
+
+const AI_TIMEOUT = 3000;
 
 const startRound = async (joinCode) => {
+  let guessingItemInfo = {};
+  try {
+    guessingItemInfo = await withTransaction(async ({ transaction }) => {
+      const matchQuery = await new sql.Request(transaction)
+        .input("JoinCode", joinCode)
+        .query(`SELECT id FROM Matches WHERE join_code = @JoinCode`);
+      if (matchQuery.recordset.length === 0) {
+        throw new Error("Invalid join code");
+      }
+      const matchId = matchQuery.recordset[0].id;
+      const guessingItemResult = await new sql.Request(transaction).input(
+        "MatchId",
+        matchId
+      ).query(`
+        SELECT TOP 1
+             gi.id as guessingItemId,
+             gi.item_name as guessingItemName,
+             gi.category_id as guessingItemCategoryId,
+             c.name as guessingItemCategory
+        FROM dbo.GuessingItems gi
+        INNER JOIN dbo.Categories c ON c.id = gi.category_id
+        INNER JOIN dbo.CategoriesMatches cm ON cm.category_id = c.id AND cm.match_id = @MatchID
+        WHERE gi.id NOT IN (
+            SELECT DISTINCT gr.guessing_item_id
+            FROM dbo.GameRounds gr
+            WHERE gr.match_id = @MatchID AND gr.guessing_item_id IS NOT NULL
+        )
+        ORDER BY NEWID();
+      `);
+      if (guessingItemResult.recordset.length === 0) {
+        throw new Error("Failed to get guessing item");
+      }
+      return {
+        guessingItemId: guessingItemResult.recordset[0].guessingItemId,
+        guessingItemName: guessingItemResult.recordset[0].guessingItemName,
+        guessingItemCategory:
+          guessingItemResult.recordset[0].guessingItemCategory,
+        guessingItemCategoryId:
+          guessingItemResult.recordset[0].guessingItemCategoryId,
+      };
+    });
+  } catch (error) {
+    throw new Error("Query for guessing item selection has failed.");
+  }
+
+  const fallback = {
+    hintText: "FAILURE",
+    saveHint: null,
+  };
+  let hint = "";
+  try {
+    hint = await Promise.race([
+      generateHint(
+        guessingItemInfo.guessingItemName,
+        guessingItemInfo.guessingItemCategory,
+        1,
+        guessingItemInfo.guessingItemCategoryId
+      ),
+      timeoutPromise(AI_TIMEOUT, fallback),
+    ]);
+  } catch (error) {
+    console.error("Error generating hint:", error);
+  }
+
+  try {
+    if (hint === fallback) {
+      hint = await fetchHintFromDb(
+        guessingItemInfo.guessingItemName,
+        guessingItemInfo.guessingItemCategoryId,
+        1
+      );
+    }
+  } catch (error) {
+    throw new Error("Failure fetching hint from the database");
+  }
+
   const startQuery = `
     EXEC dbo.StartNewGameRound
-      @JoinCode = @JoinCode;
+      @JoinCode = @JoinCode,
+      @GuessingItemID = @GuessingItemID
   `;
-  const startParams = { JoinCode: joinCode };
+
+  const startParams = {
+    JoinCode: joinCode,
+    GuessingItemID: guessingItemInfo.guessingItemId,
+  };
 
   try {
     const dbResult = await executeQuery(startQuery, startParams);
@@ -22,31 +106,26 @@ const startRound = async (joinCode) => {
     const roundDetails = dbResult[0];
     const roundId = roundDetails.round_id;
 
-    const { hintText, saveHint } = await generateHint(
-      roundDetails.guessing_item_name,
-      roundDetails.guessing_item_category_name,
-      1,
-      roundDetails.guessing_item_category_id
-    );
-
-    if (!hintText) {
+    if (!hint.hintText) {
       throw new Error("No hint could be generated or retrieved from fallback.");
     }
 
-    let insertedHintText = hintText;
+    let insertedHintText = hint.hintText;
 
-    if (saveHint) {
+    if (hint.saveHint) {
       const hintQuery = `
         EXEC dbo.InsertHintForRound
           @RoundID = @RoundID,
           @HintText = @HintText;
       `;
-      const hintParams = { RoundID: roundId, HintText: hintText };
+      const hintParams = { RoundID: roundId, HintText: hint.hintText };
 
       const hintResult = await executeQuery(hintQuery, hintParams);
 
       if (!hintResult || hintResult.length === 0) {
-        throw new Error("Hint was generated but failed to be inserted into the database.");
+        throw new Error(
+          "Hint was generated but failed to be inserted into the database."
+        );
       }
 
       insertedHintText = hintResult[0].inserted_hint_text;
@@ -56,17 +135,18 @@ const startRound = async (joinCode) => {
       roundId: roundDetails.round_id,
       guessingUserId: roundDetails.guessing_user_id,
       guessingAlias: roundDetails.guessing_user_alias,
-      itemCategory: roundDetails.guessing_item_category_name,
+      itemCategory: guessingItemInfo.guessingItemCategory,
       hint: insertedHintText,
     };
   } catch (error) {
-    console.error(`[startRound error for joinCode ${joinCode}]: ${error.message}`);
+    console.error(
+      `[startRound error for joinCode ${joinCode}]: ${error.message}`
+    );
     throw error;
   }
 };
 
 const makeGuess = async (joinCode, userId, guessInput) => {
-  
   return await withTransaction(async ({ transaction }) => {
     const matchQuery = await new sql.Request(transaction)
       .input("JoinCode", joinCode)
@@ -93,16 +173,16 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const round = roundQuery.recordset[0];
-    
+
     if (round.guessing_user_id !== userId) {
-      throw new Error('It is not your turn to guess');
+      throw new Error("It is not your turn to guess");
     }
 
     const normalizedGuess = guessInput.toLowerCase().trim();
     const normalizedAnswer = round.item_name.toLowerCase().trim();
 
     const isCorrect = normalizedGuess === normalizedAnswer;
-    
+
     if (isCorrect) {
       await new sql.Request(transaction).input("RoundId", round.roundId).query(`
           UPDATE GameRounds
@@ -131,7 +211,6 @@ const isMatchOver = async (joinCode) => {
 
   const isMatchOverResult = await executeQuery(query, params);
   if (isMatchOverResult[0]) {
-    
     return isMatchOverResult[0];
   } else {
     throw new Error(
@@ -146,11 +225,11 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
               @JoinCode = @JoinCode,
               @FinalizeMatch = @FinalizeMatch
         `;
-  const params = { JoinCode: joinCode, FinalizeMatch: finalizeMatch};
+  const params = { JoinCode: joinCode, FinalizeMatch: finalizeMatch };
 
   const calculateMatchScoresResult = await executeQuery(query, params);
   if (calculateMatchScoresResult.length !== 0) {
-    return calculateMatchScoresResult; 
+    return calculateMatchScoresResult;
   } else {
     throw new Error(
       "Stored procedure did not return a result. Possible invalid join code or logic issue."
@@ -165,7 +244,7 @@ const getHint = async (joinCode, userId) => {
   );
 
   if (!matchResult || matchResult.length === 0) {
-    throw new Error('Invalid join code');
+    throw new Error("Invalid join code");
   }
 
   const matchId = matchResult[0].id;
@@ -183,33 +262,56 @@ const getHint = async (joinCode, userId) => {
     JOIN Categories c ON gi.category_id = c.id
     WHERE gr.match_id = @matchId AND gr.ended_at IS NULL
   `;
-  
+
   const roundResult = await executeQuery(getActiveRoundQuery, { matchId });
 
   if (!roundResult || roundResult.length === 0) {
-    throw new Error('No active round in progress');
+    throw new Error("No active round in progress");
   }
 
   const round = roundResult[0];
 
   if (round.guessing_user_id !== userId) {
-    throw new Error('Not your turn to request a hint');
+    throw new Error("Not your turn to request a hint");
+  }
+  ////////////////////////////////////
+  const fallback = {
+    hintText: "FAILURE",
+    saveHint: null,
+  };
+  let hint = "";
+  try {
+    hint = await Promise.race([
+      generateHint(
+        round.item_name,
+        round.category,
+        round.hintCount,
+        round.category_id
+      ),
+      timeoutPromise(AI_TIMEOUT, fallback),
+    ]);
+  } catch (error) {
+    console.error("Error generating hint:", error);
   }
 
-  const { hintText, saveHint } = await generateHint(
-    round.item_name,
-    round.category,
-    round.hintCount,
-    round.category_id
-  );
+  try {
+    if (hint === fallback) {
+      hint = await fetchHintFromDb(
+        round.item_name,
+        round.category_id,
+        round.hintCount+2
+      );
+    }
+  } catch (error) {
+    throw new Error("Failure fetching hint from the database");
+  }
 
-  if (!hintText) {
+  if (!hint.hintText) {
     throw new Error("No hint could be generated or retrieved.");
   }
 
-  let insertedHint = hintText;
+  let insertedHint = hint.hintText;
 
-  if (saveHint) {
     const hintQuery = `
       EXEC dbo.InsertHintForRound
         @RoundID = @RoundID,
@@ -217,35 +319,38 @@ const getHint = async (joinCode, userId) => {
     `;
     const hintParams = {
       RoundID: round.roundId,
-      HintText: hintText
+      HintText: hint.hintText,
     };
 
     const hintResult = await executeQuery(hintQuery, hintParams);
 
     if (!hintResult || hintResult.length === 0) {
-      throw new Error("Hint generated but failed to be stored in the database.");
+      throw new Error(
+        "Hint generated but failed to be stored in the database."
+      );
     }
 
     const hintDetails = hintResult[0];
 
-    if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.') {
+    if (
+      hintDetails.CanRequestMoreHints === 0 &&
+      hintDetails.status_message !== "Hint provided successfully."
+    ) {
       return {
         roundId: round.roundId,
         hint: null,
-        success: false
+        success: false,
       };
     }
 
     insertedHint = hintDetails.inserted_hint_text;
-  }
 
   return {
     roundId: round.roundId,
     hint: insertedHint,
-    success: true
+    success: true,
   };
 };
-
 
 const setRoundByTimeout = async (joinCode, roundId) => {
   const query = `
@@ -256,12 +361,22 @@ const setRoundByTimeout = async (joinCode, roundId) => {
   const params = { JoinCode: joinCode, RoundID: roundId };
 
   try {
-    const result = await executeQuery(query, params); 
-    return {success: true, data: result[0].item_name}
+    const result = await executeQuery(query, params);
+    return { success: true, data: result[0].item_name };
   } catch (error) {
-    console.error(`[setRoundByTimeout] Error executing dbo.HandleGameRoundTimeout for joinCode '${joinCode}':`, error.message);
-    throw error; 
+    console.error(
+      `[setRoundByTimeout] Error executing dbo.HandleGameRoundTimeout for joinCode '${joinCode}':`,
+      error.message
+    );
+    throw error;
   }
 };
 
-module.exports = { startRound, makeGuess, calculateAndFinaliseScores, isMatchOver, setRoundByTimeout, getHint };
+module.exports = {
+  startRound,
+  makeGuess,
+  calculateAndFinaliseScores,
+  isMatchOver,
+  setRoundByTimeout,
+  getHint,
+};
