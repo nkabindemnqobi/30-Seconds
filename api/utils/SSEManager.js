@@ -21,8 +21,9 @@ const handleSSEConnection = async (req, res, userId) => {
     }
   }
 
-  res.setHeader("Access-Control-Allow-Origin", "https://d2fmx22186ew2u.cloudfront.net"); 
+  res.setHeader("Access-Control-Allow-Origin", "https://d2fmx22186ew2u.cloudfront.net");
   res.setHeader("Access-Control-Allow-Credentials", "true");
+  res.setHeader("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
 
   res.writeHead(200, {
     "Content-Type": "text/event-stream",
