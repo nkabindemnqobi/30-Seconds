@@ -8,7 +8,7 @@ class EventBus extends EventTarget {
   }
 
   emit(event, detail = {}) {
-    this.dispatchEvent(new CustomEvent(event, { detail }));
+    if(event && Object.keys(detail).length > 0) {this.dispatchEvent(new CustomEvent(event, { detail }));}
   }
 }
 

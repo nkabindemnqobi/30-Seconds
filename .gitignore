@@ -140,3 +140,6 @@ dist
 # Dependency files
 */package-lock.json
 package-lock.json
+
+# Flyway
+**/*.toml

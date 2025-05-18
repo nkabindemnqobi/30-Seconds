@@ -6,7 +6,7 @@ import EventBus from "./eventbus.js";
 let eventSource = null;
 let isInitialized = false;
 
-const initSSE = async () => {
+export const initSSE = async () => {
 
   if (isInitialized && eventSource) {
     console.log("[SSE] Already initialized");
@@ -53,11 +53,11 @@ const initSSE = async () => {
 
 };
 
-const isSSEInitialized = () => {
+export const isSSEInitialized = () => {
   return isInitialized && eventSource !== null;
 };
 
-const cleanupSSE = () => {
+export const cleanupSSE = () => {
   if (eventSource) {
       eventSource.close();
       eventSource = null;
@@ -65,4 +65,4 @@ const cleanupSSE = () => {
   }
 }
 
-export { initSSE, isSSEInitialized, cleanupSSE };
+export default initSSE;
