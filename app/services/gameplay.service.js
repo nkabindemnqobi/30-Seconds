@@ -29,7 +29,7 @@ export default class GameController {
       
       this.addEventListeners();
       
-      console.log('Game controller initialized');
+      
     }
     
     
@@ -53,7 +53,7 @@ export default class GameController {
         this.gameStarted = true;
         this.enableHints();
         this.enableSubmit();
-        console.log('Game started');
+        
       }, 500);
     }
     
@@ -74,7 +74,7 @@ export default class GameController {
       const cardContent = document.querySelector('#appContent');
       cardContent.insertBefore(gameOverMessage, this.submitButton);
       
-      console.log('Game over - time expired');
+      
     }
     
     handleSubmit(event) {
@@ -119,7 +119,7 @@ export default class GameController {
       const cardContent = document.querySelector('#appContent');
       cardContent.insertBefore(successMessage, this.submitButton);
       
-      console.log('Game over - correct answer');
+      
     }
     
 

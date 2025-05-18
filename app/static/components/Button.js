@@ -28,7 +28,7 @@ export default class Button extends HTMLElement {
       iconElement.textContent = this.leftIcon;
       button.appendChild(iconElement);
     } else {
-      //don't add icon if not added as property
+      //did not specify icon to be added
     }
 
     const slot = document.createElement("slot");

@@ -72,7 +72,7 @@ export default class JoinWithCode extends HTMLElement {
         })
       );
     } else {
-      console.error("Error joining lobby:");
+      
       const errorMsg = this.shadowRoot.querySelector("#error-message");
       errorMsg.textContent =
         "Failed to join lobby. Please check your code and try again.";

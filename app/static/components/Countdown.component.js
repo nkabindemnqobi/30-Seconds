@@ -47,12 +47,12 @@ export default class CountdownTimer extends HTMLElement {
     }
     this.render();
     eventbus.on("round_started", (event) => {
-      console.log("EVENT -->",event)
+      
       const { roundInfo } = event.detail;
-      console.log("ROUND INFO -->",roundInfo)
+      
       this.round = roundInfo;
       this.currentQuestion = roundInfo.hint;
-      console.log("CURRENT QUESTION -->",this.currentQuestion);
+      
       const currentPlayer = roundInfo.guessingAlias;
       this.currentPlayer = `${currentPlayer}` || "someone else is playing";
       this.question = this.currentQuestion;
@@ -75,7 +75,7 @@ export default class CountdownTimer extends HTMLElement {
         }, 300);
       });
     } catch (error) {
-      console.error("Failed to fetch question:", error);
+      
       return "Error loading question";
     }
   }
@@ -84,7 +84,7 @@ export default class CountdownTimer extends HTMLElement {
     
     const code = this.joinCode || LobbyData.data.join_code;
     if (!code) {
-      console.error("Cannot start round: Join code is missing.");
+      
       
       return;
     }
@@ -93,23 +93,23 @@ export default class CountdownTimer extends HTMLElement {
       eyeButton.disabled = true;
     }
     try {
-      console.log(`Requesting backend to start round for lobby: ${code}`);
+      
       const response = await this.lobbyService.startRound(code);
       if (response && response.error) { 
-        console.error("API Error starting round:", response.error);
+        
         if (eyeButton && !this.isClueRevealed) { 
           eyeButton.disabled = false;
         }
       } else if (!response || (response.status && response.status >= 400)) { 
-        console.error("Failed to trigger startRound on backend.", response);
+        
         if (eyeButton && !this.isClueRevealed) {
             eyeButton.disabled = false;
         }
       } else {
-        console.log("startRound request sent to backend. Waiting for 'round_started' SSE event.");
+        
       }
     } catch (error) {
-      console.error("Exception when calling startRound service:", error);
+      
       
       if (eyeButton && !this.isClueRevealed) {
         eyeButton.disabled = false;
