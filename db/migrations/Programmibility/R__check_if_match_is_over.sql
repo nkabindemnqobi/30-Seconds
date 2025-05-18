@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.CheckIfMatchIsOver', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.CheckIfMatchIsOver;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.CheckIfMatchIsOver
     @JoinCode VARCHAR(10)
 AS

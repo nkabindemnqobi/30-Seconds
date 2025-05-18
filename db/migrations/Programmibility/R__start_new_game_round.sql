@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.StartNewGameRound', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.StartNewGameRound;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.StartNewGameRound
     @JoinCode VARCHAR(10)
 AS
