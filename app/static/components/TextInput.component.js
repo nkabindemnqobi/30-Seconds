@@ -89,6 +89,18 @@ export default class TextInput extends HTMLElement {
         })
       );
     });
+
+      input.addEventListener("input", () => {
+      this.value = input.value;
+
+      this.dispatchEvent(
+        new CustomEvent("typing", {
+          bubbles: true,
+          composed: true,
+          detail: this.value,
+        })
+      );
+    });
   }
 
   get inputValue() {

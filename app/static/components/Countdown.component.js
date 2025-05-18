@@ -43,6 +43,7 @@ export default class CountdownTimer extends HTMLElement {
   connectedCallback() {
     this.render();
     eventbus.on("round_started", (event) => {
+      this.render()
       this.round = event.detail.roundInfo;
       this.currentQuestion = event.detail.roundInfo.hint;
       const currentPlayer = event.detail.roundInfo.guessingAlias
@@ -69,7 +70,7 @@ export default class CountdownTimer extends HTMLElement {
 
   async revealQuestion() {
     const code = sessionStorage.getItem("joinCode");
-    await this.lobbyService.startRound(code);
+     await this.lobbyService.startRound(code);
     if (!this.isClueRevealed) {
       const loadingPlaceholder = document.createElement("div");
       loadingPlaceholder.textContent = "Loading question...";
@@ -85,7 +86,6 @@ export default class CountdownTimer extends HTMLElement {
       this.isClueRevealed = true;
 
       this.start();
-      this.render();
     }
   }
 
