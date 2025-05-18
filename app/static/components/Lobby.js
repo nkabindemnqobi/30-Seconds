@@ -2,6 +2,7 @@ import "./Lobby.component.js";
 import "./Button.js";
 import eventbus from "../js/sseManager/eventbus.js";
 import { LobbyData } from "../../models/LobbyData.js";
+import router from "../js/index.js";
  
 export default class TriviaLobby extends HTMLElement {
   constructor() {
@@ -10,6 +11,7 @@ export default class TriviaLobby extends HTMLElement {
     this.lobbyData = {
       data: LobbyData.data,
     };
+    sessionStorage.setItem("joinCode",this.lobbyData.data.join_code);
   }
  
   connectedCallback() {
@@ -19,6 +21,12 @@ export default class TriviaLobby extends HTMLElement {
       console.log(event);
       this.lobbyData = {data: event.detail.lobbyData.data};
       this.render();
+    });
+    eventbus.on("game_started", (event) => {
+      console.log(event);
+      sessionStorage.setItem("joinCode", this.joinCode);
+      history.pushState({}, "", "/game-play");
+      router();
     });
   }
  

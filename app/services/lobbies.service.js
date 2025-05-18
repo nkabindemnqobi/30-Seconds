@@ -1,4 +1,5 @@
 import BaseService from "./shared.service.js";
+import { LobbyData } from "../models/LobbyData.js";
 
 export default class LobbyService {
   constructor() {
@@ -15,23 +16,28 @@ export default class LobbyService {
   }
 
   async joinLobby(joinCode, id) {
+    console.log(joinCode)
     return await this.baseService.post(`lobby/${joinCode}`, {
       userJoiningId: id,
     });
   }
 
   async startGame(joinCode) {
-    return await this.baseService.post(`lobby/${joinCode}/start`, {});
+    console.log(LobbyData.data.join_code)
+    return await this.baseService.post(`lobby/${LobbyData.data.join_code}/start`, {});
   }
 
   async startRound(joinCode) {
-    return await this.baseService.post(`round/${joinCode}/start-round`);
+    console.log(LobbyData.data.join_codee)
+    return await this.baseService.post(`round/${LobbyData.data.join_code}/start-round`);
   }
 
   async getHint(joinCode) {
-    return await this.baseService.get(`round/${joinCode}/get-hint`);
+    console.log(LobbyData.data.join_code)
+    return await this.baseService.get(`round/${LobbyData.data.join_code}/get-hint`);
   }
   async submitGuess(joinCode,guess){
-    return await this.baseService.post(`round/${joinCode}/guess`,{guess})
+    console.log(LobbyData.data.join_code)
+    return await this.baseService.post(`round/${LobbyData.data.join_code}/guess`,{guess})
   }
 }
