@@ -38,4 +38,12 @@ LEFT JOIN MatchParticipants mp_banned
     AND mp_banned.match_participants_status_id = (
         SELECT id FROM MatchParticipantsStatus WHERE status = 'Barred'
     )
-LEFT JOIN Users bu ON bu.id = mp_banned.user_id;
+LEFT JOIN Users bu ON bu.id = mp_banned.user_id
+WHERE (
+    SELECT COUNT(*) 
+    FROM MatchParticipants mp 
+    WHERE mp.match_id = m.id
+    AND mp.match_participants_status_id IN (
+        SELECT id FROM MatchParticipantsStatus WHERE status IN ('Creator', 'WaitingStart')
+    )
+) < m.max_participants;
