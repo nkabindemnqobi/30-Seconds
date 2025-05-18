@@ -27,7 +27,8 @@ const initSSE = async () => {
       "wrong_guess",
       "round_timeout",
       "game_ended",
-      "hint_requested"
+      "hint_requested",
+      "player_join"
     ];
 
     supportedEvents.forEach((eventName) => {
