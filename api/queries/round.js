@@ -4,61 +4,66 @@ const { withTransaction } = require("../db/transaction");
 const { generateHint } = require("../services/aiGenerator");
 
 const startRound = async (joinCode) => {
-    
-    const startQuery = `
-        EXEC dbo.StartNewGameRound
-            @JoinCode = @JoinCode;
-        `;
+  const startQuery = `
+    EXEC dbo.StartNewGameRound
+      @JoinCode = @JoinCode;
+  `;
+  const startParams = { JoinCode: joinCode };
 
-    const startParams = { JoinCode: joinCode };
-  
-    try {
-      const dbResult = await executeQuery(startQuery, startParams);
-  
-      if (dbResult && dbResult.length > 0) {
-        const roundDetails = dbResult[0]; 
-        const roundId = roundDetails.round_id;
+  try {
+    const dbResult = await executeQuery(startQuery, startParams);
 
-        const hint = await generateHint(roundDetails.guessing_item_name, roundDetails.guessing_item_category_name, 1);
-
-        const hintQuery = `
-        EXEC dbo.InsertHintForRound
-            @RoundID = @RoundID,
-            @HintText = @HintText
-        `;
-
-        const hintParams = { RoundID: roundId, HintText: hint};
-
-        const hintResult = await executeQuery(hintQuery, hintParams);
-
-        if (hintResult && hintResult.length > 0){
-            const hintDetails = hintResult[0];
-            return {
-                hint: hintDetails.inserted_hint_text,
-                roundId: roundDetails.round_id,
-                guessingUserId: roundDetails.guessing_user_id,
-                guessingAlias: roundDetails.guessing_user_alias,
-                itemCategory: roundDetails.guessing_item_category_name,
-              };
-        }
-        else{
-            throw new Error(
-                "There was an error in generating the hint and storing it in the database."
-              );
-        }
-      } else {
-        throw new Error(
-          "StartNewGameRound stored procedure did not return the expected round data. This might indicate an issue with the join code or an internal logic error in the procedure if no specific error was raised."
-        );
-      }
-    } catch (error) {
-      console.error(
-        `Database error in callStartNewGameRound for join code '${joinCode}':`,
-        error.message
+    if (!dbResult || dbResult.length === 0) {
+      throw new Error(
+        "StartNewGameRound did not return any data. The join code may be invalid or the procedure failed internally."
       );
-      throw error;
     }
-  };
+
+    const roundDetails = dbResult[0];
+    const roundId = roundDetails.round_id;
+
+    const { hintText, saveHint } = await generateHint(
+      roundDetails.guessing_item_name,
+      roundDetails.guessing_item_category_name,
+      1,
+      roundDetails.guessing_item_category_id
+    );
+
+    if (!hintText) {
+      throw new Error("No hint could be generated or retrieved from fallback.");
+    }
+
+    let insertedHintText = hintText;
+
+    if (saveHint) {
+      const hintQuery = `
+        EXEC dbo.InsertHintForRound
+          @RoundID = @RoundID,
+          @HintText = @HintText;
+      `;
+      const hintParams = { RoundID: roundId, HintText: hintText };
+
+      const hintResult = await executeQuery(hintQuery, hintParams);
+
+      if (!hintResult || hintResult.length === 0) {
+        throw new Error("Hint was generated but failed to be inserted into the database.");
+      }
+
+      insertedHintText = hintResult[0].inserted_hint_text;
+    }
+
+    return {
+      roundId: roundDetails.round_id,
+      guessingUserId: roundDetails.guessing_user_id,
+      guessingAlias: roundDetails.guessing_user_alias,
+      itemCategory: roundDetails.guessing_item_category_name,
+      hint: insertedHintText,
+    };
+  } catch (error) {
+    console.error(`[startRound error for joinCode ${joinCode}]: ${error.message}`);
+    throw error;
+  }
+};
 
 const makeGuess = async (joinCode, userId, guessInput) => {
   
@@ -180,39 +185,47 @@ const getHint = async (joinCode, userId) => {
     throw new Error('Not your turn to request a hint');
   }
 
-  const newHint = await generateHint(round.item_name, round.category, round.hintCount);
+  const { hintText, saveHint } = await generateHint(round.item_name, round.category, round.hintCount);
+
+  if (!saveHint) {
+    return {
+      roundId: round.roundId,
+      hint: hintText,
+      success: true
+    };
+  }
 
   const hintQuery = `
-        EXEC dbo.InsertHintForRound
-            @RoundID = @RoundID,
-            @HintText = @HintText
-        `;
+    EXEC dbo.InsertHintForRound
+        @RoundID = @RoundID,
+        @HintText = @HintText
+    `;
+  
+  const hintParams = { RoundID: round.roundId, HintText: hintText };
 
-        const hintParams = { RoundID: roundId, HintText: newHint};
-
-        const hintResult = await executeQuery(hintQuery, hintParams);
-        if (hintResult && hintResult.length > 0 ){
-            const hintDetails = hintResult[0];
-            if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.'){
-              return {
-              roundId: roundId,
-              hint: null,
-              success: false
-              };
-            }
-            else {
-              return {
-              roundId: roundId,
-              hint: newHint,
-              success: true
-            };
-            }
-        }
-        else{
-            throw new Error(
-                "There was an error in generating the hint and storing it in the database."
-              );
-        }
+  const hintResult = await executeQuery(hintQuery, hintParams);
+  if (hintResult && hintResult.length > 0 ){
+      const hintDetails = hintResult[0];
+      if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.'){
+        return {
+          roundId: round.roundId,
+          hint: null,
+          success: false
+        };
+      }
+      else {
+        return {
+          roundId: round.roundId,
+          hint: hintText,
+          success: true
+        };
+      }
+  }
+  else{
+      throw new Error(
+          "There was an error in generating the hint and storing it in the database."
+        );
+  }
 };
 
 
