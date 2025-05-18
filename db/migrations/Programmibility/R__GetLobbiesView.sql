@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.PublicLobbyView', 'V') IS NOT NULL
+    DROP VIEW dbo.PublicLobbyView;
+GO
+
 CREATE VIEW PublicLobbyView AS
 SELECT 
     m.id AS matchId,
