@@ -8,5 +8,3 @@ router.post("/:joinCode/start", authMiddleware, handleStartGame);
 router.post("/:joinCode/barred", authMiddleware, handleKickPlayer);
 
 module.exports = router;
-
-module.exports = router;
