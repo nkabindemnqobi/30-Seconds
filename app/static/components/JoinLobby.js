@@ -1,4 +1,4 @@
-import LobbyService from "../../services/lobbies.service.js";
+import LobbyService from "../../services/Lobbies.service.js";
 import { User } from "../../models/user.js";
 import "./Button.js";
 import "./TextInput.component.js";
@@ -62,7 +62,7 @@ export default class JoinWithCode extends HTMLElement {
     const response = await this.lobbyService.joinLobby(this.lobbyCode, userId);
 
     if (response.success) {
-      history.pushState({}, "", "/lobby");
+      history.pushState({}, "", "/trivia-lobby");
       router();
       this.dispatchEvent(
         new CustomEvent("lobbyJoined", {

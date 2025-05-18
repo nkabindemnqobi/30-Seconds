@@ -3,26 +3,27 @@ import "../../components/View.component.js";
 import { User } from "../../../models/user.js";
 
 export default class Dashboard extends AbstractView {
-    constructor(params) {
-        super(params);
-        this.setTitle("Dashboard");
-    }
-    
+  constructor(params) {
+    super(params);
+    this.setTitle("Dashboard");
+  }
+
   async getHtml() {
-     
-    return (User.user.idToken && User.user.googleId) 
-    ? `
+    return User.user.idToken && User.user.googleId
+      ? `
             <section class="card">
                <header class="card-header">
                 <h1 class="card-title">30-Second Trivia Challenge</h1>
                 <p class="card-description">Join a lobby or create your own to start playing!</p>
                 </header>
+                <main class="card-content" id="appContent">
                 <a href="/create-lobby" data-link>Create Lobby</a>
                 <a href="/join-lobby" data-link>Join with Code</a>
                 <view-lobbies></view-lobbies>
-            </section>
+                </main>
+                </section>
         `
-    : `
+      : `
         <style>
             @import url('/static/css/login.css');
         </style>
@@ -52,5 +53,5 @@ export default class Dashboard extends AbstractView {
             </main>
         </section>
         `;
-    }
+  }
 }
