@@ -68,7 +68,7 @@ const startRound = async (joinCode) => {
       timeoutPromise(AI_TIMEOUT, fallback),
     ]);
   } catch (error) {
-    console.error("Error generating hint:", error);
+    
   }
 
   try {
@@ -179,8 +179,7 @@ const makeGuess = async (joinCode, userId, guessInput) => {
     }
 
     const normalizedGuess = guessInput.toLowerCase().trim();
-    const normalizedAnswer = round.item_name.toLowerCase().trim();
-
+    const normalizedAnswer = round.item_name.toLowerCase().trim(); 
     const isCorrect = normalizedGuess === normalizedAnswer;
 
     if (isCorrect) {
@@ -274,7 +273,6 @@ const getHint = async (joinCode, userId) => {
   if (round.guessing_user_id !== userId) {
     throw new Error("Not your turn to request a hint");
   }
-  ////////////////////////////////////
   const fallback = {
     hintText: "FAILURE",
     saveHint: null,
@@ -291,7 +289,7 @@ const getHint = async (joinCode, userId) => {
       timeoutPromise(AI_TIMEOUT, fallback),
     ]);
   } catch (error) {
-    console.error("Error generating hint:", error);
+    
   }
 
   try {

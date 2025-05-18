@@ -18,12 +18,12 @@ export default class TriviaLobby extends HTMLElement {
     this.render();
     this.setupEventListeners();
     eventbus.on("player_join", (event) => {
-      console.log(event);
+      
       this.lobbyData = {data: event.detail.lobbyData.data};
       this.render();
     });
     eventbus.on("game_started", (event) => {
-      console.log(event);
+      
       sessionStorage.setItem("joinCode", this.joinCode);
       history.pushState({}, "", "/game-play");
       router();
@@ -31,7 +31,6 @@ export default class TriviaLobby extends HTMLElement {
   }
  
   disconnectedCallback() {
-    // Remove the event listener when component is disconnected
     this.removeEventListeners();
   }
  
@@ -59,7 +58,7 @@ export default class TriviaLobby extends HTMLElement {
         }, 2000);
       })
       .catch((err) => {
-        console.error("Could not copy text: ", err);
+        
       });
   }
  

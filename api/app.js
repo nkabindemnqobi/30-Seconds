@@ -31,7 +31,6 @@ app.use("/api/home", homeRouter);
 app.use("/api/lobby", lobbyRoutes);
 app.use("/api/round", roundRoutes);
 
-// Error handling middleware
 app.use(notFound);
 app.use(errorHandler);
 

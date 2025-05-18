@@ -33,7 +33,7 @@ export default class ViewLobbies extends HTMLElement {
 
       this.render();
     } catch (error) {
-      console.error("Failed to load lobbies:", error);
+      
       this.renderError("Failed to load lobbies. Please try again.");
     }
   }

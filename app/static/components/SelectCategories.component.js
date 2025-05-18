@@ -39,7 +39,6 @@ export default class SelectCategories extends HTMLElement {
       chip.setAttribute("id", category.id);
       chip.setAttribute("label", category.name);
 
-      // If already selected (in case of re-render), mark it visually
       if (this.selectedCategories.includes(category.id)) {
         chip.classList.add("selected");
       }

@@ -1,7 +1,7 @@
 function formatMatchWithParticipants(sqlQueryResult) {
 
   if (!Array.isArray(sqlQueryResult) || sqlQueryResult.length === 0 || !sqlQueryResult[0]) {
-      console.log("Formatter returning null due to invalid input or no data.");
+      
       return null;
   }
 

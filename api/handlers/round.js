@@ -32,8 +32,7 @@ const handleStartRound = async (req, res, next) => {
 
     res.status(200).json({ roundId, guessingAlias, hint });
   } catch (error) {
-    console.log(error);
-    
+      
     if (error.message === 'A round is already in progress.') {
       return next(formatErrorResponse(403, error.message));
     }

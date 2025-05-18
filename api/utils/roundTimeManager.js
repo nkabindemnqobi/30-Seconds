@@ -59,7 +59,7 @@ function startRoundTimer(joinCode, roundId, guesserAlias, guesserId ) {
       clearTimeout(timerId);
       activeRoundTimers.delete(joinCode);
     } else {
-      console.log(`No active timer found to clear for match: ${joinCode}`);
+      //no active timers
     }
   }
 

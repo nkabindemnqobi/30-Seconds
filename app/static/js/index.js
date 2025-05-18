@@ -109,7 +109,7 @@ const attachEventListeners = () => {
     if (lobbyForm) {
         lobbyForm.addEventListener("submit", (e) => {
             e.preventDefault();
-            console.log("Form submitted");
+            
         });
     }
 
@@ -158,7 +158,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     
     initializeAsync().catch(error => {
-        console.error('Error during initialization:', error);
+        
     });
 });
 

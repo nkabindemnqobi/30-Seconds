@@ -90,7 +90,7 @@ export default class LobbyForm extends HTMLElement {
         router();
       }
     } catch (_err) {
-      console.error("Error creating lobby:", _err);
+      
     }
   }
 
@@ -100,7 +100,6 @@ export default class LobbyForm extends HTMLElement {
     
     if (value === undefined && event.target.id === 'maxParticipants' && event.type === 'change') {
       value = parseInt(event.target.value, 10);
-      console.log(`[LobbyForm onFormValueChange] Value overridden from event.target.value for slider 'change' event:`, value, `(Type: ${typeof value})`);
     }
     this.formData[field] = value;
   }

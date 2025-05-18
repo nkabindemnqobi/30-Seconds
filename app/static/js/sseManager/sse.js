@@ -10,7 +10,7 @@ let isInitialized = false;
 export const initSSE = async () => {
 
   if (isInitialized && eventSource) {
-    console.log("[SSE] Already initialized");
+    
     return;
   }
   try {
@@ -18,7 +18,7 @@ export const initSSE = async () => {
     const eventSource = new EventSource(`${ApplicationConfiguration.apiBaseUrl}/sse/connect/${googleId}`);
 
     eventSource.onopen = () => {
-      console.log("[SSE] Connection opened.");
+      
     };
 
     const supportedEvents = [
@@ -37,25 +37,25 @@ export const initSSE = async () => {
       eventSource.addEventListener(eventName, (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log(`[SSE] ${eventName}:`, data);
+          
           EventBus.emit(eventName, data);
           if(eventName === 'player_join'){
             LobbyData.setData(data.lobbyData.data);
           }
           else if (eventName === 'match_created'){
-            console.log(data)
+            
             LobbyData.setData(data.data);
           }
           else if(eventName  === "game_ended"){
             GameSession.setData(data.scores)
           }
         } catch (err) {
-          console.error(`[SSE] Failed to parse data for ${eventName}`, err);
+          
         }
       });
     });
   } catch (error) {
-    console.error('Failed to initialize SSE:', error);
+    
     isInitialized = false;
   }
 
