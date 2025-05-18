@@ -23,7 +23,7 @@ export default class BaseService {
   async post(url, requestBody) {
     try {
       const body = JSON.stringify(requestBody);
-      await fetch(`${ApplicationConfiguration.apiBaseUrl}/api/${url}`, {
+      const response = await fetch(`${ApplicationConfiguration.apiBaseUrl}/api/${url}`, {
         method: "POST",
         body,
         headers: {
@@ -31,6 +31,7 @@ export default class BaseService {
           "Authorization": `Bearer ${ User.user.idToken }`,
         },
       });
+      return response.json();
     } catch (error) {
       throw error;
     }

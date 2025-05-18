@@ -4,6 +4,7 @@ import "./Switch.component.js";
 import "./Button.js";
 import "./TextInput.component.js";
 import { User } from "../../models/user.js";
+import router from "../js/index.js";
 
 export default class LobbyForm extends HTMLElement {
   constructor() {
@@ -60,8 +61,12 @@ export default class LobbyForm extends HTMLElement {
 
   async createLobby() {
     try {
-      await this.lobbyService.createLobby(this.formData);
-      history.pushState({}, "", "/lobby");
+      const createLobby = await this.lobbyService.createLobby(this.formData);
+      console.log(createLobby);
+      if(createLobby.data.success) {
+        history.pushState({}, "", "/game-play");
+        router();
+      }
     } catch (_err) {
       console.error("Error creating lobby:", _err);
     }
