@@ -7,7 +7,7 @@ export class ApplicationConfiguration {
         tokenInfo: "",
     }
     
-    static apiBaseUrl = "http://localhost:8000";
+    static apiBaseUrl = "https://d21ni8tqdlfkze.cloudfront.net";
 
     static setAppConfig(appConfig) {
         ApplicationConfiguration.appConfig = { ...appConfig };
