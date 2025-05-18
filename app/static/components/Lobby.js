@@ -7,7 +7,9 @@ export default class TriviaLobby extends HTMLElement {
   constructor() {
     super();
     this.attachShadow({ mode: "open" });
-    this.lobbyData = LobbyData.data;
+    this.lobbyData = {
+      data: LobbyData.data,
+    };
   }
 
   connectedCallback() {
