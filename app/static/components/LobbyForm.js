@@ -71,7 +71,7 @@ export default class LobbyForm extends HTMLElement {
       const isValid = this.formData.lobbyName && this.formData.categoryIds.length > 0;
       const submitLobbyError = this.shadowRoot.getElementById('error-message-submit');
 
-      if (createLobbyButton || isValid) {
+      if (createLobbyButton && isValid) {
         submitLobbyError.textContent = '';
       }
 
