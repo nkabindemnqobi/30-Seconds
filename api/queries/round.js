@@ -159,23 +159,34 @@ const calculateAndFinaliseScores = async (joinCode, finalizeMatch) => {
 };
 
 const getHint = async (joinCode, userId) => {
-  const matchResult = await executeQuery("SELECT id FROM Matches WHERE join_code = @joinCode", {joinCode});
-  if (matchResult.length === 0) {
+  const matchResult = await executeQuery(
+    "SELECT id FROM Matches WHERE join_code = @joinCode",
+    { joinCode }
+  );
+
+  if (!matchResult || matchResult.length === 0) {
     throw new Error('Invalid join code');
   }
 
   const matchId = matchResult[0].id;
 
   const getActiveRoundQuery = `
-  SELECT TOP 1 gr.id AS roundId, gr.guessing_user_id, gi.item_name, c.name AS category, gr.hint_count as hintCount
+    SELECT TOP 1 
+      gr.id AS roundId,
+      gr.guessing_user_id,
+      gi.item_name,
+      gi.category_id,
+      c.name AS category,
+      gr.hint_count as hintCount
     FROM GameRounds gr
     JOIN GuessingItems gi ON gi.id = gr.guessing_item_id
     JOIN Categories c ON gi.category_id = c.id
     WHERE gr.match_id = @matchId AND gr.ended_at IS NULL
-  `
-  const roundResult = await executeQuery(getActiveRoundQuery, {matchId});
+  `;
+  
+  const roundResult = await executeQuery(getActiveRoundQuery, { matchId });
 
-  if (roundResult.length === 0) {
+  if (!roundResult || roundResult.length === 0) {
     throw new Error('No active round in progress');
   }
 
@@ -185,47 +196,54 @@ const getHint = async (joinCode, userId) => {
     throw new Error('Not your turn to request a hint');
   }
 
-  const { hintText, saveHint } = await generateHint(round.item_name, round.category, round.hintCount);
+  const { hintText, saveHint } = await generateHint(
+    round.item_name,
+    round.category,
+    round.hintCount,
+    round.category_id
+  );
 
-  if (!saveHint) {
-    return {
-      roundId: round.roundId,
-      hint: hintText,
-      success: true
-    };
+  if (!hintText) {
+    throw new Error("No hint could be generated or retrieved.");
   }
 
-  const hintQuery = `
-    EXEC dbo.InsertHintForRound
+  let insertedHint = hintText;
+
+  if (saveHint) {
+    const hintQuery = `
+      EXEC dbo.InsertHintForRound
         @RoundID = @RoundID,
         @HintText = @HintText
     `;
-  
-  const hintParams = { RoundID: round.roundId, HintText: hintText };
+    const hintParams = {
+      RoundID: round.roundId,
+      HintText: hintText
+    };
 
-  const hintResult = await executeQuery(hintQuery, hintParams);
-  if (hintResult && hintResult.length > 0 ){
-      const hintDetails = hintResult[0];
-      if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.'){
-        return {
-          roundId: round.roundId,
-          hint: null,
-          success: false
-        };
-      }
-      else {
-        return {
-          roundId: round.roundId,
-          hint: hintText,
-          success: true
-        };
-      }
+    const hintResult = await executeQuery(hintQuery, hintParams);
+
+    if (!hintResult || hintResult.length === 0) {
+      throw new Error("Hint generated but failed to be stored in the database.");
+    }
+
+    const hintDetails = hintResult[0];
+
+    if (hintDetails.CanRequestMoreHints === 0 && hintDetails.status_message !== 'Hint provided successfully.') {
+      return {
+        roundId: round.roundId,
+        hint: null,
+        success: false
+      };
+    }
+
+    insertedHint = hintDetails.inserted_hint_text;
   }
-  else{
-      throw new Error(
-          "There was an error in generating the hint and storing it in the database."
-        );
-  }
+
+  return {
+    roundId: round.roundId,
+    hint: insertedHint,
+    success: true
+  };
 };
 
 
