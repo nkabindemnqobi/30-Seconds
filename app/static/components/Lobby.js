@@ -1,5 +1,6 @@
 import "./Lobby.component.js";
 import "./Button.js";
+import eventbus from "../js/sseManager/eventbus.js";
 import { LobbyData } from "../../models/LobbyData.js";
 
 export default class TriviaLobby extends HTMLElement {
@@ -7,13 +8,16 @@ export default class TriviaLobby extends HTMLElement {
     super();
     this.attachShadow({ mode: "open" });
     this.lobbyData = {
-    data: LobbyData.data,
+      data: LobbyData.data,
     };
   }
 
   connectedCallback() {
     this.render();
     this.setupEventListeners();
+    eventbus.on("player_join", (event) => {
+      this.render();
+    });
   }
 
   disconnectedCallback() {
