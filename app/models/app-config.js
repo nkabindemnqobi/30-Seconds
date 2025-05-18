@@ -2,11 +2,14 @@
     Change @apiBaseUrl to local instances when in development
 */
 export class ApplicationConfiguration {
-    static redirectUrl;
-    static apiBaseUrl = "http://localhost:8000";
-    static loginUrl = "http://localhost:3000";
+    static appConfig = {
+        authUrl: "",
+        tokenInfo: "",
+    }
+    
+    static apiBaseUrl = "https://d21ni8tqdlfkze.cloudfront.net";
 
-    static setRedirectUrl(redirectUri) {
-        ApplicationConfiguration.redirectUrl = redirectUri;
+    static setAppConfig(appConfig) {
+        ApplicationConfiguration.appConfig = { ...appConfig };
     }
 }
