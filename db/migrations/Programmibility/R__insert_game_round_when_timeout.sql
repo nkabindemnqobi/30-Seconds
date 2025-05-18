@@ -1,3 +1,7 @@
+IF OBJECT_ID('dbo.HandleGameRoundTimeout', 'P') IS NOT NULL
+    DROP PROCEDURE dbo.HandleGameRoundTimeout;
+GO
+
 CREATE OR ALTER PROCEDURE dbo.HandleGameRoundTimeout
     @JoinCode VARCHAR(10),
     @RoundID INT = NULL 
@@ -35,7 +39,7 @@ BEGIN
             @GuessingItemID = gr.guessing_item_id 
         FROM dbo.GameRounds gr
         WHERE gr.match_id = @MatchID
-          AND gr.ended_datetime IS NULL 
+          AND gr.ended_at IS NULL 
         ORDER BY gr.id DESC;
 
         IF @ActiveRoundID IS NULL
@@ -51,7 +55,7 @@ BEGIN
         
         UPDATE dbo.GameRounds
         SET
-            ended_datetime = GETDATE(), 
+            ended_at = GETDATE(), 
             points_awarded = 0,
             time_in_ms = 30000
         WHERE
