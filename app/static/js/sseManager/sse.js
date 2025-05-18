@@ -41,6 +41,10 @@ export const initSSE = async () => {
           if(eventName === 'player_join'){
             LobbyData.setData(data.lobbyData.data);
           }
+          else if (eventName === 'match_created'){
+            console.log(data)
+            LobbyData.setData(data.data);
+          }
         } catch (err) {
           console.error(`[SSE] Failed to parse data for ${eventName}`, err);
         }
