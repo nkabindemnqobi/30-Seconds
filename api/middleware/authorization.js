@@ -1,6 +1,6 @@
 const { verifyIdToken } = require("../handlers/google-auth");
 const { formatErrorResponse, getUnexpectedErrorStatus } = require("../utils/formatErrorResponse");
-const { User } = require("../models/User");
+const { getLoggedInUser } = require("../utils/getUser");
 
 const authMiddleware = async (req, res, next) => {
   const authHeader = req.headers.authorization;
@@ -18,10 +18,8 @@ const authMiddleware = async (req, res, next) => {
         if(tokenInfoJson.error.code) return next(formatErrorResponse(tokenInfoJson.error.code, `${tokenInfoJson.error.status}: ${tokenInfoJson.error.message}`));
         return next(formatErrorResponse(401, `${tokenInfoJson.error}: ${tokenInfoJson.error_description}`));
     } else {
-        const user = new User();
-        user.setUser(tokenInfoJson);
-        const authorizedUser = user.getUser();
-        req.user = authorizedUser;
+        const user = getLoggedInUser(tokenInfoJson);
+        req.user = user;
         next();
     }
     
