@@ -45,10 +45,6 @@ async function fetchHintFromDb(itemName, categoryId, hintOrder) {
 async function generateHint(itemName, category, hintCount, categoryId) {
   const systemPrompt = 'You are a game assistant providing hints for a guessing game.';
   const userPrompt = `Give a clever hint for guessing "${itemName}" in the category "${category}". 
-  Consider one of the following approaches for the hint:
-  * If it's an object, comment on what it's used for, or what it's not used for.
-  * A hint focusing on a less obvious characteristic or a surprising fact.
-  * A hint describing what it's often confused with, but highlighting a key difference. 
   The hint must be fair, challenging, and not reveal the answer directly.
   Respond with just the hint — no extra text, quotes, or formatting. The difficulty should be on a scale from 1 (really hard) to 3 (dead giveaway, don't even make it clever).
   Make the hint be of difficulty ${hintCount}. It must not exceed 200 characters in length.`;

@@ -51,37 +51,18 @@ const startRound = async (joinCode) => {
   } catch (error) {
     throw new Error("Query for guessing item selection has failed.");
   }
-
-  const fallback = {
-    hintText: "FAILURE",
-    saveHint: null,
-  };
-  let hint = "";
+  console.log("GUESSING ITEM INFO:",guessingItemInfo);
+  let hint;
   try {
-    hint = await Promise.race([
-      generateHint(
-        guessingItemInfo.guessingItemName,
-        guessingItemInfo.guessingItemCategory,
-        1,
-        guessingItemInfo.guessingItemCategoryId
-      ),
-      timeoutPromise(AI_TIMEOUT, fallback),
-    ]);
-  } catch (error) {
-    
-  }
-
-  try {
-    if (hint === fallback) {
       hint = await fetchHintFromDb(
         guessingItemInfo.guessingItemName,
         guessingItemInfo.guessingItemCategoryId,
         1
       );
-    }
   } catch (error) {
     throw new Error("Failure fetching hint from the database");
   }
+  console.log("THE HINT OBJECT:",hint);
 
   const startQuery = `
     EXEC dbo.StartNewGameRound
@@ -104,32 +85,10 @@ const startRound = async (joinCode) => {
     }
 
     const roundDetails = dbResult[0];
+    console.log("ROUND:",roundDetails);
     const roundId = roundDetails.round_id;
 
-    if (!hint.hintText) {
-      throw new Error("No hint could be generated or retrieved from fallback.");
-    }
-
     let insertedHintText = hint.hintText;
-
-    if (hint.saveHint) {
-      const hintQuery = `
-        EXEC dbo.InsertHintForRound
-          @RoundID = @RoundID,
-          @HintText = @HintText;
-      `;
-      const hintParams = { RoundID: roundId, HintText: hint.hintText };
-
-      const hintResult = await executeQuery(hintQuery, hintParams);
-
-      if (!hintResult || hintResult.length === 0) {
-        throw new Error(
-          "Hint was generated but failed to be inserted into the database."
-        );
-      }
-
-      insertedHintText = hintResult[0].inserted_hint_text;
-    }
 
     return {
       roundId: roundDetails.round_id,
@@ -270,36 +229,18 @@ const getHint = async (joinCode, userId) => {
 
   const round = roundResult[0];
 
+  console.log("ROUND:",round);
+
   if (round.guessing_user_id !== userId) {
     throw new Error("Not your turn to request a hint");
   }
-  const fallback = {
-    hintText: "FAILURE",
-    saveHint: null,
-  };
-  let hint = "";
+  let hint;
   try {
-    hint = await Promise.race([
-      generateHint(
-        round.item_name,
-        round.category,
-        round.hintCount,
-        round.category_id
-      ),
-      timeoutPromise(AI_TIMEOUT, fallback),
-    ]);
-  } catch (error) {
-    
-  }
-
-  try {
-    if (hint === fallback) {
       hint = await fetchHintFromDb(
         round.item_name,
         round.category_id,
         round.hintCount+2
       );
-    }
   } catch (error) {
     throw new Error("Failure fetching hint from the database");
   }
