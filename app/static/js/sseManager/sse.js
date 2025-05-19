@@ -33,6 +33,14 @@ export const initSSE = async () => {
       "player_join"
     ];
 
+    eventSource.onopen = () => {
+    console.log("[SSE] Connection opened.");
+    };
+
+    eventSource.onerror = (err) => {
+      console.error("[SSE] Connection error:", err);
+    };
+
     supportedEvents.forEach((eventName) => {
       eventSource.addEventListener(eventName, (event) => {
         try {
