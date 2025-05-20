@@ -13,13 +13,13 @@ INSERT INTO MatchParticipantsStatus (status) VALUES
 ('Won');
 
 INSERT INTO Categories (name) VALUES
-('Animal'),
+('Objects'),
 ('Celebrities'),
-('General Knowledge'),
 ('Geography'),
 ('Movies & TV'),
+('Sports'),
 ('Music'),
-('Sports');
+('Animals');
 
 INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Toothbrush', 1),

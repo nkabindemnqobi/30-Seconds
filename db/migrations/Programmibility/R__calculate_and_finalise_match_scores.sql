@@ -20,7 +20,7 @@ BEGIN
     
     CREATE TABLE #UserScores (
         user_id INT PRIMARY KEY,
-        user_alias VARCHAR(20),
+        user_alias VARCHAR(50),
         total_score INT
     );
 
