@@ -1,4 +1,5 @@
 import AbstractView from "./AbstractView.js";
+import "../../components/Spinner.js";
 
 export default class Authenticated extends AbstractView {
     constructor(params) {
@@ -8,9 +9,7 @@ export default class Authenticated extends AbstractView {
     
     async getHtml() {
         return `
-            <section class="card">
-                <h1>Successfully Authenticated</h1>
-            </section>
+            <loading-spinner></loading-spinner>
         `;
     }
 }

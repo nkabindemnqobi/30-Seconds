@@ -96,166 +96,200 @@ export default class TriviaLobby extends HTMLElement {
     const style = document.createElement("style");
     style.textContent = `
         @import url("https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined");
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
  
-        :host {
-          display: block;
-          font-family: 'Poppins', sans-serif;
-        }
-         
-        .material-symbols-outlined {
-          font-size: 18px;
-          vertical-align: middle;
-        }
+:host {
+  display: block;
+  font-family: 'Poppins', sans-serif;
+}
  
-        .lobby-container {
-          background-color: white;
-          border-radius: 0.75rem;
-          overflow: hidden;
-        }
+/* General Icon */
+.material-symbols-outlined {
+  font-size: 18px;
+  vertical-align: middle;
+}
  
-        header {
-          background-color: #f3e8ff;
-          color: #6b21a8;;
-          padding: 1.5rem;
-          border-bottom: 1px solid rgba(107, 33, 168, 0.1);
-        }
+.lobby-container {
+  background-color: white;
+  border-radius: 0.75rem;
+  overflow: hidden;
+  max-width: 800px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
  
-        header h2 {
-          margin: 0;
-          font-size: 1.5rem;
-          font-weight: 600;
-        }
+header {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  padding: 1.5rem;
+  border-bottom: 1px solid rgba(107, 33, 168, 0.1);
+}
  
-        main {
-          padding: 1.5rem;
-        }
+header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 600;
+}
  
-        .lobby-meta {
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          margin-bottom: 1.5rem;
-        }
+main {
+  padding: 1.5rem;
+}
  
-        .lobby-code-container {
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
+.lobby-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
  
-        .lobby-code {
-          background-color: #f3e8ff;
-          color: #6b21a8;;
-          padding: 0.5rem 1rem;
-          border-radius: 9999px;
-          font-weight: 500;
-          font-size: 0.875rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
+.lobby-code-container {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
  
-        .copy-button {
-          background: none;
-          border: none;
-          cursor: pointer;
-          color: #6b21a8;;
-          position: relative;
-          padding: 0;
-          display: flex;
-          align-items: center;
-        }
+.lobby-code {
+  background-color: #f3e8ff;
+  color: #6b21a8;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-weight: 500;
+  font-size: 0.875rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
  
-        .copy-tooltip {
-          position: absolute;
-          bottom: -30px;
-          left: 50%;
-          transform: translateX(-50%);
-          background-color: #333;
-          color: white;
-          padding: 0.25rem 0.5rem;
-          border-radius: 4px;
-          font-size: 0.75rem;
-          opacity: 0;
-          transition: opacity 0.2s ease;
-          pointer-events: none;
-          white-space: nowrap;
-        }
+.copy-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #6b21a8;
+  position: relative;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
  
-        .copy-tooltip.show {
-          opacity: 1;
-        }
+.copy-tooltip {
+  position: absolute;
+  bottom: -30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #333;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  pointer-events: none;
+  white-space: nowrap;
+}
  
-        .player-count {
-          background-color: #dcfce7;
-          color: #166534;
-          padding: 0.5rem 1rem;
-          border-radius: 9999px;
-          font-size: 0.875rem;
-          font-weight: 500;
-        }
+.copy-tooltip.show {
+  opacity: 1;
+}
  
-        .players-heading {
-          font-size: 1rem;
-          font-weight: 500;
-          margin-bottom: 1rem;
-          color: #4b5563;
-        }
+.player-count {
+  background-color: #dcfce7;
+  color: #166534;
+  padding: 0.5rem 1rem;
+  border-radius: 9999px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
  
-        .players-list {
-          list-style: none;
-          padding: 0;
-          margin: 0;
-          display: flex;
-          flex-direction: column;
-          gap: 0.75rem;
-        }
+.players-heading {
+  font-size: 1rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+  color: #4b5563;
+}
  
-        .player-item {
-          padding: 0.75rem 1rem;
-          border-radius: 0.5rem;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-          border: 1px solid #e5e7eb;
-          transition: all 0.2s ease;
-        }
+.players-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
  
-        .host-player {
-          background-color: #f0fdf4;
-          border: 1px solid #bbf7d0;
-        }
+.player-item {
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid #e5e7eb;
+  transition: all 0.2s ease;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
  
-        .player-name {
-          font-weight: 500;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-        }
+.host-player {
+  background-color: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
  
-        .host-badge {
-          font-size: 0.75rem;
-          background-color: #bbf7d0;
-          color: #166534;
-          padding: 0.15rem 0.5rem;
-          border-radius: 0.25rem;
-          font-weight: 600;
-        }
+.player-name {
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
  
-        .player-status {
-          font-size: 0.875rem;
-          color: #6b7280;
-        }
+.host-badge {
+  font-size: 0.75rem;
+  background-color: #bbf7d0;
+  color: #166534;
+  padding: 0.15rem 0.5rem;
+  border-radius: 0.25rem;
+  font-weight: 600;
+}
  
-        footer {
-          background-color: #f9fafb;
-          padding: 1rem 1.5rem;
-          border-top: 1px solid #e5e7eb;
-          font-size: 0.875rem;
-          color: #6b7280;
-          text-align: center;
-        }
+.player-status {
+  font-size: 0.875rem;
+  color: #6b7280;
+}
+ 
+footer {
+  background-color: #f9fafb;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+}
+
+@media (max-width: 600px) {
+  header h2 {
+    font-size: 1.25rem;
+  }
+ 
+  .lobby-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+ 
+  .player-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+ 
+  .player-status {
+    align-self: flex-end;
+  }
+ 
+  .copy-tooltip {
+    bottom: -35px;
+    font-size: 0.65rem;
+  }
+} 
       `;
     this.shadowRoot.appendChild(style);
  

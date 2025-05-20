@@ -30,7 +30,8 @@ export const initSSE = async () => {
       "round_timeout",
       "game_ended",
       "hint_requested",
-      "player_join"
+      "player_join",
+      "round_complete"
     ];
 
     eventSource.onopen = () => {
