@@ -1,6 +1,15 @@
-export const applicationConfiguration = {
-    redirectUrl: "",
-    token: "",
-    apiBaseUrl: "http://localhost:8000",
-    home: "http://localhost:3000/lobby"
+/*
+    Change @apiBaseUrl to local instances when in development
+*/
+export class ApplicationConfiguration {
+    static appConfig = {
+        authUrl: "",
+        tokenInfo: "",
+    }
+    
+    static apiBaseUrl = "http://30-seconds.af-south-1.elasticbeanstalk.com";
+
+    static setAppConfig(appConfig) {
+        ApplicationConfiguration.appConfig = { ...appConfig };
+    }
 }

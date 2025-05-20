@@ -1,16 +1,18 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { getAuthUrl, exchangeCodeForIdToken } = require("../handlers/google-auth");
+const {
+  getAuthUrl,
+  exchangeCodeForIdToken,
+} = require("../handlers/google-auth");
+const { handleSSEConnection } = require("../utils/SSEManager");
 
-router.get('/get-token', async (req, res, next) => {
-  const code = req.query["code"];
-  const tokenResponse = code ? await exchangeCodeForIdToken(code) : null;
-  res.send(tokenResponse);
+router.get('/get-token', exchangeCodeForIdToken);
+
+router.get("/login", (req, res) => {
+  const authUrl = getAuthUrl();
+  res.send(authUrl);
 });
 
-router.get('/login', (req, res, next) => {
-  const authUrl = getAuthUrl();
-  res.send({ authUrl: authUrl });
-})
+router.get("/sse/connect/:googleId", handleSSEConnection);
 
 module.exports = router;

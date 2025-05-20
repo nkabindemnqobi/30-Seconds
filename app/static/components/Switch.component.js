@@ -7,6 +7,7 @@ export default class Switch extends HTMLElement {
 
   connectedCallback() {
     this.labelText = this.getAttribute("label") || "Toggle";
+    this.descriptionText = this.getAttribute("description") || "";
     this.render();
     this.setupListeners();
   }
@@ -14,13 +15,24 @@ export default class Switch extends HTMLElement {
   render() {
     const style = document.createElement("style");
     style.textContent = `
-      .switch {
-        display: flex;
-        align-items: center;
-        gap: 10px;
+    .switch{
+    display: flex;
+    }
+
+      label {
+        font-weight: 500;
+        color: #4b0082; 
+        margin-right: 8px;
       }
-      
+
+      .description {
+        font-size: 12px;
+        color: #7e22ce;
+      }
+
       .toggle {
+        align-self: center;
+        justify-self: end;
         position: relative;
         width: 50px;
         height: 24px;
@@ -28,8 +40,9 @@ export default class Switch extends HTMLElement {
         border-radius: 12px;
         cursor: pointer;
         transition: background-color 0.3s;
+        margin:0;
       }
-      
+
       .toggle::after {
         content: "";
         position: absolute;
@@ -40,27 +53,30 @@ export default class Switch extends HTMLElement {
         background-color: white;
         border-radius: 50%;
         transition: left 0.3s;
+        margin:0;
       }
-      
+
       .toggle[aria-checked="true"] {
         background-color: var(--primary-color, #4caf50);
       }
-      
+
       .toggle[aria-checked="true"]::after {
         left: 28px;
       }
-
       label {
         cursor: pointer;
       }
     `;
 
-    const id = `toggle-${crypto.randomUUID()}`;
+    const id = `toggle`;
     this.shadowRoot.innerHTML = `
-      <div class="switch">
+      <section class="switch">
+
         <label for="${id}">${this.labelText}</label>
-        <div id="${id}" class="toggle" role="switch" aria-checked="${this.checked}" tabindex="0"></div>
-      </div>
+          <figure id="${id}" class="toggle" role="switch" aria-checked="${this.checked}" tabindex="0"></figure>
+          </section>
+           ${this.descriptionText ? `<p class="description">${this.descriptionText}</p>` : ""}
+      
     `;
     this.shadowRoot.appendChild(style);
   }

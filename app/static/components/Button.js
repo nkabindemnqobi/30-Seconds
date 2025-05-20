@@ -1,10 +1,3 @@
-/*
-example usage:
-  <app-button leftIcon="replay" id="yourId"class="primary">Button with icon example</app-button>
-  <app-button  id="yourId" class="primary">Primary color button</app-button>
-  <app-button  id="yourId" class="secondary">Secondary color button</app-button>
-
-*/
 import importStylesheet from "../utils/import-style-sheet.js";
 export default class Button extends HTMLElement {
   constructor() {
@@ -35,22 +28,11 @@ export default class Button extends HTMLElement {
       iconElement.textContent = this.leftIcon;
       button.appendChild(iconElement);
     } else {
-      //don't add icon if not added as property
+      //did not specify icon to be added
     }
 
     const slot = document.createElement("slot");
     button.appendChild(slot);
-
-    button.addEventListener("click", (e) => {
-      this.dispatchEvent(
-        new CustomEvent("click", {
-          detail: { originalEvent: e },
-          bubbles: true,
-          composed: true,
-        })
-      );
-    });
-
     this.shadowRoot.appendChild(button);
   }
 }

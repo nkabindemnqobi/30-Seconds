@@ -1,18 +1,27 @@
-import "./ListItems.component.js";
 import CategoriesService from "../../services/categories.service.js";
+import "./Error.component.js";
+import "./ListItems.component.js";
 
 export default class SelectCategories extends HTMLElement {
   constructor() {
     super();
     this.categoryService = new CategoriesService();
     this.categories = [];
-    this.attachShadow({ mode: "open" });
     this.selectedCategories = [];
+    this.attachShadow({ mode: "open" });
   }
 
   async connectedCallback() {
-    this.categories = await this.categoryService.retrieveCategories();
-    this.render();
+    try {
+      this.categories = await this.categoryService.retrieveCategories();
+      if (this.categories.length === 0) {
+        this.renderError("No categories available. Please try again.");
+        return;
+      }
+      this.render();
+    } catch (error) {
+      this.renderError("Failed to load categories. Please try again.");
+    }
   }
 
   render() {
@@ -21,32 +30,67 @@ export default class SelectCategories extends HTMLElement {
     legend.textContent = "Categories";
     fieldset.appendChild(legend);
 
-    const categoriesContainer = document.createElement("div");
+    const categoriesContainer = document.createElement("ul");
     categoriesContainer.classList.add("categories");
+    categoriesContainer.setAttribute("role", "list");
 
     this.categories.forEach((category) => {
       const chip = document.createElement("app-list");
       chip.setAttribute("id", category.id);
       chip.setAttribute("label", category.name);
-      categoriesContainer.appendChild(chip);
+
+      if (this.selectedCategories.includes(category.id)) {
+        chip.classList.add("selected");
+      }
 
       chip.addEventListener("selected", (event) =>
-        this.onCategorySelected(event)
+        this.onCategorySelected(event, chip)
       );
+
+      categoriesContainer.appendChild(chip);
     });
 
     fieldset.appendChild(categoriesContainer);
+
     const small = document.createElement("small");
     small.textContent = "All categories will be included";
     fieldset.appendChild(small);
 
     const style = document.createElement("style");
     style.textContent = `
+
       .categories {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        grid-template-columns: repeat(2, 1fr);
         gap: 0.5rem;
-        margin: 10px 0;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+        @media (max-width: 400px) {
+        .categories {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      app-list {
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.375rem;
+        background-color: #fff;
+        color: #374151;
+        cursor: pointer;
+        transition: background-color 0.2s, border-color 0.2s;
+      }
+
+      app-list:hover {
+        background-color: #f5f3ff;
+      }
+
+      app-list.selected {
+        background-color: #f3e8ff;
+        border-color: #d8b4fe;
+        color: #6b21a8;
       }
 
       fieldset {
@@ -66,35 +110,6 @@ export default class SelectCategories extends HTMLElement {
         margin-top: 10px;
         color: #666;
       }
-      .category-list {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 0.5rem;
-        padding: 0;
-        list-style: none;
-        max-width: 400px;
-        margin: 2rem auto;
-      }
-
-      .category-list li {
-        padding: 0.75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 0.375rem;
-        background-color: #fff;
-        color: #374151;
-        cursor: pointer;
-        transition: background-color 0.2s, border-color 0.2s;
-      }
-
-      .category-list li:hover {
-        background-color: #f5f3ff;
-      }
-
-      .category-list li.selected {
-        background-color: #f3e8ff;
-        border-color: #d8b4fe;
-        color: #6b21a8;
-      }
     `;
 
     this.shadowRoot.innerHTML = "";
@@ -102,27 +117,40 @@ export default class SelectCategories extends HTMLElement {
     this.shadowRoot.appendChild(fieldset);
   }
 
-  onCategorySelected(event) {
+  renderError(message) {
+    const errorMessage = document.createElement("error-message");
+    errorMessage.setAttribute("message", message);
+    errorMessage.setAttribute("retry", "");
+
+    errorMessage.addEventListener("retry", () => this.connectedCallback());
+
+    this.shadowRoot.innerHTML = "";
+    this.shadowRoot.appendChild(errorMessage);
+  }
+
+  onCategorySelected(event, chip) {
     const { label } = event.detail;
 
     const selectedCategory = this.categories.find(
       (category) => category.name === label
     );
 
-    if (
-      selectedCategory &&
-      this.selectedCategories.some(
-        (category) => category.name === selectedCategory.name
-      )
-    ) {
+    if (!selectedCategory) return;
+
+    const isSelected = this.selectedCategories.includes(selectedCategory.id);
+
+    if (isSelected) {
       this.selectedCategories = this.selectedCategories.filter(
-        (category) => category.name !== selectedCategory.name
+        (categoryId) => categoryId !== selectedCategory.id
       );
+      chip.classList.remove("selected");
     } else {
-      this.selectedCategories.push(selectedCategory);
+      this.selectedCategories.push(selectedCategory.id);
+      chip.classList.add("selected");
     }
+
     this.dispatchEvent(
-      new CustomEvent("change", {
+      new CustomEvent("updated", {
         detail: this.selectedCategories,
         bubbles: true,
         composed: true,
@@ -132,3 +160,5 @@ export default class SelectCategories extends HTMLElement {
 }
 
 customElements.define("select-categories", SelectCategories);
+
+

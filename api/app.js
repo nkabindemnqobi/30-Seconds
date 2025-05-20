@@ -1,42 +1,37 @@
-const createError = require('http-errors');
-const express = require('express');
-const logger = require('morgan');
+const express = require("express");
+const logger = require("morgan");
 const cors = require("cors");
+const dotenv = require('dotenv');
+dotenv.config();
 
-const authRouter = require('./routes/google-auth');
-const lobbiesRouter = require('./routes/lobbies');
-const usersRouter = require('./routes/users');
-const createLobby = require('./routes/categories');
-const homeRouter = require('./routes/home');
+
+const authRouter = require("./routes/google-auth");
+const createLobby = require("./routes/createLobby");
+const homeRouter = require("./routes/home");
+const lobbyRoutes = require("./routes/lobby");
+const roundRoutes = require("./routes/round");
+const { errorHandler, notFound } = require("./middleware/error");
 
 const app = express();
+const notProduction = process.env.NODE_ENV.toLowerCase() !== "production";
 
-app.use(cors({
-  origin: process.env.ORIGIN,
-  credentials: true, 
-}));
-
-app.use(logger('dev'));
+if(notProduction) app.use(logger("dev"));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cors({
+  allowedHeaders: "*",
+  origin: process.env.ORIGIN,
+  credentials: true,
+}))
 
-app.use('/auth', authRouter);
-app.use('/users', usersRouter);
-app.use('/create-lobby', createLobby);
-app.use('/home', homeRouter);
-app.use('/lobbies', lobbiesRouter);
+app.use("/api/auth", authRouter);
+app.use("/", authRouter);
+app.use("/api/create-lobby", createLobby);
+app.use("/api/home", homeRouter);
+app.use("/api/lobby", lobbyRoutes);
+app.use("/api/round", roundRoutes);
 
-app.use((req, res, next) => {
-  next(createError(404));
-});
-
-app.use((err, req, res, next) => {
-  res.status(err.status || 500).json({
-    error: {
-      message: err.message,
-      status: err.status || 500
-    }
-  });
-});
+app.use(notFound);
+app.use(errorHandler);
 
 module.exports = app;

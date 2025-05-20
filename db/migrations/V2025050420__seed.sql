@@ -1,24 +1,25 @@
 INSERT INTO MatchStatus (status) VALUES
+('Completed'),
 ('Lobby'),
-('Ongoing'),
-('Completed');
+('Ongoing');
 
 INSERT INTO MatchParticipantsStatus (status) VALUES
+('Barred'),
 ('Creator'),
-('WaitingStart'),
-('Playing'),
-('Won'),
-('Lost'),
 ('Left'),
-('Barred');
+('Lost'),
+('Playing'),
+('WaitingStart'),
+('Won');
 
 INSERT INTO Categories (name) VALUES
-('General Knowledge'),
+('Objects'),
 ('Celebrities'),
 ('Geography'),
 ('Movies & TV'),
 ('Sports'),
-('Music');
+('Music'),
+('Animals');
 
 INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Toothbrush', 1),
@@ -119,3 +120,20 @@ INSERT INTO GuessingItems (item_name, category_id) VALUES
 ('Hip Hop', 6),
 ('Karaoke', 6),
 ('Vinyl record', 6);
+
+INSERT INTO GuessingItems (item_name, category_id) VALUES
+('Elephant', 7),
+('Lion', 7),
+('Kangaroo', 7),
+('Penguin', 7),
+('Giraffe', 7),
+('Dolphin', 7),
+('Cheetah', 7),
+('Owl', 7),
+('Crocodile', 7),
+('Panda', 7),
+('Zebra', 7),
+('Hippopotamus', 7),
+('Koala', 7),
+('Peacock', 7),
+('Octopus', 7);
