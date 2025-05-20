@@ -42,6 +42,9 @@ export class GamePlayComponent extends HTMLElement {
     eventbus.on("round_timeout", async (_event) => {
       this.onNewRoundStarted("Time's up");
     });
+    eventbus.on("round_complete", async (_event) => {
+      this.onNewRoundStarted("Round complete");
+    });
     this.guess = "";
     this.shadowRoot.addEventListener("typing", this.onGuess.bind(this));
     const submitGuessButton = this.shadowRoot.querySelector("#submit-guess");

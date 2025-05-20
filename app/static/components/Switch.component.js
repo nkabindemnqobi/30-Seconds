@@ -68,7 +68,7 @@ export default class Switch extends HTMLElement {
       }
     `;
 
-    const id = `toggle-${crypto.randomUUID()}`;
+    const id = `toggle`;
     this.shadowRoot.innerHTML = `
       <section class="switch">
 
